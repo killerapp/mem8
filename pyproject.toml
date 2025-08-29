@@ -1,7 +1,50 @@
 [project]
 name = "ai-mem"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI Memory Management CLI for team collaboration with Claude Code integration"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+    "pydantic>=2.0.0",
+    "cookiecutter>=2.4.0",
+    "gitpython>=3.1.0",
+    "pathlib>=1.0.0",
+    "platformdirs>=3.0.0",
+    "pyyaml>=6.0",
+    "watchdog>=3.0.0",
+    "colorama>=0.4.6",
+    "requests>=2.28.0",
+    "sentence-transformers>=2.2.0",
+]
+
+[project.scripts]
+ai-mem = "ai_mem.cli:main"
+aimem = "ai_mem.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.0.0",
+    "mypy>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
