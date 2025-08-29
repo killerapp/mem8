@@ -1,0 +1,35 @@
+import type { Metadata } from "next";
+import { Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistMono = Geist_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "AI-Mem | Terminal Memory Interface",
+  description: "Terminal-style AI memory management and team collaboration platform",
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className="dark">
+      <body
+        className={`${geistMono.variable} bg-grid bg-scanlines`}
+      >
+        <div className="min-h-screen flex flex-col">
+          {children}
+        </div>
+      </body>
+    </html>
+  );
+}

@@ -44,7 +44,16 @@
       "Bash(git checkout:*)",
       "mcp__browser__browser_navigate",
       "mcp__browser__browser_get_markdown",
-      "mcp__browser__browser_screenshot"
+      "mcp__browser__browser_screenshot",
+      "Bash(gh pr edit:*)",
+      "Read(C:\\Users\\vaski\\projects/**)",
+      "Read(C:\\Users\\vaski\\projects\\agenticinsights.com/**)",
+      "Read(C:\\Users\\vaski\\projects\\agenticinsights.com/**)",
+      "Read(C:\\Users\\vaski\\projects\\agenticinsights.com/**)",
+      "Read(C:\\Users\\vaski\\projects\\agenticinsights.com/**)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []
