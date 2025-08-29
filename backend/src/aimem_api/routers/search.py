@@ -4,7 +4,7 @@ import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
@@ -59,25 +59,25 @@ async def _fulltext_search(
     """Perform fulltext search using PostgreSQL."""
     
     # Build base query
-    query = db.query(Thought).filter(
+    query = select(Thought).where(
         Thought.is_published == True,
         Thought.is_archived == False,
     )
     
     # Apply team filter
     if search_query.team_id:
-        query = query.filter(Thought.team_id == search_query.team_id)
+        query = query.where(Thought.team_id == search_query.team_id)
     
     # Apply tag filters
     if search_query.tags:
         tag_filters = []
         for tag in search_query.tags:
             tag_filters.append(Thought.tags.contains([tag]))
-        query = query.filter(and_(*tag_filters))
+        query = query.where(and_(*tag_filters))
     
     # Apply path filter
     if search_query.path_filter:
-        query = query.filter(Thought.path.ilike(f"%{search_query.path_filter}%"))
+        query = query.where(Thought.path.ilike(f"%{search_query.path_filter}%"))
     
     # Apply text search
     search_terms = search_query.query.strip()
@@ -87,7 +87,7 @@ async def _fulltext_search(
             Thought.title.ilike(f"%{search_terms}%"),
             Thought.content.ilike(f"%{search_terms}%")
         )
-        query = query.filter(text_filter)
+        query = query.where(text_filter)
     
     # Apply pagination
     query = query.offset(search_query.offset).limit(search_query.limit)
@@ -207,8 +207,8 @@ async def get_search_suggestions(
         query_filter = and_(query_filter, Thought.team_id == team_id)
     
     result = await db.execute(
-        db.query(Thought.title)
-        .filter(
+        select(Thought.title)
+        .where(
             query_filter,
             Thought.is_published == True,
             Thought.is_archived == False,

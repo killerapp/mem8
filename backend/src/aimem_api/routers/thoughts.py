@@ -4,7 +4,7 @@ import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -34,7 +34,7 @@ async def list_thoughts(
     """List thoughts with filtering and pagination."""
     
     # Build query
-    query = db.query(Thought)
+    query = select(Thought)
     
     # Apply filters
     filters = []
@@ -57,11 +57,13 @@ async def list_thoughts(
         filters.append(search_filter)
     
     if filters:
-        query = query.filter(and_(*filters))
+        query = query.where(and_(*filters))
     
     # Count total
-    total_query = query.with_only_columns(func.count(Thought.id))
-    total_result = await db.execute(total_query)
+    count_query = select(func.count(Thought.id))
+    if filters:
+        count_query = count_query.where(and_(*filters))
+    total_result = await db.execute(count_query)
     total = total_result.scalar() or 0
     
     # Apply pagination
@@ -127,7 +129,7 @@ async def get_thought(
     """Get a specific thought by ID."""
     
     result = await db.execute(
-        db.query(Thought).filter(Thought.id == thought_id)
+        select(Thought).where(Thought.id == thought_id)
     )
     thought = result.scalar_one_or_none()
     
@@ -150,7 +152,7 @@ async def update_thought(
     
     # Get existing thought
     result = await db.execute(
-        db.query(Thought).filter(Thought.id == thought_id)
+        select(Thought).where(Thought.id == thought_id)
     )
     thought = result.scalar_one_or_none()
     
@@ -188,7 +190,7 @@ async def delete_thought(
     """Delete a specific thought."""
     
     result = await db.execute(
-        db.query(Thought).filter(Thought.id == thought_id)
+        select(Thought).where(Thought.id == thought_id)
     )
     thought = result.scalar_one_or_none()
     
@@ -212,7 +214,7 @@ async def get_related_thoughts(
     
     # Get the source thought
     result = await db.execute(
-        db.query(Thought).filter(Thought.id == thought_id)
+        select(Thought).where(Thought.id == thought_id)
     )
     source_thought = result.scalar_one_or_none()
     
@@ -239,7 +241,7 @@ async def get_related_thoughts(
         if tag_filters:
             filters.append(or_(*tag_filters))
     
-    query = db.query(Thought).filter(and_(*filters)).limit(limit)
+    query = select(Thought).where(and_(*filters)).limit(limit)
     
     result = await db.execute(query)
     related_thoughts = result.scalars().all()

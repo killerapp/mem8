@@ -4,7 +4,7 @@ import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -28,7 +28,7 @@ async def list_teams(
 ) -> List[TeamResponse]:
     """List all teams."""
     
-    query = db.query(Team).filter(Team.is_active == True)
+    query = select(Team).where(Team.is_active == True)
     
     if include_members:
         query = query.options(
@@ -50,7 +50,7 @@ async def create_team(
     
     # Check if slug already exists
     existing_team_result = await db.execute(
-        db.query(Team).filter(Team.slug == team_data.slug)
+        select(Team).where(Team.slug == team_data.slug)
     )
     existing_team = existing_team_result.scalar_one_or_none()
     
@@ -83,7 +83,7 @@ async def get_team(
 ) -> TeamResponse:
     """Get a specific team by ID."""
     
-    query = db.query(Team).filter(Team.id == team_id)
+    query = select(Team).where(Team.id == team_id)
     
     if include_members:
         query = query.options(
@@ -112,7 +112,7 @@ async def update_team(
     
     # Get existing team
     result = await db.execute(
-        db.query(Team).filter(Team.id == team_id)
+        select(Team).where(Team.id == team_id)
     )
     team = result.scalar_one_or_none()
     
@@ -142,7 +142,7 @@ async def delete_team(
     """Delete a specific team (soft delete)."""
     
     result = await db.execute(
-        db.query(Team).filter(Team.id == team_id)
+        select(Team).where(Team.id == team_id)
     )
     team = result.scalar_one_or_none()
     
@@ -166,7 +166,7 @@ async def list_team_members(
     
     # Verify team exists
     team_result = await db.execute(
-        db.query(Team).filter(Team.id == team_id)
+        select(Team).where(Team.id == team_id)
     )
     team = team_result.scalar_one_or_none()
     
@@ -178,8 +178,8 @@ async def list_team_members(
     
     # Get team members
     members_result = await db.execute(
-        db.query(TeamMember)
-        .filter(
+        select(TeamMember)
+        .where(
             and_(
                 TeamMember.team_id == team_id,
                 TeamMember.is_active == True
@@ -203,7 +203,7 @@ async def add_team_member(
     
     # Verify team exists
     team_result = await db.execute(
-        db.query(Team).filter(Team.id == team_id)
+        select(Team).where(Team.id == team_id)
     )
     team = team_result.scalar_one_or_none()
     
@@ -215,7 +215,7 @@ async def add_team_member(
     
     # Check if user is already a member
     existing_member_result = await db.execute(
-        db.query(TeamMember).filter(
+        select(TeamMember).where(
             and_(
                 TeamMember.team_id == team_id,
                 TeamMember.user_id == user_id
@@ -264,7 +264,7 @@ async def update_team_member(
     
     # Get team member
     result = await db.execute(
-        db.query(TeamMember).filter(
+        select(TeamMember).where(
             and_(
                 TeamMember.team_id == team_id,
                 TeamMember.user_id == user_id,
@@ -298,7 +298,7 @@ async def remove_team_member(
     
     # Get team member
     result = await db.execute(
-        db.query(TeamMember).filter(
+        select(TeamMember).where(
             and_(
                 TeamMember.team_id == team_id,
                 TeamMember.user_id == user_id,
@@ -327,7 +327,7 @@ async def get_team_by_slug(
 ) -> TeamResponse:
     """Get a team by its slug."""
     
-    query = db.query(Team).filter(
+    query = select(Team).where(
         and_(
             Team.slug == slug,
             Team.is_active == True
