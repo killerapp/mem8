@@ -53,7 +53,10 @@
       "Read(C:\\Users\\vaski\\projects\\agenticinsights.com/**)",
       "Bash(npm create:*)",
       "Bash(npm install:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

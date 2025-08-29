@@ -16,3 +16,12 @@ test-*/
 *-files.txt
 
 .claude
+
+*.db
+
+.env
+.env.*local*
+.env.*.local*
+
+thoughts/shared
+
