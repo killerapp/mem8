@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(for file in create_worktree debug describe_pr founder_mode implement_plan linear local_review ralph_impl ralph_research research_codebase validate_plan)",
+      "Bash(do cp \"claude-dot-md-ref/commands/$file.md\" \"claude-dot-md-template/{{cookiecutter.project_slug}}/commands/\")",
+      "Bash(echo \"Copied $file\")",
+      "Bash(done)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:www.hlyr.dev)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
