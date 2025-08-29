@@ -37,7 +37,14 @@
       "Bash(ai-mem:*)",
       "WebFetch(domain:softwareengineering.stackexchange.com)",
       "Bash(python:*)",
-      "Bash(aimem:*)"
+      "Bash(aimem:*)",
+      "Read(C:\\tmp/**)",
+      "Read(C:\\tmp/**)",
+      "Bash(uv run:*)",
+      "Bash(git checkout:*)",
+      "mcp__browser__browser_navigate",
+      "mcp__browser__browser_get_markdown",
+      "mcp__browser__browser_screenshot"
     ],
     "deny": [],
     "ask": []
