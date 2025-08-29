@@ -25,16 +25,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager."""
     settings = get_settings()
     
-    # Initialize database (disabled for demo)
-    logger.info("Database initialization disabled for demo")
-    # await init_db()
+    # Initialize database (works properly with PostgreSQL)
+    logger.info("Initializing database...")
+    await init_db()
     
     logger.info(f"AI-Mem API starting on {settings.host}:{settings.port}")
     yield
     
-    # Cleanup (disabled for demo)
+    # Cleanup
     logger.info("Shutting down AI-Mem API...")
-    # await close_db()
+    await close_db()
 
 
 # Create FastAPI app
@@ -65,7 +65,7 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(health.router, tags=["health"])
+app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(
     thoughts.router,
     prefix="/api/v1",

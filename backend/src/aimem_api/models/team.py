@@ -5,11 +5,12 @@ from enum import Enum
 from typing import Optional
 
 from sqlalchemy import ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
 from .base import TimestampMixin, UUIDMixin
+from ..database_types import UuidType
 
 
 class TeamRole(str, Enum):
@@ -52,12 +53,12 @@ class TeamMember(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "team_members"
     
     team_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UuidType,
         ForeignKey("teams.id", ondelete="CASCADE"),
         nullable=False
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UuidType,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False
     )

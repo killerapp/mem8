@@ -3,12 +3,15 @@
 import uuid
 from typing import Dict, Optional, Any
 
-from sqlalchemy import ForeignKey, Index, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import ForeignKey, Index, String, Text, JSON
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 from ..database import Base
 from .base import TimestampMixin, UUIDMixin
+from ..database_types import JsonType, UuidType
 
 
 class Thought(Base, UUIDMixin, TimestampMixin):
@@ -23,18 +26,18 @@ class Thought(Base, UUIDMixin, TimestampMixin):
     
     # Organization
     team_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UuidType,
         ForeignKey("teams.id", ondelete="CASCADE"),
         nullable=False,
         index=True
     )
     
     # Metadata and search
-    thought_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, default=dict)
-    tags: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, default=list)
+    thought_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(JsonType, default=dict)
+    tags: Mapped[Optional[Dict[str, Any]]] = mapped_column(JsonType, default=list)
     
     # Content analysis
-    content_hash: Mapped[Optional[str]] = mapped_column(String(64), index=True)
+    content_hash: Mapped[Optional[str]] = mapped_column(String(64))
     word_count: Mapped[Optional[int]] = mapped_column(default=0)
     
     # Git integration

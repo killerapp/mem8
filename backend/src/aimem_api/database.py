@@ -15,15 +15,28 @@ from .config import get_settings
 # Settings
 settings = get_settings()
 
-# SQLAlchemy setup
-engine = create_async_engine(
-    str(settings.database_url),
-    echo=settings.debug,
-    pool_size=20,
-    max_overflow=30,
-    pool_pre_ping=True,
-    pool_recycle=300,
-)
+# SQLAlchemy setup with database-specific configuration
+database_url = str(settings.database_url)
+
+if database_url.startswith("sqlite"):
+    # SQLite configuration
+    engine = create_async_engine(
+        database_url,
+        echo=settings.debug,
+        # SQLite-specific settings
+        pool_pre_ping=False,  # Not needed for file-based DB
+        connect_args={"check_same_thread": False},  # Allow multi-threading
+    )
+else:
+    # PostgreSQL or other database configuration
+    engine = create_async_engine(
+        database_url,
+        echo=settings.debug,
+        pool_size=20,
+        max_overflow=30,
+        pool_pre_ping=True,
+        pool_recycle=300,
+    )
 
 AsyncSessionLocal = async_sessionmaker(
     engine,
@@ -42,7 +55,7 @@ async def init_db() -> None:
         # Import models to ensure they're registered
         from . import models  # noqa: F401
         
-        # Create tables
+        # Create tables (checkfirst=True is default and handles conflicts properly)
         await conn.run_sync(metadata.create_all)
 
 

@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import List
 
-from pydantic import Field, PostgresDsn
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     
     # CORS settings
     allowed_origins: List[str] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:3000"],
+        default=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"],
         description="Allowed CORS origins"
     )
     allowed_hosts: List[str] = Field(
@@ -43,9 +43,11 @@ class Settings(BaseSettings):
     )
     
     # Database settings
-    database_url: PostgresDsn = Field(
-        default="postgresql+asyncpg://aimem:aimem@localhost:5432/aimem",
-        description="Database connection URL"
+    # Default: PostgreSQL for Docker/cloud-friendly deployment
+    # Fallback: SQLite for local development without Docker
+    database_url: str = Field(
+        default="postgresql+asyncpg://aimem_user:aimem_password@localhost:5432/aimem",
+        description="Database connection URL (PostgreSQL by default, SQLite fallback for local dev)"
     )
     
     # Redis settings

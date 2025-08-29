@@ -5,8 +5,9 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
+
+from ..database_types import UuidType
 
 
 class Base(DeclarativeBase):
@@ -20,7 +21,7 @@ class UUIDMixin:
     @declared_attr
     def id(cls) -> Mapped[uuid.UUID]:
         return mapped_column(
-            UUID(as_uuid=True),
+            UuidType,
             primary_key=True,
             default=uuid.uuid4,
             nullable=False
