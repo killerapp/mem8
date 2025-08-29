@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "@/lib/providers";
 
 const geistMono = Geist_Mono({
   variable: "--font-mono",
@@ -26,9 +27,11 @@ export default function RootLayout({
       <body
         className={`${geistMono.variable} bg-grid bg-scanlines`}
       >
-        <div className="min-h-screen flex flex-col">
-          {children}
-        </div>
+        <Providers>
+          <div className="min-h-screen flex flex-col">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );

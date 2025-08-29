@@ -1,76 +1,119 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Brain, Users, Zap, Database, Terminal } from 'lucide-react';
+import { Search, Brain, Users, Zap, Database, Terminal, Plus, RefreshCw, Download } from 'lucide-react';
 import Image from 'next/image';
-
-interface ThoughtPreview {
-  id: string;
-  title: string;
-  excerpt: string;
-  path: string;
-  team: string;
-  lastModified: string;
-  tags: string[];
-}
-
-interface TeamStatus {
-  name: string;
-  status: 'active' | 'syncing' | 'error';
-  memberCount: number;
-  thoughtCount: number;
-}
+import { useHealth, useThoughts, useTeams, useSystemStats, useSearchThoughts, useSyncTeam, useCreateThought } from '@/hooks/useApi';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
-  const [isConnected, setIsConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>();
+  const [searchType, setSearchType] = useState<'fulltext' | 'semantic'>('fulltext');
   
-  // Mock data - in real app this would come from the backend API
-  const recentThoughts: ThoughtPreview[] = [
-    {
-      id: '1',
-      title: 'Phase 2 Backend Implementation',
-      excerpt: 'Completed FastAPI backend with async SQLAlchemy integration...',
-      path: '/thoughts/shared/projects/ai-mem-phase2.md',
-      team: 'Development',
-      lastModified: '2 hours ago',
-      tags: ['backend', 'api', 'implementation']
-    },
-    {
-      id: '2', 
-      title: 'AgenticInsights Design System Research',
-      excerpt: 'Analyzed terminal IDE aesthetic with green primary colors...',
-      path: '/thoughts/shared/research/design-patterns.md',
-      team: 'Design',
-      lastModified: '4 hours ago',
-      tags: ['design', 'research', 'ui']
+  // API hooks
+  const { data: health, isLoading: healthLoading } = useHealth();
+  const { data: teams, isLoading: teamsLoading } = useTeams();
+  const { data: thoughts, isLoading: thoughtsLoading, refetch: refetchThoughts } = useThoughts({
+    team_id: selectedTeamId,
+    limit: 10
+  });
+  const { data: systemStats } = useSystemStats();
+  const { data: searchResults, isLoading: searchLoading } = useSearchThoughts({
+    query: searchQuery,
+    search_type: searchType,
+    team_id: selectedTeamId,
+    limit: 20
+  });
+  
+  // Mutations
+  const syncTeamMutation = useSyncTeam();
+  const createThoughtMutation = useCreateThought();
+  
+  // WebSocket for real-time updates
+  const { isConnected: wsConnected, activeUsers } = useWebSocket({
+    teamId: selectedTeamId,
+    enabled: !!selectedTeamId
+  });
+  
+  const isConnected = !healthLoading && health?.status === 'healthy';
+  
+  // Event handlers
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+  
+  const handleSyncAll = async () => {
+    if (selectedTeamId) {
+      try {
+        await syncTeamMutation.mutateAsync(selectedTeamId);
+        await refetchThoughts();
+      } catch (error) {
+        console.error('Sync failed:', error);
+      }
     }
-  ];
-
-  const teamStatuses: TeamStatus[] = [
-    {
-      name: 'Development',
-      status: 'active',
-      memberCount: 3,
-      thoughtCount: 127
-    },
-    {
-      name: 'Design',
-      status: 'syncing',
-      memberCount: 2,
-      thoughtCount: 89
+  };
+  
+  const handleNewThought = async () => {
+    if (!selectedTeamId) return;
+    
+    try {
+      const newThought = {
+        title: 'New Thought',
+        content: '# New Thought\n\nStart writing your thoughts here...',
+        path: `/thoughts/shared/new-thought-${Date.now()}.md`,
+        team_id: selectedTeamId,
+        thought_metadata: {
+          tags: [],
+          created_by: 'current-user' // TODO: Get from auth
+        }
+      };
+      
+      await createThoughtMutation.mutateAsync(newThought);
+    } catch (error) {
+      console.error('Failed to create thought:', error);
     }
-  ];
+  };
+  
+  const handleExportData = () => {
+    // TODO: Implement data export functionality
+    console.log('Export data functionality to be implemented');
+  };
+  
+  // Get current team for display
+  const currentTeam = teams?.find(team => team.id === selectedTeamId) || teams?.[0];
+  
+  // Transform thoughts data for display
+  const recentThoughts = (searchQuery.length > 2 ? searchResults?.thoughts : 
+    thoughts?.thoughts?.slice(0, 10).map(thought => ({
+      id: thought.id,
+      title: thought.title,
+      excerpt: thought.content.substring(0, 150) + '...',
+      path: thought.path,
+      team: currentTeam?.name || 'Unknown Team',
+      lastModified: new Date(thought.updated_at).toLocaleString(),
+      tags: thought.thought_metadata.tags || []
+    }))) || [];
+  
+  // Transform teams data for team status display
+  const teamStatuses = teams?.map(team => ({
+    id: team.id,
+    name: team.name,
+    status: (wsConnected && selectedTeamId === team.id) ? 'active' : 
+             syncTeamMutation.isPending ? 'syncing' : 'active',
+    memberCount: team.settings?.memberCount || 1,
+    thoughtCount: systemStats?.totalThoughts || 0
+  })) || [];
 
-  useEffect(() => {
-    // Simulate connection to backend
-    const timer = setTimeout(() => {
-      setIsConnected(true);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Set default team when teams load
+  useState(() => {
+    if (teams && teams.length > 0 && !selectedTeamId) {
+      setSelectedTeamId(teams[0].id);
+    }
+  });
 
   return (
     <>
@@ -117,11 +160,16 @@ export default function Home() {
                 type="text"
                 placeholder="Search memories..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="w-full bg-input border border-border rounded-md pl-10 pr-4 py-2 text-sm font-mono
                          focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
                          placeholder:text-muted-foreground terminal-glow"
               />
+              {searchLoading && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -132,22 +180,35 @@ export default function Home() {
               Team Status
             </h3>
             <div className="space-y-2">
-              {teamStatuses.map((team) => (
-                <div key={team.name} className="memory-cell p-3 rounded-md">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium">{team.name}</span>
-                    <Badge 
-                      variant={team.status === 'active' ? 'active' : team.status === 'syncing' ? 'syncing' : 'error'}
-                      className="text-xs"
-                    >
-                      {team.status}
-                    </Badge>
+              {teamsLoading ? (
+                <div className="text-center text-muted-foreground text-xs">Loading teams...</div>
+              ) : teamStatuses.length > 0 ? (
+                teamStatuses.map((team) => (
+                  <div 
+                    key={team.id} 
+                    className={cn(
+                      "memory-cell p-3 rounded-md cursor-pointer transition-colors",
+                      selectedTeamId === team.id ? "border border-primary/30 bg-primary/10" : "hover:bg-muted/50"
+                    )}
+                    onClick={() => setSelectedTeamId(team.id)}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">{team.name}</span>
+                      <Badge 
+                        variant={team.status === 'active' ? 'active' : team.status === 'syncing' ? 'syncing' : 'error'}
+                        className="text-xs"
+                      >
+                        {team.status}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {team.memberCount} members • {team.thoughtCount} thoughts
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {team.memberCount} members • {team.thoughtCount} thoughts
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground text-xs">No teams found</div>
+              )}
             </div>
           </div>
 
@@ -158,16 +219,38 @@ export default function Home() {
               Quick Actions
             </h3>
             <div className="space-y-2">
-              <Button variant="terminal" className="w-full justify-start text-xs">
-                <Brain className="w-4 h-4" />
+              <Button 
+                variant="terminal" 
+                className="w-full justify-start text-xs" 
+                onClick={handleNewThought}
+                disabled={createThoughtMutation.isPending || !selectedTeamId}
+              >
+                {createThoughtMutation.isPending ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
                 New Thought
               </Button>
-              <Button variant="terminal" className="w-full justify-start text-xs">
-                <Zap className="w-4 h-4" />
+              <Button 
+                variant="terminal" 
+                className="w-full justify-start text-xs" 
+                onClick={handleSyncAll}
+                disabled={syncTeamMutation.isPending || !selectedTeamId}
+              >
+                {syncTeamMutation.isPending ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4" />
+                )}
                 Sync All
               </Button>
-              <Button variant="terminal" className="w-full justify-start text-xs">
-                <Database className="w-4 h-4" />
+              <Button 
+                variant="terminal" 
+                className="w-full justify-start text-xs" 
+                onClick={handleExportData}
+              >
+                <Download className="w-4 h-4" />
                 Export Data
               </Button>
             </div>
@@ -197,37 +280,47 @@ export default function Home() {
               </h2>
               
               <div className="space-y-4">
-                {recentThoughts.map((thought) => (
-                  <div key={thought.id} className="memory-cell p-4 rounded-lg hover:scale-[1.02] transition-all">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-medium text-base">{thought.title}</h3>
-                      <Badge variant="terminal" className="text-xs shrink-0">
-                        {thought.team}
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-                      {thought.excerpt}
-                    </p>
-                    
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground font-mono">{thought.path}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">{thought.lastModified}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {thought.tags.map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
+                {thoughtsLoading ? (
+                  <div className="text-center text-muted-foreground">Loading thoughts...</div>
+                ) : recentThoughts.length > 0 ? (
+                  recentThoughts.map((thought) => (
+                    <div key={thought.id} className="memory-cell p-4 rounded-lg hover:scale-[1.02] transition-all cursor-pointer">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-medium text-base">{thought.title}</h3>
+                        <Badge variant="terminal" className="text-xs shrink-0">
+                          {thought.team}
                         </Badge>
-                      ))}
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                        {thought.excerpt}
+                      </p>
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground font-mono">{thought.path}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">{thought.lastModified}</span>
+                        </div>
+                      </div>
+                      
+                      {thought.tags && thought.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {thought.tags.map((tag) => (
+                            <Badge key={tag} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    {searchQuery ? 'No matching thoughts found' : 'No thoughts yet. Create your first thought!'}
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -240,15 +333,21 @@ export default function Home() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="memory-cell p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold terminal-glow text-primary">216</div>
+                  <div className="text-2xl font-bold terminal-glow text-primary">
+                    {systemStats?.totalThoughts || 0}
+                  </div>
                   <div className="text-sm text-muted-foreground">Total Thoughts</div>
                 </div>
                 <div className="memory-cell p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold terminal-glow text-accent">5</div>
+                  <div className="text-2xl font-bold terminal-glow text-accent">
+                    {systemStats?.activeTeams || teams?.length || 0}
+                  </div>
                   <div className="text-sm text-muted-foreground">Active Teams</div>
                 </div>
                 <div className="memory-cell p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold terminal-glow text-secondary">98%</div>
+                  <div className="text-2xl font-bold terminal-glow text-secondary">
+                    {systemStats?.syncStatus || 0}%
+                  </div>
                   <div className="text-sm text-muted-foreground">Sync Status</div>
                 </div>
               </div>
@@ -260,15 +359,21 @@ export default function Home() {
       {/* Status Bar */}
       <footer className="h-7 bg-muted border-t border-border flex items-center justify-between px-4 text-xs flex-shrink-0">
         <div className="flex items-center gap-4">
-          <span className="text-primary">●</span>
-          <span>Backend API: Connected</span>
+          <span className={cn("w-2 h-2 rounded-full", isConnected ? "bg-primary" : "bg-destructive")}></span>
+          <span>Backend API: {isConnected ? 'Connected' : 'Disconnected'}</span>
           <span>•</span>
-          <span>Last sync: {new Date().toLocaleTimeString()}</span>
+          <span>WebSocket: {wsConnected ? 'Connected' : 'Disconnected'}</span>
+          {activeUsers.length > 0 && (
+            <>
+              <span>•</span>
+              <span>{activeUsers.length} active users</span>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-4">
-          <span>Memory usage: 42MB</span>
+          <span>Memory usage: {systemStats?.memoryUsage || '0MB'}</span>
           <span>•</span>
-          <span>Thoughts indexed: 216</span>
+          <span>Thoughts indexed: {systemStats?.totalThoughts || 0}</span>
         </div>
       </footer>
     </>
