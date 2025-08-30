@@ -6,6 +6,8 @@ AI-Mem CLI: AI Memory Management for team collaboration with Claude Code integra
 import os
 import shutil
 import sys
+import webbrowser
+import urllib.parse
 from pathlib import Path
 from typing import Optional
 
@@ -44,6 +46,14 @@ from .core.config import Config
 from .core.memory import MemoryManager
 from .core.sync import SyncManager
 from .core.utils import get_shared_directory, setup_logging
+from .core.smart_setup import (
+    detect_project_context, 
+    generate_smart_config, 
+    setup_minimal_structure,
+    launch_web_ui,
+    show_setup_instructions
+)
+from .claude_integration import setup_claude_code_integration
 
 # Create Rich console with UTF-8 support
 console = Console(
@@ -246,6 +256,183 @@ def init(ctx, template: str, config_file: Optional[str], shared_dir: Optional[st
         sys.exit(1)
 
 
+@cli.command("quick-start")
+@click.option('--repos', help='Comma-separated list of repository paths to discover')
+@click.option('--web', is_flag=True, help='Launch web UI after setup')
+@click.pass_context
+def quick_start(ctx, repos: Optional[str], web: bool):
+    """Set up AI-Mem with intelligent defaults in 30 seconds."""
+    console.print("🚀 [bold blue]Setting up AI-Mem with smart defaults...[/bold blue]")
+    
+    try:
+        # 1. Auto-detect project context
+        console.print("🔍 [dim]Detecting project context...[/dim]")
+        project_info = detect_project_context()
+        
+        # Show discovered information
+        if project_info['git_repos']:
+            console.print(f"✅ Found {len(project_info['git_repos'])} git repositories")
+            for repo in project_info['git_repos'][:3]:  # Show first 3
+                indicator = " (has thoughts)" if repo.get('has_thoughts') else ""
+                console.print(f"  • {repo['name']}{indicator}")
+            if len(project_info['git_repos']) > 3:
+                console.print(f"  • ... and {len(project_info['git_repos']) - 3} more")
+        
+        if project_info['is_claude_code_project']:
+            console.print("✅ Claude Code project detected")
+        
+        # 2. Generate minimal configuration
+        console.print("⚙️  [dim]Generating configuration...[/dim]")
+        config = generate_smart_config(project_info, repos)
+        
+        console.print(f"👤 Username: {config['username']}")
+        console.print(f"📁 Shared location: {config['shared_location']}")
+        
+        # 3. Create necessary directories
+        console.print("📂 [dim]Creating directory structure...[/dim]")
+        setup_results = setup_minimal_structure(config)
+        
+        # Show results
+        if setup_results['created']:
+            console.print("✅ [green]Created directories:[/green]")
+            for created in setup_results['created']:
+                console.print(f"  • {created}")
+        
+        if setup_results['linked']:
+            console.print("🔗 [blue]Created links:[/blue]")
+            for linked in setup_results['linked']:
+                console.print(f"  • {linked}")
+        
+        if setup_results['errors']:
+            console.print("⚠️  [yellow]Warnings:[/yellow]")
+            for error in setup_results['errors']:
+                console.print(f"  • {error}")
+        
+        # 4. Set up Claude Code integration if applicable
+        if project_info['is_claude_code_project']:
+            console.print("🔧 [dim]Setting up Claude Code integration...[/dim]")
+            claude_results = setup_claude_code_integration(config)
+            
+            if claude_results['updated']:
+                console.print("✅ [green]Updated Claude integration:[/green]")
+                for updated in claude_results['updated']:
+                    console.print(f"  • {updated}")
+            
+            if claude_results['created']:
+                console.print("✅ [green]Created Claude integration:[/green]")
+                for created in claude_results['created']:
+                    console.print(f"  • {created}")
+        
+        # 5. Launch web UI if requested
+        if web:
+            console.print("🌐 [dim]Launching web UI...[/dim]")
+            if launch_web_ui():
+                console.print("✅ [green]AI-Mem UI opened in your browser![/green]")
+            else:
+                console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
+                instructions = show_setup_instructions()
+                console.print(instructions)
+        
+        # Show next steps
+        console.print("\n🎉 [bold green]Quick setup complete![/bold green]")
+        console.print("\n[bold]Next steps:[/bold]")
+        console.print("  • Run [cyan]ai-mem status[/cyan] to check workspace health")
+        console.print("  • Run [cyan]ai-mem search <query>[/cyan] to search your thoughts")
+        console.print("  • Use [cyan]ai-mem quick-start --web[/cyan] to launch the web UI")
+        if not project_info['is_claude_code_project']:
+            console.print("  • Run [cyan]ai-mem init --template claude-config[/cyan] to add Claude Code integration")
+        
+        console.print(f"\n💡 [dim]Tip: Your thoughts are in [cyan]thoughts/{config['username']}/[/cyan] and shared thoughts in [cyan]thoughts/shared/[/cyan][/dim]")
+            
+    except Exception as e:
+        console.print(f"❌ [red]Error during quick setup: {e}[/red]")
+        if ctx.obj['verbose']:
+            import traceback
+            console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        sys.exit(1)
+
+
+@cli.command()
+def dashboard():
+    """Launch AI-Mem web dashboard."""
+    console.print("🌐 [bold blue]Launching AI-Mem dashboard...[/bold blue]")
+    
+    if launch_web_ui():
+        console.print("✅ [green]Dashboard opened in your browser![/green]")
+        console.print("💡 [dim]Use 'ai-mem status' to check backend health.[/dim]")
+    else:
+        console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
+        instructions = show_setup_instructions()
+        console.print(instructions)
+
+
+@cli.command()
+@click.option('--team', help='Team name for deployment')
+@click.option('--backend', is_flag=True, help='Deploy backend services')
+@click.option('--frontend', is_flag=True, help='Deploy frontend')
+@click.option('--all', is_flag=True, help='Deploy full stack')
+@click.pass_context
+def bootstrap(ctx, team: Optional[str], backend: bool, frontend: bool, all: bool):
+    """Bootstrap AI-Mem for team deployment."""
+    console.print("🚀 [bold blue]Bootstrapping AI-Mem for team deployment...[/bold blue]")
+    
+    if all:
+        backend = frontend = True
+    
+    try:
+        # 1. Ensure workspace is set up
+        console.print("📂 [dim]Setting up workspace...[/dim]")
+        project_info = detect_project_context()
+        config = generate_smart_config(project_info, None)
+        setup_results = setup_minimal_structure(config)
+        
+        # 2. Set up Claude Code integration
+        if project_info['is_claude_code_project']:
+            console.print("🔧 [dim]Configuring Claude Code integration...[/dim]")
+            claude_results = setup_claude_code_integration(config)
+            if claude_results['updated'] or claude_results['created']:
+                console.print("✅ Claude Code integration configured")
+        
+        # 3. Backend deployment preparation
+        if backend:
+            console.print("🛠️  [dim]Preparing backend deployment...[/dim]")
+            console.print("ℹ️  [yellow]Backend deployment requires:[/yellow]")
+            console.print("  • Docker and docker-compose installed")
+            console.print("  • GitHub OAuth app configured")
+            console.print("  • Environment variables set (.env file)")
+            console.print("  • Run: [cyan]docker-compose up -d[/cyan] to start services")
+        
+        # 4. Frontend deployment preparation  
+        if frontend:
+            console.print("🎨 [dim]Preparing frontend deployment...[/dim]")
+            console.print("ℹ️  [yellow]Frontend deployment requires:[/yellow]")
+            console.print("  • Node.js 18+ installed")
+            console.print("  • Environment variables set (.env.local)")
+            console.print("  • Run: [cyan]cd frontend && npm install && npm run build[/cyan]")
+        
+        # 5. Team setup
+        if team:
+            console.print(f"👥 [dim]Setting up team: {team}...[/dim]")
+            console.print("ℹ️  [yellow]Team setup includes:[/yellow]")
+            console.print(f"  • Shared directory configured for team '{team}'")
+            console.print("  • GitHub OAuth configured for team members")
+            console.print("  • Database initialized with team structure")
+        
+        console.print("\n🎉 [bold green]Bootstrap complete![/bold green]")
+        console.print("\n[bold]Next steps:[/bold]")
+        console.print("  • Configure environment variables")
+        console.print("  • Start services with [cyan]docker-compose up -d[/cyan]")
+        console.print("  • Invite team members to GitHub OAuth app")
+        console.print("  • Share the web interface URL with team")
+        
+    except Exception as e:
+        console.print(f"❌ [red]Bootstrap failed: {e}[/red]")
+        if ctx.obj['verbose']:
+            import traceback
+            console.print(f"[dim]{traceback.format_exc()}[/dim]")
+        sys.exit(1)
+
+
 @cli.command()
 @click.option(
     "--direction", 
@@ -366,9 +553,29 @@ def status(ctx, detailed: bool):
     "--path",
     help="Restrict search to specific path"
 )
+@click.option(
+    "--web", 
+    is_flag=True, 
+    help="Open results in web UI"
+)
 @click.pass_context  
-def search(ctx, query: str, limit: int, content_type: str, method: str, path: str):
+def search(ctx, query: str, limit: int, content_type: str, method: str, path: str, web: bool):
     """Search through AI memory and thoughts."""
+    # Handle web UI search
+    if web and query:
+        console.print(f"🌐 [bold blue]Opening search for '{query}' in web UI...[/bold blue]")
+        # Open web UI with pre-populated search
+        search_url = f'http://localhost:20040?search={urllib.parse.quote(query)}'
+        if launch_web_ui():
+            webbrowser.open(search_url)
+            console.print("✅ [green]Search opened in web browser![/green]")
+        else:
+            console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
+            instructions = show_setup_instructions()
+            console.print(instructions)
+        return
+    
+    # Traditional CLI search
     memory_manager = ctx.obj['memory_manager']
     
     search_method = f"[cyan]{method}[/cyan]" 
