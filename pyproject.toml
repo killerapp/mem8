@@ -1,6 +1,6 @@
 [project]
 name = "ai-mem"
-version = "0.1.0"
+version = "1.0.0"
 description = "AI Memory Management CLI for team collaboration with Claude Code integration"
 readme = "README.md"
 authors = [
@@ -89,6 +89,6 @@ target-version = ['py312']
 profile = "black"
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "1.0.0"
 warn_return_any = true
 warn_unused_configs = true
