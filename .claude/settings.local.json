@@ -56,7 +56,9 @@
       "Bash(npm run dev:*)",
       "Bash(curl:*)",
       "Bash(grep:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git worktree:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
