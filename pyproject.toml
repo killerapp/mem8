@@ -1,6 +1,6 @@
 [project]
 name = "ai-mem"
-version = "1.0.0"
+version = "1.1.0"
 description = "AI Memory Management CLI for team collaboration with Claude Code integration"
 readme = "README.md"
 authors = [
