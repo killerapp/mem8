@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
+import { AuthGuard } from "@/components/AuthGuard";
 
 const geistMono = Geist_Mono({
   variable: "--font-mono",
@@ -28,9 +29,11 @@ export default function RootLayout({
         className={`${geistMono.variable} bg-grid bg-scanlines`}
       >
         <Providers>
-          <div className="min-h-screen flex flex-col">
-            {children}
-          </div>
+          <AuthGuard>
+            <div className="min-h-screen flex flex-col">
+              {children}
+            </div>
+          </AuthGuard>
         </Providers>
       </body>
     </html>

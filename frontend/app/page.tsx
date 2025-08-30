@@ -3,16 +3,20 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Brain, Users, Zap, Database, Terminal, Plus, RefreshCw, Download } from 'lucide-react';
+import { Search, Brain, Users, Zap, Database, Terminal, Plus, RefreshCw, Download, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
 import { useHealth, useThoughts, useTeams, useSystemStats, useSearchThoughts, useSyncTeam, useCreateThought } from '@/hooks/useApi';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>();
   const [searchType, setSearchType] = useState<'fulltext' | 'semantic'>('fulltext');
+  
+  // Auth hook
+  const { user, isAuthenticated, isLoading: authLoading, logout, getGitHubAuthUrl } = useAuth();
   
   // API hooks
   const { data: health, isLoading: healthLoading } = useHealth();
@@ -34,10 +38,13 @@ export default function Home() {
   const createThoughtMutation = useCreateThought();
   
   // WebSocket for real-time updates
-  const { isConnected: wsConnected, activeUsers } = useWebSocket({
+  const { isConnected: wsConnected } = useWebSocket({
     teamId: selectedTeamId,
     enabled: !!selectedTeamId
   });
+  
+  // TODO: activeUsers will be implemented when WebSocket user tracking is added
+  const activeUsers: any[] = [];
   
   const isConnected = !healthLoading && health?.status === 'healthy';
   
@@ -82,6 +89,25 @@ export default function Home() {
     // TODO: Implement data export functionality
     console.log('Export data functionality to be implemented');
   };
+
+  const handleLogin = async () => {
+    try {
+      const authUrl = await getGitHubAuthUrl();
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Failed to get GitHub auth URL:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Optionally refresh the page to reset state
+      window.location.reload();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
   
   // Get current team for display
   const currentTeam = teams?.find(team => team.id === selectedTeamId) || teams?.[0];
@@ -115,6 +141,31 @@ export default function Home() {
     }
   });
 
+  // Show login screen if not authenticated
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center">
+        <div className="max-w-md w-full text-center space-y-4">
+          <div className="text-2xl font-bold">
+            &gt; AI-MEM TERMINAL
+          </div>
+          
+          <div className="space-y-2">
+            <div className="text-lg">&gt; AUTHENTICATION REQUIRED</div>
+            <button
+              onClick={handleLogin}
+              className="px-6 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors"
+            >
+              &gt; Connect GitHub
+            </button>
+            <div className="text-gray-400 text-sm">&gt; Secure OAuth2 authentication</div>
+            <div className="text-gray-400 text-sm">&gt; No passwords stored locally</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Terminal Header */}
@@ -131,7 +182,7 @@ export default function Home() {
             AI-Mem Terminal v0.1.0
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Badge variant={isConnected ? 'active' : 'syncing'} className="text-xs">
             {isConnected ? (
               <>
@@ -145,6 +196,40 @@ export default function Home() {
               </>
             )}
           </Badge>
+          
+          {/* Auth Status */}
+          {authLoading ? (
+            <div className="text-xs text-muted-foreground">Loading...</div>
+          ) : isAuthenticated && user ? (
+            <div className="flex items-center gap-2 text-xs">
+              {user.avatar_url ? (
+                <Image 
+                  src={user.avatar_url} 
+                  alt={user.username} 
+                  width={16} 
+                  height={16} 
+                  className="rounded-full"
+                />
+              ) : (
+                <User className="w-4 h-4" />
+              )}
+              <span className="text-muted-foreground">{user.username}</span>
+              <button 
+                onClick={handleLogout}
+                className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={handleLogin}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Login
+            </button>
+          )}
         </div>
       </header>
 
@@ -223,7 +308,7 @@ export default function Home() {
                 variant="terminal" 
                 className="w-full justify-start text-xs" 
                 onClick={handleNewThought}
-                disabled={createThoughtMutation.isPending || !selectedTeamId}
+                disabled={createThoughtMutation.isPending || !selectedTeamId || !isAuthenticated}
               >
                 {createThoughtMutation.isPending ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -236,7 +321,7 @@ export default function Home() {
                 variant="terminal" 
                 className="w-full justify-start text-xs" 
                 onClick={handleSyncAll}
-                disabled={syncTeamMutation.isPending || !selectedTeamId}
+                disabled={syncTeamMutation.isPending || !selectedTeamId || !isAuthenticated}
               >
                 {syncTeamMutation.isPending ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />

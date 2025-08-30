@@ -52,7 +52,9 @@ interface SystemStats {
   memoryUsage: string;
 }
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+import { authManager } from './auth';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 const USE_MOCK_DATA = false; // Toggle for development
 
 class ApiClient {
@@ -65,7 +67,7 @@ class ApiClient {
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
-        // TODO: Add authentication headers when implemented
+        ...authManager.getAuthHeaders(),
       },
       ...options,
     };
@@ -89,7 +91,7 @@ class ApiClient {
     if (USE_MOCK_DATA) {
       return { status: 'ok' };
     }
-    return this.request('/health');
+    return this.request('/api/v1/health');
   }
 
   // Thoughts API
@@ -139,29 +141,29 @@ class ApiClient {
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     
     const query = searchParams.toString();
-    return this.request(`/thoughts/${query ? `?${query}` : ''}`);
+    return this.request(`/api/v1/thoughts${query ? `?${query}` : ''}`);
   }
 
   async getThought(id: string): Promise<Thought> {
-    return this.request(`/thoughts/${id}`);
+    return this.request(`/api/v1/thoughts/${id}`);
   }
 
   async createThought(thought: Partial<Thought>): Promise<Thought> {
-    return this.request('/thoughts/', {
+    return this.request('/api/v1/thoughts/', {
       method: 'POST',
       body: JSON.stringify(thought),
     });
   }
 
   async updateThought(id: string, thought: Partial<Thought>): Promise<Thought> {
-    return this.request(`/thoughts/${id}`, {
+    return this.request(`/api/v1/thoughts/${id}`, {
       method: 'PUT',
       body: JSON.stringify(thought),
     });
   }
 
   async deleteThought(id: string): Promise<void> {
-    return this.request(`/thoughts/${id}`, {
+    return this.request(`/api/v1/thoughts/${id}`, {
       method: 'DELETE',
     });
   }
@@ -183,7 +185,7 @@ class ApiClient {
       searchParams.append('team_id', params.team_id);
     }
     
-    return this.request(`/search?${searchParams.toString()}`);
+    return this.request(`/api/v1/search?${searchParams.toString()}`);
   }
 
   // Teams API
@@ -208,15 +210,15 @@ class ApiClient {
         },
       ];
     }
-    return this.request('/teams/');
+    return this.request('/api/v1/teams/');
   }
 
   async getTeam(id: string): Promise<Team> {
-    return this.request(`/teams/${id}`);
+    return this.request(`/api/v1/teams/${id}`);
   }
 
   async getTeamStats(id: string): Promise<TeamStats> {
-    return this.request(`/teams/${id}/stats`);
+    return this.request(`/api/v1/teams/${id}/stats`);
   }
 
   // System stats
@@ -229,18 +231,18 @@ class ApiClient {
         memoryUsage: '42MB',
       };
     }
-    return this.request('/system/stats');
+    return this.request('/api/v1/system/stats');
   }
 
   // Sync API
   async syncTeam(teamId: string): Promise<{ message: string }> {
-    return this.request(`/sync/teams/${teamId}`, {
+    return this.request(`/api/v1/sync/teams/${teamId}`, {
       method: 'POST',
     });
   }
 
   async getSyncStatus(teamId: string): Promise<{ status: string; lastSync: string }> {
-    return this.request(`/sync/teams/${teamId}/status`);
+    return this.request(`/api/v1/sync/teams/${teamId}/status`);
   }
 }
 
