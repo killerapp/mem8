@@ -76,7 +76,7 @@ export class AuthManager {
    */
   private emitAuthChange(): void {
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('ai-mem-auth-change'));
+      window.dispatchEvent(new CustomEvent('mem8-auth-change'));
     }
   }
   

@@ -10,8 +10,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI-Mem | Terminal Memory Interface",
-  description: "Terminal-style AI memory management and team collaboration platform",
+  title: "mem8 | Terminal Memory Interface",
+  description: "Terminal-style memory management for the orchestr8 ecosystem",
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',

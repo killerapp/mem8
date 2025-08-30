@@ -162,8 +162,8 @@ export function useWebSocket({ teamId, enabled = true }: UseWebSocketProps) {
       }
     };
 
-    window.addEventListener('ai-mem-auth-change', handleAuthChange);
-    return () => window.removeEventListener('ai-mem-auth-change', handleAuthChange);
+    window.addEventListener('mem8-auth-change', handleAuthChange);
+    return () => window.removeEventListener('mem8-auth-change', handleAuthChange);
   }, [connect, disconnect]);
 
   return {

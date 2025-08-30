@@ -44,7 +44,7 @@
   }
 
   .dark {
-    /* AI-Mem Terminal IDE Theme */
+    /* mem8 Terminal IDE Theme */
     --background: 229 39% 7%;     /* Deep blue-black #0a0e27 */
     --foreground: 120 100% 93%;   /* Terminal green-white */
 
@@ -94,7 +94,7 @@
   }
 }
 
-/* AI-Mem Terminal IDE effects and utilities */
+/* mem8 Terminal IDE effects and utilities */
 @layer utilities {
   /* Animation utilities for dropdowns */
   .animate-in {
@@ -173,7 +173,7 @@
   }
 }
 
-/* AI-Mem Terminal IDE Components */
+/* mem8 Terminal IDE Components */
 @layer components {
   .gradient-text {
     background-image: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
@@ -193,7 +193,7 @@
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* AI-Mem specific status indicators */
+  /* mem8 specific status indicators */
   .status-active {
     @apply bg-primary/20 text-primary border-primary/30;
   }
@@ -214,7 +214,7 @@
   text-shadow: none;
 }
 
-/* Scrollbar styling for AI-Mem IDE feel */
+/* Scrollbar styling for mem8 IDE feel */
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;

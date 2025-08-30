@@ -26,13 +26,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
     };
 
     // Custom event listener for auth changes
-    window.addEventListener('ai-mem-auth-change', handleAuthChange);
+    window.addEventListener('mem8-auth-change', handleAuthChange);
 
     // Check periodically in case token expires
     const interval = setInterval(checkAuth, 30000); // Check every 30 seconds
 
     return () => {
-      window.removeEventListener('ai-mem-auth-change', handleAuthChange);
+      window.removeEventListener('mem8-auth-change', handleAuthChange);
       clearInterval(interval);
     };
   }, []);
@@ -42,7 +42,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-green-400 font-mono">
-          &gt; Initializing AI-MEM...
+          &gt; Initializing mem8...
         </div>
       </div>
     );
@@ -63,5 +63,5 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
 // Utility function to trigger auth change events
 export const triggerAuthChange = () => {
-  window.dispatchEvent(new CustomEvent('ai-mem-auth-change'));
+  window.dispatchEvent(new CustomEvent('mem8-auth-change'));
 };

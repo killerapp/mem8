@@ -110,7 +110,7 @@ export function useAuth() {
     };
 
     // Listen for custom auth change events
-    window.addEventListener('ai-mem-auth-change', handleAuthChange);
+    window.addEventListener('mem8-auth-change', handleAuthChange);
     
     // Listen for storage changes (cross-tab sync)
     window.addEventListener('storage', (e) => {
@@ -120,7 +120,7 @@ export function useAuth() {
     });
 
     return () => {
-      window.removeEventListener('ai-mem-auth-change', handleAuthChange);
+      window.removeEventListener('mem8-auth-change', handleAuthChange);
       window.removeEventListener('storage', handleAuthChange);
     };
   }, [initializeAuth]);

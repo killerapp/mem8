@@ -134,7 +134,7 @@ class ApiClient {
       return [
         {
           id: 'thought-1',
-          path: '/thoughts/shared/projects/ai-mem-phase3.md',
+          path: '/thoughts/shared/projects/mem8-phase3.md',
           title: 'Phase 3 Frontend Implementation',
           content: '# Phase 3 Frontend Implementation\n\nCompleted Next.js frontend with terminal aesthetic and full API integration...',
           thought_metadata: { tags: ['frontend', 'nextjs', 'implementation'], created_by: 'claude' },

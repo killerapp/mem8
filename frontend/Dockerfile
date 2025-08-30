@@ -1,4 +1,4 @@
-# Frontend Dockerfile for AI-Mem
+# Frontend Dockerfile for mem8
 FROM node:18-alpine AS base
 
 # Install dependencies only when needed

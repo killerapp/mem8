@@ -227,13 +227,13 @@ export default function Home() {
         <div className="flex items-center gap-2">
           <Image 
             src="/logo_mark.png" 
-            alt="AI-Mem" 
+            alt="mem8" 
             width={16} 
             height={16} 
             className="opacity-70"
           />
           <span className="text-xs text-muted-foreground font-mono">
-            AI-Mem Terminal v0.1.0
+            mem8 Terminal v1.2.0
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -409,7 +409,7 @@ export default function Home() {
           <div className="border-b border-border bg-muted/50">
             <div className="p-4 pb-2">
               <div className="terminal-text text-sm">
-                <span className="text-primary">{user?.username || 'user'}@ai-mem</span>
+                <span className="text-primary">{user?.username || 'user'}@mem8</span>
                 <span className="text-muted-foreground">:</span>
                 <span className="text-accent">~/memories{searchQuery ? '/search' : ''}</span>
                 <span className="text-primary">$</span>
