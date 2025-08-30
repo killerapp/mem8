@@ -1,61 +1,145 @@
 # AI-Mem - AI Memory Management System
 
-A comprehensive toolkit for managing AI-assisted development memory, providing structured knowledge repositories and Claude Code configurations for teams and individuals.
+A comprehensive AI-assisted development toolkit with a beautiful terminal-style web interface for managing shared thoughts, team collaboration, and Claude Code configurations.
+
+![AI-Mem Terminal Interface](docs/images/ai-mem-terminal.png)
 
 ## 🎯 Overview
 
-AI-Mem provides cookiecutter templates and tools for:
-- **Claude Code Configuration** - Structured `.claude` directories with agents and commands
-- **Shared Thoughts Repository** - Team knowledge management with git synchronization
-- **Cross-Project Memory** - Unified search and reference across multiple projects
+AI-Mem provides both web-based and template-based tools for:
+- **🌐 Web Terminal Interface** - Beautiful retro terminal UI for managing thoughts and teams
+- **🔐 GitHub OAuth Authentication** - Secure login with user avatars and session management
+- **👥 Team Collaboration** - Real-time synchronization of shared thoughts and knowledge
+- **📝 Structured Knowledge** - Organized thoughts with search, tags, and metadata
+- **⚙️ Claude Code Integration** - Templates for `.claude` configurations with agents and commands
+- **🔄 Git Synchronization** - Automatic sync with version control workflows
+
+## ✨ Features
+
+### 🖥️ Web Interface
+- **Terminal Aesthetic** - Retro green-on-black terminal design with Windows 11 emoji support
+- **Real-time Updates** - WebSocket integration for live collaboration
+- **Search & Filter** - Full-text and semantic search across all thoughts
+- **User Management** - GitHub OAuth with avatar display and logout functionality
+- **Responsive Design** - Works seamlessly across devices
+
+### 🔒 Authentication & Security
+- **GitHub OAuth 2.0** - Secure authentication with personal access tokens
+- **JWT Tokens** - Stateless authentication with automatic expiration
+- **Session Management** - Persistent login state with cross-tab synchronization
+- **Protected Endpoints** - API security with user-scoped data access
+
+### 📊 Team Collaboration
+- **Team Status Dashboard** - Real-time view of active teams and members
+- **Shared Thoughts** - Collaborative knowledge base with version tracking
+- **Export Functionality** - Data export for backup and migration
+- **Sync Status** - Visual indicators for synchronization state
 
 ## 🚀 Quick Start
 
+### Development Setup
 ```bash
-# Install cookiecutter
+# Clone the repository
+git clone https://github.com/killerapp/ai-mem.git
+cd ai-mem
+
+# Start with Docker (recommended)
+docker-compose up -d
+
+# Or see QUICKSTART.md for detailed setup
+```
+
+### Environment Configuration
+```bash
+# Backend (.env)
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+SECRET_KEY=your_jwt_secret_key
+DATABASE_URL=postgresql://user:pass@localhost:5433/aimem
+
+# Frontend (.env.local)
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_WS_URL=ws://localhost:8000
+```
+
+### Template Usage
+```bash
+# Install cookiecutter for templates
 uv tool install cookiecutter
 
 # Generate Claude configuration
 cookiecutter claude-dot-md-template --config-file example-configs/claude-dot-md/default.yaml
 
-# Generate thoughts repository
+# Generate thoughts repository  
 cookiecutter shared-thoughts-template --config-file example-configs/shared-thoughts/default.yaml
 ```
 
-## 📦 Components
+## 🏗️ Architecture
 
-### 1. Claude Dot MD Template
-Generates `.claude` directory configurations for Claude Code with:
-- **Agents**: codebase-analyzer, codebase-locator, thoughts-analyzer, web-search-researcher
-- **Commands**: commit, create_plan, research_codebase, implement_plan
-- **Optional Integrations**: Linear tickets, Ralph workflows
-- **Conditional Features**: Configurable based on team needs
+### Tech Stack
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI
+- **Backend**: FastAPI, SQLAlchemy, PostgreSQL, Redis
+- **Authentication**: GitHub OAuth 2.0, JWT tokens
+- **Real-time**: WebSocket connections
+- **Deployment**: Docker, Docker Compose
 
-### 2. Shared Thoughts Template
-Creates structured knowledge repositories with:
-- **Directory Structure**: shared/, personal/, global/, searchable/
-- **Document Types**: plans, research, tickets, PRs, decisions
-- **Sync Scripts**: Cross-platform git synchronization utilities
-- **Searchable Links**: Unified search via symlinks/junctions
-
-## 📁 Project Structure
-
+### Project Structure
 ```
 ai-mem/
-├── claude-dot-md-template/    # Claude Code configuration template
-│   ├── {{cookiecutter.project_slug}}/
-│   │   ├── agents/            # AI agent definitions
-│   │   └── commands/          # Command workflows
-│   └── hooks/                 # Post-generation scripts
-├── shared-thoughts-template/  # Thoughts repository template
-│   ├── {{cookiecutter.project_slug}}/
-│   │   └── thoughts/          # Knowledge structure
-│   └── hooks/                 # Setup scripts
-├── example-configs/           # Example configurations
-│   ├── claude-dot-md/        # Claude configs (default, minimal, enterprise)
-│   └── shared-thoughts/      # Thoughts configs (default, team, personal)
-└── claude-dot-md-ref/        # Reference implementations
+├── frontend/                   # Next.js web interface
+│   ├── app/                   # App router pages
+│   │   ├── auth/             # Authentication pages
+│   │   └── page.tsx          # Main terminal interface
+│   ├── components/           # Reusable UI components
+│   ├── hooks/               # React hooks (useAuth, useWebSocket)
+│   └── lib/                 # Utilities (API client, auth manager)
+├── backend/                 # FastAPI backend
+│   └── src/aimem_api/      
+│       ├── routers/         # API routes (auth, thoughts, teams)
+│       ├── models/          # SQLAlchemy models
+│       └── config.py        # Configuration management
+├── claude-dot-md-template/  # Claude Code configuration template
+├── shared-thoughts-template/ # Thoughts repository template
+└── docs/                   # Documentation and screenshots
 ```
+
+## 🎨 Terminal Interface
+
+The web interface features a beautiful terminal aesthetic with:
+
+- **Header Bar**: Connection status, user avatar, and logout controls
+- **Sidebar**: Team status, search functionality, and quick actions  
+- **Main Panel**: Command prompt simulation with recent thoughts
+- **Status Bar**: Real-time system information and connection status
+- **Color Scheme**: Classic green-on-black terminal with modern UI elements
+
+### Key UI Elements
+- ✅ **Connected/Disconnected** status indicators
+- 👤 **User avatar** and username display  
+- 🔍 **Search memories** with real-time filtering
+- ⚡ **Quick actions** for new thoughts and sync operations
+- 📊 **System stats** with live memory and thought counters
+- 🖱️ **Interactive buttons** with terminal styling
+
+## 📡 API Endpoints
+
+### Authentication
+- `GET /api/v1/auth/github/url` - Get GitHub OAuth URL
+- `POST /api/v1/auth/github/callback` - Handle OAuth callback
+- `GET /api/v1/auth/me` - Get current user info
+- `POST /api/v1/auth/logout` - Logout user
+
+### Thoughts Management  
+- `GET /api/v1/thoughts` - List thoughts with filtering
+- `POST /api/v1/thoughts` - Create new thought
+- `GET /api/v1/thoughts/{id}` - Get specific thought
+- `PUT /api/v1/thoughts/{id}` - Update thought
+- `DELETE /api/v1/thoughts/{id}` - Delete thought
+
+### Teams & Collaboration
+- `GET /api/v1/teams` - List user teams
+- `GET /api/v1/teams/{id}/stats` - Get team statistics  
+- `POST /api/v1/sync/teams/{id}` - Sync team data
 
 ## 🔧 Configuration Examples
 
@@ -73,29 +157,6 @@ cookiecutter claude-dot-md-template --config-file example-configs/claude-dot-md/
 cookiecutter shared-thoughts-template --config-file example-configs/shared-thoughts/team-collaboration.yaml
 ```
 
-### Minimal Personal Setup
-```bash
-# Lightweight configuration for individual use
-cookiecutter claude-dot-md-template --config-file example-configs/claude-dot-md/minimal.yaml
-cookiecutter shared-thoughts-template --config-file example-configs/shared-thoughts/personal-notes.yaml
-```
-
-## 🎨 Customization
-
-### Override Configuration Values
-```bash
-cookiecutter claude-dot-md-template \
-  --config-file example-configs/claude-dot-md/default.yaml \
-  --no-input \
-  include_linear_integration=true \
-  organization_name="ACME Corp"
-```
-
-### Create Custom Configuration
-1. Copy an example config from `example-configs/`
-2. Modify values in the YAML file
-3. Use with `--config-file` option
-
 ## 🔄 Workflow Integration
 
 ### Thoughts Directory Structure
@@ -103,7 +164,7 @@ cookiecutter claude-dot-md-template \
 thoughts/
 ├── shared/                    # Team-wide documents
 │   ├── plans/                # Implementation plans
-│   ├── research/             # Research documents
+│   ├── research/             # Research documents  
 │   ├── tickets/              # Linear tickets (ENG-XXXX.md)
 │   ├── prs/                  # PR descriptions
 │   └── decisions/            # Technical decisions
@@ -114,40 +175,39 @@ thoughts/
 └── searchable/              # Unified search (auto-generated)
 ```
 
-### File Naming Conventions
-- **Research**: `YYYY-MM-DD_HH-MM-SS_topic.md`
-- **Plans**: `descriptive-name.md`
-- **Tickets**: `ENG-XXXX.md`
-- **PRs**: `{number}_description.md`
-
-## 🛠️ Tools & Scripts
-
-### Sync Scripts (Generated)
-- `sync-thoughts.bat` - Windows batch script
-- `sync-thoughts.sh` - Unix/Linux shell script
-- `sync-thoughts.ps1` - PowerShell script
-
-### Features
-- Automatic git commit and push
-- Configurable commit messages
-- Status reporting
-- Cross-platform compatibility
+### Claude Code Integration
+The system integrates seamlessly with Claude Code through:
+- **Agent Definitions** - Pre-configured AI agents for development tasks
+- **Command Workflows** - Automated task execution and planning
+- **Memory Persistence** - Structured knowledge retention across sessions
+- **Context Sharing** - Team-wide context and decision history
 
 ## 📋 Requirements
 
-- **Python 3.7+** - For cookiecutter
+### System Requirements
+- **Node.js 18+** - For frontend development
+- **Python 3.11+** - For backend services
+- **PostgreSQL 13+** - Primary database
+- **Redis 6+** - Session and caching (optional)
+- **Docker** - For containerized deployment (recommended)
+
+### Development Tools
+- **uv** - Python package manager (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 - **cookiecutter** - Template engine (`uv tool install cookiecutter`)
-- **git** - Version control (optional, for sync features)
-- **Windows**: May need admin privileges for directory junctions
-- **Unix/Linux**: Standard permissions for symlinks
+- **git** - Version control for sync features
 
 ## 🚧 Roadmap
 
-- [ ] AI-Mem CLI tool for lifecycle management
-- [ ] Web frontend for browsing thoughts
-- [ ] Backend API for team synchronization
-- [ ] Self-hosted deployment options
-- [ ] Integration with more AI assistants
+- [x] ✅ Web terminal interface with authentication
+- [x] ✅ GitHub OAuth integration 
+- [x] ✅ Real-time team collaboration
+- [x] ✅ Docker development environment
+- [ ] 🔄 Claude.md constructs integration (in progress)
+- [ ] 🔄 Advanced search with semantic embeddings
+- [ ] 🔄 Mobile-responsive terminal interface
+- [ ] 🔄 Plugin system for custom integrations
+- [ ] 🔄 Self-hosted deployment guides
+- [ ] 🔄 Integration with more AI assistants
 
 ## 📝 License
 
@@ -155,17 +215,19 @@ This project is designed for AI-assisted development workflows and knowledge man
 
 ## 🤝 Contributing
 
-Contributions welcome! The templates are designed to be extensible:
-1. Add new agents to `claude-dot-md-template/`
-2. Add new document types to `shared-thoughts-template/`
-3. Create new example configurations
-4. Improve sync scripts and utilities
+Contributions welcome! Areas for improvement:
+1. **Frontend Components** - Enhance the terminal UI experience
+2. **Backend APIs** - Extend functionality and performance  
+3. **Authentication** - Add more OAuth providers
+4. **Templates** - Create new Claude Code configurations
+5. **Documentation** - Improve setup and usage guides
 
 ## 📚 Documentation
 
+- [QUICKSTART.md](QUICKSTART.md) - Development environment setup
 - [Example Configurations](example-configs/README.md) - Pre-built configuration examples
 - [Claude Template](claude-dot-md-template/README.md) - Claude Code configuration details
 - [Thoughts Template](shared-thoughts-template/README.md) - Thoughts repository details
 
 ---
-*Built for teams using AI-assisted development with Claude Code and similar tools.*
+*Built for teams using AI-assisted development with Claude Code and modern web technologies.*
