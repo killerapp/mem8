@@ -18,6 +18,7 @@ from ..schemas.thought import (
     ThoughtUpdate,
 )
 from .auth import get_current_user
+from ..services.filesystem_thoughts import get_filesystem_thoughts
 
 router = APIRouter()
 
@@ -123,6 +124,36 @@ async def create_thought(
     await db.refresh(thought)
     
     return thought
+
+
+@router.get("/thoughts/from-filesystem")
+async def list_filesystem_thoughts(
+    search: Optional[str] = Query(None, description="Search in title and content"),
+    tags: Optional[List[str]] = Query(None, description="Filter by tags"),
+    repository: Optional[str] = Query(None, description="Filter by repository"),
+    limit: int = Query(50, ge=1, le=200, description="Maximum number of thoughts to return"),
+):
+    """List thoughts directly from filesystem (including worktrees)."""
+    
+    thoughts = get_filesystem_thoughts(
+        search=search,
+        tags=tags,
+        repository=repository,
+        limit=limit
+    )
+    
+    return {
+        "thoughts": thoughts,
+        "total": len(thoughts),
+        "source": "filesystem",
+        "repositories_found": list(set(t.get("repository", "unknown") for t in thoughts))
+    }
+
+
+@router.get("/thoughts/test-no-auth")
+async def test_no_auth():
+    """Test endpoint without authentication."""
+    return {"message": "This works without auth", "thoughts_found": 0}
 
 
 @router.get("/thoughts/{thought_id}", response_model=ThoughtResponse)

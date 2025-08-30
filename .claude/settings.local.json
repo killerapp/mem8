@@ -91,7 +91,15 @@
       "mcp__browser__browser_get_clickable_elements",
       "mcp__browser__browser_click",
       "Bash(docker exec:*)",
-      "mcp__browser__browser_evaluate"
+      "mcp__browser__browser_evaluate",
+      "mcp__browser__browser_form_input_fill",
+      "Bash(git rev-parse:*)",
+      "Read(C:\\Users\\vaski\\projects\\claude-code-docs/**)",
+      "Read(C:\\Users\\vaski\\projects\\claude-code-docs/**)",
+      "Read(C:\\Users\\vaski\\projects\\claude-code-docs\\docs/**)",
+      "Read(C:\\Users\\vaski\\projects\\claude-code-docs\\docs/**)",
+      "mcp__browser__browser_scroll",
+      "mcp__browser__browser_switch_tab"
     ],
     "deny": [],
     "ask": []
