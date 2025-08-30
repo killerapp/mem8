@@ -106,6 +106,24 @@ class ApiClient {
     return this.request('/api/v1/health');
   }
 
+  // Filesystem Thoughts API (local files, no auth needed for display)
+  async getFilesystemThoughts(params?: {
+    search?: string;
+    tags?: string[];
+    repository?: string;
+    limit?: number;
+  }): Promise<any> {
+    const searchParams = new URLSearchParams();
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.tags) params.tags.forEach(tag => searchParams.append('tags', tag));
+    if (params?.repository) searchParams.append('repository', params.repository);
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    
+    const query = searchParams.toString();
+    // Use public endpoint that doesn't require auth
+    return this.request(`/api/v1/public/thoughts/local${query ? `?${query}` : ''}`);
+  }
+
   // Thoughts API
   async getThoughts(params?: {
     team_id?: string;

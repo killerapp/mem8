@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Brain, Users, Zap, Database, Terminal, Plus, RefreshCw, Download, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
-import { useHealth, useThoughts, useTeams, useSystemStats, useSearchThoughts, useSyncTeam, useCreateThought } from '@/hooks/useApi';
+import { useHealth, useThoughts, useFilesystemThoughts, useTeams, useSystemStats, useSearchThoughts, useSyncTeam, useCreateThought } from '@/hooks/useApi';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,11 @@ export default function Home() {
   // API hooks
   const { data: health, isLoading: healthLoading } = useHealth();
   const { data: teams, isLoading: teamsLoading } = useTeams();
+  // Filesystem thoughts (always available, no auth needed)
+  const { data: filesystemThoughts, isLoading: filesystemLoading } = useFilesystemThoughts({
+    limit: 10
+  });
+  
   const { data: thoughts, isLoading: thoughtsLoading, refetch: refetchThoughts } = useThoughts({
     team_id: selectedTeamId,
     limit: 10
@@ -141,9 +146,27 @@ export default function Home() {
   // Get current team for display
   const currentTeam = teams?.find(team => team.id === selectedTeamId) || teams?.[0];
   
-  // Transform thoughts data for display
-  const recentThoughts = (searchQuery.length > 2 ? searchResults?.thoughts : 
-    thoughts?.thoughts?.slice(0, 10).map(thought => ({
+  // Transform thoughts data for display - prioritize filesystem thoughts
+  const recentThoughts = (() => {
+    if (searchQuery.length > 2) {
+      return searchResults?.thoughts || [];
+    }
+    
+    // Use filesystem thoughts if available
+    if (filesystemThoughts?.thoughts) {
+      return filesystemThoughts.thoughts.slice(0, 10).map((thought: any) => ({
+        id: thought.id,
+        title: thought.title,
+        excerpt: thought.content.substring(0, 150) + '...',
+        path: thought.path,
+        team: thought.repository || 'Local',
+        lastModified: new Date(thought.updated_at).toLocaleString(),
+        tags: thought.tags || []
+      }));
+    }
+    
+    // Fallback to database thoughts
+    return thoughts?.thoughts?.slice(0, 10).map(thought => ({
       id: thought.id,
       title: thought.title,
       excerpt: thought.content.substring(0, 150) + '...',
@@ -151,7 +174,8 @@ export default function Home() {
       team: currentTeam?.name || 'Unknown Team',
       lastModified: new Date(thought.updated_at).toLocaleString(),
       tags: thought.thought_metadata.tags || []
-    }))) || [];
+    })) || [];
+  })();
   
   // Transform teams data for team status display
   const teamStatuses = teams?.map(team => ({
@@ -376,7 +400,7 @@ export default function Home() {
           {/* Terminal Prompt */}
           <div className="p-4 border-b border-border bg-muted/50">
             <div className="terminal-text text-sm">
-              <span className="text-primary">user@ai-mem</span>
+              <span className="text-primary">{user?.username || 'user'}@ai-mem</span>
               <span className="text-muted-foreground">:</span>
               <span className="text-accent">~/memories</span>
               <span className="text-primary">$</span>
@@ -394,7 +418,7 @@ export default function Home() {
               </h2>
               
               <div className="space-y-4">
-                {thoughtsLoading ? (
+                {(thoughtsLoading || filesystemLoading) ? (
                   <div className="text-center text-muted-foreground">Loading thoughts...</div>
                 ) : recentThoughts.length > 0 ? (
                   recentThoughts.map((thought) => (
@@ -448,7 +472,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="memory-cell p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold terminal-glow text-primary">
-                    {systemStats?.totalThoughts ?? 'N/A'}
+                    {filesystemThoughts?.total ?? systemStats?.totalThoughts ?? 'N/A'}
                   </div>
                   <div className="text-sm text-muted-foreground">Total Thoughts</div>
                 </div>

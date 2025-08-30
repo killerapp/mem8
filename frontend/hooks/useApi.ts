@@ -10,6 +10,15 @@ export function useHealth() {
   });
 }
 
+// Filesystem Thoughts (no auth required)
+export function useFilesystemThoughts(params?: { search?: string; tags?: string[]; repository?: string; limit?: number }) {
+  return useQuery({
+    queryKey: ['filesystem-thoughts', params],
+    queryFn: () => apiClient.getFilesystemThoughts(params),
+    enabled: true,
+  });
+}
+
 // Thoughts
 export function useThoughts(params?: { team_id?: string; skip?: number; limit?: number }) {
   return useQuery({
