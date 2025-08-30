@@ -89,6 +89,5 @@ target-version = ['py312']
 profile = "black"
 
 [tool.mypy]
-python_version = "1.0.0"
 warn_return_any = true
 warn_unused_configs = true
