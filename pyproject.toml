@@ -40,10 +40,10 @@ dependencies = [
 mem8 = "ai_mem.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/killerapp/ai-mem"
-Documentation = "https://github.com/killerapp/ai-mem#readme"
-Repository = "https://github.com/killerapp/ai-mem"
-Issues = "https://github.com/killerapp/ai-mem/issues"
+Homepage = "https://github.com/killerapp/mem8"
+Documentation = "https://github.com/killerapp/mem8#readme"
+Repository = "https://github.com/killerapp/mem8"
+Issues = "https://github.com/killerapp/mem8/issues"
 
 [project.optional-dependencies]
 dev = [

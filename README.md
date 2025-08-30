@@ -1,16 +1,16 @@
-# AI-Mem - AI Memory Management Platform
+# mem8 - Memory Management for the Orchestr8 Ecosystem
 
-A production-ready AI memory management platform with CLI, API, and terminal-style web interface for team collaboration and Claude Code integration.
+A production-ready memory management platform for the orchestr8 ecosystem with CLI, API, and web interface for team collaboration with shared thoughts.
 
 ## 🎯 Overview
 
 **Current Status: Production Ready (Phase 3 Complete)**
 
-AI-Mem is a comprehensive platform providing:
+mem8 is a comprehensive platform providing:
 - **💻 Advanced CLI** - Full workspace management with Windows UTF-8 support and rich UI
 - **🚀 FastAPI Backend** - Production-grade API with PostgreSQL, authentication, and real-time capabilities  
 - **🖥️ Terminal Web UI** - Stunning retro interface with live collaboration features
-- **⚙️ Claude Code Integration** - Seamless integration with AI-assisted development workflows
+- **🎯 Orchestr8 Integration** - Seamless integration with orchestr8 ecosystem and o8 CLI
 
 ## ✅ Current Implementation Status
 

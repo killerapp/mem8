@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AI-Mem CLI: AI Memory Management for team collaboration with Claude Code integration.
+mem8 CLI: Memory management for the orchestr8 ecosystem - team collaboration with shared thoughts.
 """
 
 import os
@@ -63,7 +63,7 @@ console = Console(
 
 
 @click.group()
-@click.version_option(version=__version__, prog_name="ai-mem")
+@click.version_option(version=__version__, prog_name="mem8")
 @click.option(
     "--verbose", "-v", is_flag=True, help="Enable verbose output"
 )
@@ -74,7 +74,7 @@ console = Console(
 )
 @click.pass_context
 def cli(ctx, verbose: bool, config_dir: Optional[str]):
-    """AI-Mem: AI Memory Management CLI for team collaboration."""
+    """mem8: Memory management CLI for the orchestr8 ecosystem."""
     setup_logging(verbose)
     
     # Initialize context
@@ -109,10 +109,10 @@ def cli(ctx, verbose: bool, config_dir: Optional[str]):
 )
 @click.pass_context
 def init(ctx, template: str, config_file: Optional[str], shared_dir: Optional[str], force: bool):
-    """Initialize AI-Mem workspace using cookiecutter templates."""
+    """Initialize mem8 workspace using cookiecutter templates."""
     from cookiecutter.main import cookiecutter
     
-    console.print(f"[bold blue]Initializing AI-Mem workspace with {template} template...[/bold blue]")
+    console.print(f"[bold blue]Initializing mem8 workspace with {template} template...[/bold blue]")
     
     try:
         workspace_dir = Path.cwd()
@@ -242,11 +242,11 @@ def init(ctx, template: str, config_file: Optional[str], shared_dir: Optional[st
         # Show next steps
         console.print("\\n[bold]Next steps:[/bold]")
         if template in ['thoughts-repo', 'full']:
-            console.print("  • Run [cyan]ai-mem sync[/cyan] to sync with shared memory")
+            console.print("  • Run [cyan]mem8 sync[/cyan] to sync with shared memory")
         if template in ['claude-config', 'full']:
             console.print("  • Edit [cyan].claude/CLAUDE.md[/cyan] to customize your setup")
-        console.print("  • Run [cyan]ai-mem status[/cyan] to check workspace status")
-        console.print("  • Run [cyan]ai-mem search <query>[/cyan] to search your memory")
+        console.print("  • Run [cyan]mem8 status[/cyan] to check workspace status")
+        console.print("  • Run [cyan]mem8 search <query>[/cyan] to search your memory")
             
     except Exception as e:
         console.print(f"❌ [red]Error during initialization: {e}[/red]")
@@ -261,8 +261,8 @@ def init(ctx, template: str, config_file: Optional[str], shared_dir: Optional[st
 @click.option('--web', is_flag=True, help='Launch web UI after setup')
 @click.pass_context
 def quick_start(ctx, repos: Optional[str], web: bool):
-    """Set up AI-Mem with intelligent defaults in 30 seconds."""
-    console.print("🚀 [bold blue]Setting up AI-Mem with smart defaults...[/bold blue]")
+    """Set up mem8 with intelligent defaults in 30 seconds."""
+    console.print("🚀 [bold blue]Setting up mem8 with smart defaults...[/bold blue]")
     
     try:
         # 1. Auto-detect project context
@@ -327,7 +327,7 @@ def quick_start(ctx, repos: Optional[str], web: bool):
         if web:
             console.print("🌐 [dim]Launching web UI...[/dim]")
             if launch_web_ui():
-                console.print("✅ [green]AI-Mem UI opened in your browser![/green]")
+                console.print("✅ [green]mem8 UI opened in your browser![/green]")
             else:
                 console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
                 instructions = show_setup_instructions()
@@ -336,11 +336,11 @@ def quick_start(ctx, repos: Optional[str], web: bool):
         # Show next steps
         console.print("\n🎉 [bold green]Quick setup complete![/bold green]")
         console.print("\n[bold]Next steps:[/bold]")
-        console.print("  • Run [cyan]ai-mem status[/cyan] to check workspace health")
-        console.print("  • Run [cyan]ai-mem search <query>[/cyan] to search your thoughts")
-        console.print("  • Use [cyan]ai-mem quick-start --web[/cyan] to launch the web UI")
+        console.print("  • Run [cyan]mem8 status[/cyan] to check workspace health")
+        console.print("  • Run [cyan]mem8 search <query>[/cyan] to search your thoughts")
+        console.print("  • Use [cyan]mem8 quick-start --web[/cyan] to launch the web UI")
         if not project_info['is_claude_code_project']:
-            console.print("  • Run [cyan]ai-mem init --template claude-config[/cyan] to add Claude Code integration")
+            console.print("  • Run [cyan]mem8 init --template claude-config[/cyan] to add Claude Code integration")
         
         console.print(f"\n💡 [dim]Tip: Your thoughts are in [cyan]thoughts/{config['username']}/[/cyan] and shared thoughts in [cyan]thoughts/shared/[/cyan][/dim]")
             
@@ -354,12 +354,12 @@ def quick_start(ctx, repos: Optional[str], web: bool):
 
 @cli.command()
 def dashboard():
-    """Launch AI-Mem web dashboard."""
-    console.print("🌐 [bold blue]Launching AI-Mem dashboard...[/bold blue]")
+    """Launch mem8 web dashboard."""
+    console.print("🌐 [bold blue]Launching mem8 dashboard...[/bold blue]")
     
     if launch_web_ui():
         console.print("✅ [green]Dashboard opened in your browser![/green]")
-        console.print("💡 [dim]Use 'ai-mem status' to check backend health.[/dim]")
+        console.print("💡 [dim]Use 'mem8 status' to check backend health.[/dim]")
     else:
         console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
         instructions = show_setup_instructions()
@@ -373,8 +373,8 @@ def dashboard():
 @click.option('--all', is_flag=True, help='Deploy full stack')
 @click.pass_context
 def bootstrap(ctx, team: Optional[str], backend: bool, frontend: bool, all: bool):
-    """Bootstrap AI-Mem for team deployment."""
-    console.print("🚀 [bold blue]Bootstrapping AI-Mem for team deployment...[/bold blue]")
+    """Bootstrap mem8 for team deployment."""
+    console.print("🚀 [bold blue]Bootstrapping mem8 for team deployment...[/bold blue]")
     
     if all:
         backend = frontend = True
@@ -488,10 +488,10 @@ def sync(ctx, direction: str, dry_run: bool):
 )
 @click.pass_context
 def status(ctx, detailed: bool):
-    """Show AI-Mem workspace status."""
+    """Show mem8 workspace status."""
     memory_manager = ctx.obj['memory_manager']
     
-    console.print("[bold blue]AI-Mem Workspace Status[/bold blue]")
+    console.print("[bold blue]mem8 Workspace Status[/bold blue]")
     
     try:
         status_info = memory_manager.get_status(detailed=detailed)
@@ -631,10 +631,10 @@ def search(ctx, query: str, limit: int, content_type: str, method: str, path: st
 )
 @click.pass_context
 def doctor(ctx, auto_fix: bool):
-    """Diagnose and fix AI-Mem workspace issues."""
+    """Diagnose and fix mem8 workspace issues."""
     memory_manager = ctx.obj['memory_manager']
     
-    console.print("[bold blue]Running AI-Mem diagnostics...[/bold blue]")
+    console.print("[bold blue]Running mem8 diagnostics...[/bold blue]")
     
     try:
         diagnosis = memory_manager.diagnose_workspace(auto_fix=auto_fix)
@@ -719,7 +719,7 @@ def deploy():
 @click.option("--replicas", default=2, help="Number of replicas")
 @click.pass_context
 def kubernetes(ctx, env: str, domain: str, replicas: int):
-    """Deploy AI-Mem to Kubernetes via orchestr8."""
+    """Deploy mem8 to Kubernetes via orchestr8."""
     console.print(f"[bold blue]Deploying to {env} environment...[/bold blue]")
     console.print("[yellow]⚠️  Kubernetes deployment requires Phase 4 implementation[/yellow]")
     console.print("Available after backend API and frontend are implemented.")
