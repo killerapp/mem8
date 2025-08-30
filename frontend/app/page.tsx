@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Brain, Users, Zap, Database, Terminal, Plus, RefreshCw, Download, LogOut, User } from 'lucide-react';
+import { UserDropdown } from '@/components/UserDropdown';
+import { Search, Brain, Users, Zap, Database, Terminal, Plus, RefreshCw, Download } from 'lucide-react';
 import Image from 'next/image';
 import { useHealth, useThoughts, useFilesystemThoughts, useTeams, useSystemStats, useSearchThoughts, useSyncTeam, useCreateThought } from '@/hooks/useApi';
 import { useWebSocket } from '@/hooks/useWebSocket';
@@ -252,29 +253,12 @@ export default function Home() {
           
           {/* Auth Status */}
           {authLoading ? (
-            <div className="text-xs text-muted-foreground">Loading...</div>
-          ) : isAuthenticated && user ? (
-            <div className="flex items-center gap-2 text-xs">
-              {user.avatar_url ? (
-                <Image 
-                  src={user.avatar_url} 
-                  alt={user.username} 
-                  width={16} 
-                  height={16} 
-                  className="rounded-full"
-                />
-              ) : (
-                <User className="w-4 h-4" />
-              )}
-              <span className="text-muted-foreground">{user.username}</span>
-              <button 
-                onClick={handleLogout}
-                className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-3 h-3" />
-              </button>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+              Authenticating...
             </div>
+          ) : isAuthenticated && user ? (
+            <UserDropdown user={user} onLogout={handleLogout} />
           ) : (
             <button 
               onClick={handleLogin}
@@ -308,6 +292,30 @@ export default function Home() {
                   <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* System Metrics - Always Visible */}
+          <div className="p-4 border-b border-border bg-muted/30">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="flex flex-col">
+                <span className="text-lg font-bold terminal-glow text-primary">
+                  {filesystemThoughts?.total ?? systemStats?.totalThoughts ?? '0'}
+                </span>
+                <span className="text-xs text-muted-foreground">Thoughts</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold terminal-glow text-accent">
+                  {systemStats?.activeTeams ?? '0'}
+                </span>
+                <span className="text-xs text-muted-foreground">Teams</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold terminal-glow text-secondary">
+                  {systemStats?.syncStatus != null ? `${systemStats.syncStatus}%` : '0%'}
+                </span>
+                <span className="text-xs text-muted-foreground">Synced</span>
+              </div>
             </div>
           </div>
 
@@ -397,15 +405,46 @@ export default function Home() {
 
         {/* Main Dashboard */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Terminal Prompt */}
-          <div className="p-4 border-b border-border bg-muted/50">
-            <div className="terminal-text text-sm">
-              <span className="text-primary">{user?.username || 'user'}@ai-mem</span>
-              <span className="text-muted-foreground">:</span>
-              <span className="text-accent">~/memories</span>
-              <span className="text-primary">$</span>
-              <span className="ml-2">ls -la recent_thoughts</span>
-              <span className="ml-2 animate-pulse">█</span>
+          {/* Terminal Prompt & Context */}
+          <div className="border-b border-border bg-muted/50">
+            <div className="p-4 pb-2">
+              <div className="terminal-text text-sm">
+                <span className="text-primary">{user?.username || 'user'}@ai-mem</span>
+                <span className="text-muted-foreground">:</span>
+                <span className="text-accent">~/memories{searchQuery ? '/search' : ''}</span>
+                <span className="text-primary">$</span>
+                <span className="ml-2">
+                  {searchQuery ? `grep -r "${searchQuery}"` : 'ls -la recent_thoughts'}
+                </span>
+                <span className="ml-2 animate-pulse">█</span>
+              </div>
+            </div>
+            
+            {/* Live Status Strip */}
+            <div className="px-4 pb-2 flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1">
+                  <Database className="w-3 h-3" />
+                  {filesystemThoughts?.source === 'local-filesystem' ? 'Local' : 'Database'}
+                </span>
+                {filesystemThoughts?.repositories_found && filesystemThoughts.repositories_found.length > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>Repos: {filesystemThoughts.repositories_found.join(', ')}</span>
+                  </>
+                )}
+                {searchQuery && (
+                  <>
+                    <span>•</span>
+                    <span className="text-accent">Searching...</span>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  Showing {recentThoughts?.length ?? 0} of {filesystemThoughts?.total ?? systemStats?.totalThoughts ?? 0}
+                </Badge>
+              </div>
             </div>
           </div>
 
@@ -414,7 +453,9 @@ export default function Home() {
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-4 terminal-glow flex items-center gap-2">
                 <Brain className="w-5 h-5" />
-                Recent Thoughts
+                {searchQuery ? 'Search Results' : 
+                 filesystemThoughts?.source === 'local-filesystem' ? 'Local Thoughts' : 
+                 'Recent Thoughts'}
               </h2>
               
               <div className="space-y-4">
@@ -445,8 +486,8 @@ export default function Home() {
                       
                       {thought.tags && thought.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {thought.tags.map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
+                          {thought.tags.map((tag, index) => (
+                            <Badge key={`${tag}-${index}`} variant="outline" className="text-xs">
                               {tag}
                             </Badge>
                           ))}
@@ -459,35 +500,6 @@ export default function Home() {
                     {searchQuery ? 'No matching thoughts found' : 'No thoughts yet. Create your first thought!'}
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* System Status */}
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-4 terminal-glow flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                System Status
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="memory-cell p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold terminal-glow text-primary">
-                    {filesystemThoughts?.total ?? systemStats?.totalThoughts ?? 'N/A'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Thoughts</div>
-                </div>
-                <div className="memory-cell p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold terminal-glow text-accent">
-                    {systemStats?.activeTeams ?? 'N/A'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Active Teams</div>
-                </div>
-                <div className="memory-cell p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold terminal-glow text-secondary">
-                    {systemStats?.syncStatus != null ? `${systemStats.syncStatus}%` : 'N/A'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Sync Status</div>
-                </div>
               </div>
             </div>
           </div>

@@ -7,7 +7,7 @@ import { authManager } from '@/lib/auth'
 export default function AuthCallbackPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'processing' | 'success' | 'error'>('loading')
   const [error, setError] = useState<string>('')
 
   useEffect(() => {
@@ -42,13 +42,17 @@ export default function AuthCallbackPage() {
       }
 
       try {
+        setStatus('processing') // Show processing state during API call
+        
         // Use the auth manager to handle the callback
         const authResponse = await authManager.handleGitHubCallback(code, state || undefined)
         
         setStatus('success')
         
-        // Redirect to main app immediately
-        router.push('/')
+        // Small delay to show success state before redirect
+        setTimeout(() => {
+          router.push('/')
+        }, 500)
         
       } catch (err) {
         console.error('Authentication error:', err)
@@ -59,13 +63,20 @@ export default function AuthCallbackPage() {
           if (authManager.isAuthenticated()) {
             console.log('Code expired but user is authenticated, redirecting')
             setStatus('success')
-            router.push('/')
+            setTimeout(() => {
+              router.push('/')
+            }, 500)
             return
           }
         }
         
-        setError(errorMessage)
-        setStatus('error')
+        // Only show error after a brief delay to avoid flashing errors during successful auth
+        setTimeout(() => {
+          if (!authManager.isAuthenticated()) {
+            setError(errorMessage)
+            setStatus('error')
+          }
+        }, 1000)
       }
     }
 
@@ -79,10 +90,12 @@ export default function AuthCallbackPage() {
           &gt; AI-MEM TERMINAL
         </div>
         
-        {status === 'loading' && (
+        {(status === 'loading' || status === 'processing') && (
           <div className="space-y-2">
             <div className="text-lg">&gt; AUTHENTICATING...</div>
-            <div className="text-gray-400">&gt; Processing GitHub OAuth callback</div>
+            <div className="text-gray-400">
+              &gt; {status === 'loading' ? 'Validating OAuth response' : 'Exchanging tokens with server'}
+            </div>
             <div className="inline-flex items-center space-x-1">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse delay-75"></div>
