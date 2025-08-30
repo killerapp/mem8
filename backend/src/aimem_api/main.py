@@ -12,7 +12,7 @@ from starlette.responses import Response
 
 from .config import get_settings
 from .database import init_db, close_db
-from .routers import thoughts, search, sync, teams, health
+from .routers import thoughts, search, sync, teams, health, auth
 # from .websocket import websocket_endpoint
 
 # Setup logging
@@ -65,6 +65,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(
     thoughts.router,
@@ -86,9 +87,6 @@ app.include_router(
     prefix="/api/v1",
     tags=["teams"]
 )
-
-# WebSocket endpoint (temporarily disabled)
-# app.add_websocket_route("/ws/{team_id}", websocket_endpoint)
 
 
 @app.get("/metrics")

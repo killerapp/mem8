@@ -10,12 +10,14 @@ from sqlalchemy.orm import selectinload
 
 from ..database import get_db
 from ..models.thought import Thought
+from ..models.user import User
 from ..schemas.thought import (
     ThoughtCreate,
     ThoughtListResponse,
     ThoughtResponse,
     ThoughtUpdate,
 )
+from .auth import get_current_user
 
 router = APIRouter()
 
@@ -29,6 +31,7 @@ async def list_thoughts(
     is_archived: Optional[bool] = Query(None, description="Filter by archived status"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ThoughtListResponse:
     """List thoughts with filtering and pagination."""
@@ -89,6 +92,7 @@ async def list_thoughts(
 @router.post("/thoughts/", response_model=ThoughtResponse, status_code=status.HTTP_201_CREATED)
 async def create_thought(
     thought_data: ThoughtCreate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ThoughtResponse:
     """Create a new thought."""

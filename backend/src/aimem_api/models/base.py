@@ -19,11 +19,11 @@ class UUIDMixin:
     """Mixin for UUID primary key."""
     
     @declared_attr
-    def id(cls) -> Mapped[uuid.UUID]:
+    def id(cls) -> Mapped[str]:
         return mapped_column(
             UuidType,
             primary_key=True,
-            default=uuid.uuid4,
+            default=lambda: str(uuid.uuid4()),
             nullable=False
         )
 
@@ -46,4 +46,4 @@ class TimestampMixin:
             server_default=func.now(),
             onupdate=func.now(),
             nullable=False
-        )
+        )# Force reload

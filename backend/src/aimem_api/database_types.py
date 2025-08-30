@@ -10,7 +10,7 @@ database_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./aimem.db")
 # Choose appropriate types based on database
 if database_url.startswith("postgresql"):
     JsonType = JSONB
-    UuidType = PostgresUUID(as_uuid=True)
+    UuidType = PostgresUUID(as_uuid=False)  # Store as string for compatibility
 else:
     # SQLite and other databases
     JsonType = JSON

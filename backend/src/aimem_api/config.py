@@ -70,6 +70,20 @@ class Settings(BaseSettings):
     
     # Logging settings
     log_level: str = Field(default="INFO", description="Logging level")
+    
+    # GitHub OAuth settings
+    github_client_id: str = Field(
+        default="",
+        description="GitHub OAuth client ID"
+    )
+    github_client_secret: str = Field(
+        default="",
+        description="GitHub OAuth client secret"
+    )
+    github_redirect_uri: str = Field(
+        default="http://localhost:3000/auth/callback",
+        description="GitHub OAuth redirect URI"
+    )
 
 
 @lru_cache()
