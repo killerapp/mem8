@@ -23,5 +23,3 @@ test-*/
 .env.*local*
 .env.*.local*
 
-thoughts/shared
-
