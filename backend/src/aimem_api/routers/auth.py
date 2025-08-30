@@ -4,7 +4,7 @@ import httpx
 import jwt
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +14,7 @@ from ..database import get_db
 from ..models.user import User
 
 router = APIRouter()
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 settings = get_settings()
 
@@ -82,6 +82,67 @@ def create_access_token(user_id: str) -> tuple[str, datetime]:
     return encoded_jwt, expire
 
 
+async def get_current_user_or_local(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    """Get current authenticated user from JWT token or local mode."""
+    
+    # Check for local mode header first
+    local_mode = request.headers.get("X-Local-Mode")
+    
+    if local_mode == "true":
+        # Return a fake local user for local mode
+        user = User(
+            email="local@ai-mem.com",
+            username="local",
+            full_name="Local User",
+            hashed_password=None,
+            is_active=True,
+            is_superuser=False
+        )
+        user.id = "local-user-id"  # Set ID manually
+        return user
+    
+    # Normal JWT authentication
+    auth_header = request.headers.get("authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
+        
+    token = auth_header.split(" ")[1]
+    
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+    
+    # Get user from database
+    result = await db.execute(
+        User.__table__.select().where(User.id == user_id)
+    )
+    user = result.first()
+    
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+    
+    return user
+
+# Keep the original function for backward compatibility
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)

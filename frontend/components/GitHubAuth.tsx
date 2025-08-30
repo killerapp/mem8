@@ -129,17 +129,33 @@ export function GitHubAuth() {
         <div>&gt; AUTHENTICATION REQUIRED</div>
       </div>
       
-      <Button
-        onClick={handleLogin}
-        className="bg-gray-800 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black font-mono"
-      >
-        &gt; Connect GitHub
-      </Button>
-      
-      <div className="text-xs text-gray-500 font-mono text-center">
-        &gt; Secure OAuth2 authentication
-        <br />
-        &gt; No passwords stored locally
+      <div className="space-y-2">
+        <Button
+          onClick={handleLogin}
+          className="w-full bg-gray-800 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black font-mono"
+        >
+          &gt; Connect GitHub
+        </Button>
+        <div className="text-xs text-gray-500 font-mono text-center">
+          &gt; Secure OAuth2 authentication
+          <br />
+          &gt; No passwords stored locally
+        </div>
+      </div>
+
+      <div className="border-t border-gray-600 pt-4">
+        <Button
+          onClick={() => {
+            localStorage.setItem('ai-mem-local-mode', 'true');
+            window.location.reload();
+          }}
+          className="w-full bg-gray-800 border border-gray-500 text-gray-400 hover:bg-gray-500 hover:text-black font-mono"
+        >
+          &gt; Use Local Mode
+        </Button>
+        <div className="text-xs text-gray-500 font-mono text-center mt-1">
+          &gt; Access local thoughts/shared directories
+        </div>
       </div>
     </div>
   );

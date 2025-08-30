@@ -84,6 +84,12 @@ export class AuthManager {
    * Get authorization headers for API requests
    */
   getAuthHeaders(): Record<string, string> {
+    // Check for local mode first
+    const isLocalMode = typeof window !== 'undefined' && localStorage.getItem('ai-mem-local-mode') === 'true';
+    if (isLocalMode) {
+      return { 'X-Local-Mode': 'true' };
+    }
+    
     const token = this.getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
   }

@@ -134,6 +134,13 @@ export default function Home() {
     }
   };
 
+  const handleLocalMode = () => {
+    // Set a local storage flag to indicate we're using local mode
+    localStorage.setItem('ai-mem-local-mode', 'true');
+    // Refresh to re-evaluate authentication state
+    window.location.reload();
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -204,16 +211,29 @@ export default function Home() {
             &gt; AI-MEM TERMINAL
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div className="text-lg">&gt; AUTHENTICATION REQUIRED</div>
-            <button
-              onClick={handleLogin}
-              className="px-6 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors"
-            >
-              &gt; Connect GitHub
-            </button>
-            <div className="text-gray-400 text-sm">&gt; Secure OAuth2 authentication</div>
-            <div className="text-gray-400 text-sm">&gt; No passwords stored locally</div>
+            
+            <div className="space-y-2">
+              <button
+                onClick={handleLogin}
+                className="w-full px-6 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors"
+              >
+                &gt; Connect GitHub
+              </button>
+              <div className="text-gray-400 text-sm text-center">&gt; Secure OAuth2 authentication</div>
+              <div className="text-gray-400 text-sm text-center">&gt; No passwords stored locally</div>
+            </div>
+
+            <div className="border-t border-gray-600 pt-4">
+              <button
+                onClick={handleLocalMode}
+                className="w-full px-6 py-2 border border-gray-500 text-gray-400 hover:bg-gray-500 hover:text-black transition-colors"
+              >
+                &gt; Use Local Mode
+              </button>
+              <div className="text-gray-500 text-sm text-center mt-1">&gt; Access local thoughts/shared directories </div>
+            </div>
           </div>
         </div>
       </div>

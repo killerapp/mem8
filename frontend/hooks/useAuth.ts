@@ -19,6 +19,22 @@ export function useAuth() {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
+      // Check for local mode first
+      const isLocalMode = localStorage.getItem('ai-mem-local-mode') === 'true';
+      if (isLocalMode) {
+        setAuthState({
+          user: {
+            id: 'local-user',
+            username: 'local',
+            email: 'local@ai-mem.com',
+            avatar_url: null
+          },
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        return;
+      }
+      
       if (!authManager.isAuthenticated()) {
         setAuthState({
           user: null,
@@ -75,7 +91,15 @@ export function useAuth() {
   // Handle logout
   const logout = useCallback(async () => {
     try {
-      await authManager.logout();
+      // Check if we're in local mode
+      const isLocalMode = localStorage.getItem('ai-mem-local-mode') === 'true';
+      if (isLocalMode) {
+        localStorage.removeItem('ai-mem-local-mode');
+      } else {
+        await authManager.logout();
+        authManager.clearAuth();
+      }
+      
       setAuthState({
         user: null,
         isAuthenticated: false,
@@ -84,6 +108,7 @@ export function useAuth() {
     } catch (error) {
       console.error('Logout failed:', error);
       // Clear auth state even if API call fails
+      localStorage.removeItem('ai-mem-local-mode');
       authManager.clearAuth();
       setAuthState({
         user: null,
