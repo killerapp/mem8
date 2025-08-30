@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Brain, Users, Zap, Database, Terminal, Plus, RefreshCw, Download, LogOut, User } from 'lucide-react';
@@ -45,6 +45,35 @@ export default function Home() {
   
   // TODO: activeUsers will be implemented when WebSocket user tracking is added
   const activeUsers: any[] = [];
+
+  // Warn when backend/system values are missing so users can configure them
+  useEffect(() => {
+    if (systemStats) {
+      const missing: string[] = [];
+      if (systemStats.totalThoughts == null) missing.push('totalThoughts');
+      if (systemStats.activeTeams == null) missing.push('activeTeams');
+      if (systemStats.syncStatus == null) missing.push('syncStatus');
+      if (systemStats.memoryUsage == null) missing.push('memoryUsage');
+      if (missing.length) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `System stats missing: ${missing.join(', ')}. Ensure backend /api/v1/system/stats provides these fields.`
+        );
+      }
+    }
+  }, [systemStats]);
+
+  useEffect(() => {
+    if (teams && teams.length) {
+      const missingMemberCount = teams.filter(t => t?.settings?.memberCount == null).length;
+      if (missingMemberCount > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `${missingMemberCount} team(s) missing settings.memberCount. Set this in team configuration to show accurate member counts.`
+        );
+      }
+    }
+  }, [teams]);
   
   const isConnected = !healthLoading && health?.status === 'healthy';
   
@@ -130,8 +159,8 @@ export default function Home() {
     name: team.name,
     status: (wsConnected && selectedTeamId === team.id) ? 'active' : 
              syncTeamMutation.isPending ? 'syncing' : 'active',
-    memberCount: team.settings?.memberCount || 1,
-    thoughtCount: systemStats?.totalThoughts || 0
+    memberCount: team.settings?.memberCount ?? 'N/A',
+    thoughtCount: systemStats?.totalThoughts ?? 'N/A'
   })) || [];
 
   // Set default team when teams load
@@ -419,19 +448,19 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="memory-cell p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold terminal-glow text-primary">
-                    {systemStats?.totalThoughts || 0}
+                    {systemStats?.totalThoughts ?? 'N/A'}
                   </div>
                   <div className="text-sm text-muted-foreground">Total Thoughts</div>
                 </div>
                 <div className="memory-cell p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold terminal-glow text-accent">
-                    {systemStats?.activeTeams || teams?.length || 0}
+                    {systemStats?.activeTeams ?? 'N/A'}
                   </div>
                   <div className="text-sm text-muted-foreground">Active Teams</div>
                 </div>
                 <div className="memory-cell p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold terminal-glow text-secondary">
-                    {systemStats?.syncStatus || 0}%
+                    {systemStats?.syncStatus != null ? `${systemStats.syncStatus}%` : 'N/A'}
                   </div>
                   <div className="text-sm text-muted-foreground">Sync Status</div>
                 </div>
@@ -456,9 +485,9 @@ export default function Home() {
           )}
         </div>
         <div className="flex items-center gap-4">
-          <span>Memory usage: {systemStats?.memoryUsage || '0MB'}</span>
+          <span>Memory usage: {systemStats?.memoryUsage ?? 'N/A'}</span>
           <span>•</span>
-          <span>Thoughts indexed: {systemStats?.totalThoughts || 0}</span>
+          <span>Thoughts indexed: {systemStats?.totalThoughts ?? 'N/A'}</span>
         </div>
       </footer>
     </>

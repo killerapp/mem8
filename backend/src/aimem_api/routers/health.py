@@ -56,25 +56,22 @@ async def system_stats(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     try:
         # Get total thoughts count
         thoughts_result = await db.execute(select(func.count(Thought.id)))
-        total_thoughts = thoughts_result.scalar() or 0
+        total_thoughts = thoughts_result.scalar()
         
         # Get active teams count  
         teams_result = await db.execute(
             select(func.count(Team.id)).where(Team.is_active == True)
         )
-        active_teams = teams_result.scalar() or 0
+        active_teams = teams_result.scalar()
         
         return {
             "totalThoughts": total_thoughts,
             "activeTeams": active_teams,
-            "syncStatus": 98,  # Mock sync status for now
-            "memoryUsage": "42MB",  # Mock memory usage
+            # Not yet implemented: return nulls instead of magic numbers
+            "syncStatus": None,
+            "memoryUsage": None,
         }
     except Exception as e:
-        # Return mock data if database isn't working
-        return {
-            "totalThoughts": 0,
-            "activeTeams": 0,
-            "syncStatus": 0,
-            "memoryUsage": "0MB",
-        }
+        # Prefer explicit error over fabricated fallback values
+        from fastapi import HTTPException
+        raise HTTPException(status_code=503, detail=f"stats_unavailable: {str(e)}")

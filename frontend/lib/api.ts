@@ -55,7 +55,19 @@ interface SystemStats {
 import { authManager } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const DEFAULT_SEARCH_LIMIT = process.env.NEXT_PUBLIC_DEFAULT_SEARCH_LIMIT
+  ? Number(process.env.NEXT_PUBLIC_DEFAULT_SEARCH_LIMIT)
+  : undefined;
 const USE_MOCK_DATA = false; // Toggle for development
+
+// Warn when relying on development defaults
+if (!process.env.NEXT_PUBLIC_API_URL && typeof window !== 'undefined') {
+  // Point to the config env var explicitly
+  // eslint-disable-next-line no-console
+  console.warn(
+    'API base URL missing. Set NEXT_PUBLIC_API_URL to your backend URL.'
+  );
+}
 
 class ApiClient {
   private async request<T>(
@@ -178,8 +190,19 @@ class ApiClient {
     const searchParams = new URLSearchParams({
       q: params.query,
       search_type: params.search_type || 'fulltext',
-      limit: (params.limit || 20).toString(),
     });
+
+    // Limit handling: prefer explicit param, else env default, else warn and omit
+    if (params.limit != null) {
+      searchParams.set('limit', String(params.limit));
+    } else if (DEFAULT_SEARCH_LIMIT != null && Number.isFinite(DEFAULT_SEARCH_LIMIT)) {
+      searchParams.set('limit', String(DEFAULT_SEARCH_LIMIT));
+    } else if (typeof window !== 'undefined') {
+      // eslint-disable-next-line no-console
+      console.warn(
+        'Search limit not provided. Set NEXT_PUBLIC_DEFAULT_SEARCH_LIMIT or pass a limit parameter.'
+      );
+    }
     
     if (params.team_id) {
       searchParams.append('team_id', params.team_id);

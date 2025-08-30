@@ -67,7 +67,7 @@ async def list_thoughts(
     if filters:
         count_query = count_query.where(and_(*filters))
     total_result = await db.execute(count_query)
-    total = total_result.scalar() or 0
+    total = total_result.scalar()
     
     # Apply pagination
     offset = (page - 1) * page_size
