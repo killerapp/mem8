@@ -17,6 +17,8 @@ from .utils import (
     create_symlink,
     get_git_info
 )
+from .thought_entity import ThoughtEntity
+from .thought_discovery import ThoughtDiscoveryService
 
 
 class MemoryManager:
@@ -25,6 +27,7 @@ class MemoryManager:
     def __init__(self, config: Config):
         """Initialize memory manager."""
         self.config = config
+        self.thought_discovery = ThoughtDiscoveryService(config)
     
     def initialize_workspace(
         self, 
@@ -389,6 +392,20 @@ Use `mem8 search` to find relevant content across all memories.
         details.append(f"Workspace template: {template_info}")
         
         return details
+    
+    def get_thought_entities(self, force_rescan: bool = False) -> List[ThoughtEntity]:
+        """Get all thought entities with semantic understanding.""" 
+        return self.thought_discovery.discover_all_thoughts(force_rescan)
+    
+    def find_thoughts_by_type(self, thought_type: str) -> List[ThoughtEntity]:
+        """Find thoughts by semantic type."""
+        entities = self.get_thought_entities()
+        return [e for e in entities if e.type == thought_type]
+        
+    def find_thoughts_by_status(self, status: str) -> List[ThoughtEntity]:
+        """Find thoughts by lifecycle status."""
+        entities = self.get_thought_entities()
+        return [e for e in entities if e.lifecycle_state == status]
     
     def search_content(
         self, 
