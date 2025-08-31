@@ -51,7 +51,7 @@ class TemplateType(str, Enum):
 
 class SearchMethod(str, Enum):
     FULLTEXT = "fulltext"
-    SEMANTIC = "semantic"
+    SEMANTIC = "semantic"  # Experimental
 
 
 class SearchScope(str, Enum):
@@ -349,12 +349,15 @@ def search(
     query: Annotated[str, typer.Argument(help="Search query")],
     limit: Annotated[int, typer.Option("--limit", help="Maximum number of results to return")] = 10,
     content_type: Annotated[ContentType, typer.Option("--type", help="Type of content to search")] = ContentType.ALL,
-    method: Annotated[SearchMethod, typer.Option("--method", help="Search method")] = SearchMethod.FULLTEXT,
+    method: Annotated[
+        SearchMethod,
+        typer.Option("--method", help="Search method (semantic is experimental)")
+    ] = SearchMethod.FULLTEXT,
     path: Annotated[Optional[str], typer.Option("--path", help="Restrict search to specific path")] = None,
     web: Annotated[bool, typer.Option("--web", help="Open results in web UI")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
-    """Search through AI memory and thoughts."""
+    """Search through AI memory and thoughts. Semantic search is experimental."""
     import urllib.parse
     import webbrowser
     from rich.table import Table

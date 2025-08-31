@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 
 class SearchType(str, Enum):
-    """Search types."""
+    """Search types. Semantic search is experimental."""
     FULLTEXT = "fulltext"
     SEMANTIC = "semantic"
 
@@ -18,7 +18,10 @@ class SearchQuery(BaseModel):
     """Search query schema."""
     
     query: str = Field(..., min_length=1, max_length=1000, description="Search query")
-    search_type: SearchType = Field(default=SearchType.FULLTEXT, description="Search type")
+    search_type: SearchType = Field(
+        default=SearchType.FULLTEXT,
+        description="Search type (semantic search is experimental)",
+    )
     team_id: Optional[uuid.UUID] = Field(None, description="Team ID to filter by")
     tags: Optional[List[str]] = Field(default_factory=list, description="Tags to filter by")
     path_filter: Optional[str] = Field(None, description="Path filter pattern")

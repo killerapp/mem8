@@ -44,7 +44,7 @@ mem8 is a comprehensive platform providing:
 mem8 init --template full      # Initialize workspace with templates
 mem8 status                    # Check workspace health  
 mem8 sync                      # Bidirectional synchronization
-mem8 search "query"            # Full-text search across thoughts
+mem8 search "query"            # Full-text search across thoughts (semantic search experimental)
 mem8 doctor --auto-fix         # Diagnose and repair issues
 ```
 
@@ -57,7 +57,7 @@ mem8 doctor --auto-fix         # Diagnose and repair issues
 - **Health Monitoring**: `/api/v1/health` - System health and diagnostics
 - **Thoughts Management**: `/api/v1/thoughts/*` - Full CRUD operations
 - **Team Management**: `/api/v1/teams/*` - Multi-tenant team support
-- **Advanced Search**: `/api/v1/search/` - Full-text and semantic search
+- **Advanced Search**: `/api/v1/search/` - Full-text search (semantic search experimental)
 - **System Stats**: `/api/v1/system/stats` - Real-time metrics
 - **Documentation**: `/docs` - Interactive OpenAPI documentation
 
