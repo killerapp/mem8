@@ -1,4 +1,4 @@
-"""Configuration management for AI-Mem."""
+"""Configuration management for mem8."""
 
 import os
 from pathlib import Path
@@ -8,12 +8,12 @@ from platformdirs import user_config_dir, user_data_dir
 
 
 class Config:
-    """AI-Mem configuration manager."""
+    """mem8 configuration manager."""
     
     def __init__(self, config_dir: Optional[str] = None):
         """Initialize configuration manager."""
-        self.config_dir = Path(config_dir) if config_dir else Path(user_config_dir("ai-mem"))
-        self.data_dir = Path(user_data_dir("ai-mem"))
+        self.config_dir = Path(config_dir) if config_dir else Path(user_config_dir("mem8"))
+        self.data_dir = Path(user_data_dir("mem8"))
         self.config_file = self.config_dir / "config.yaml"
         
         # Ensure directories exist
@@ -70,15 +70,15 @@ class Config:
         if os.name == 'nt':  # Windows
             # Try common Windows shared locations
             possible_paths = [
-                Path.home() / "Documents" / "AI-Mem-Shared",
-                Path("C:/AI-Mem-Shared"),
-                Path.home() / "AI-Mem-Shared",
+                Path.home() / "Documents" / "mem8-Shared",
+                Path("C:/mem8-Shared"),
+                Path.home() / "mem8-Shared",
             ]
         else:  # Unix-like systems
             possible_paths = [
-                Path.home() / "AI-Mem-Shared",
-                Path("/shared/ai-mem"),
-                Path("/mnt/shared/ai-mem"),
+                Path.home() / "mem8-Shared",
+                Path("/shared/mem8"),
+                Path("/mnt/shared/mem8"),
             ]
         
         # Return the first writable location
@@ -91,7 +91,7 @@ class Config:
                 continue
         
         # Fallback to user documents
-        return Path.home() / "Documents" / "AI-Mem-Shared"
+        return Path.home() / "Documents" / "mem8-Shared"
     
     def get(self, key: str, default=None) -> Any:
         """Get configuration value using dot notation."""

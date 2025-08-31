@@ -5,7 +5,7 @@ import asyncio
 import logging
 from sqlalchemy import text
 
-from src.aimem_api.database import engine, metadata
+from src.mem8_api.database import engine, metadata
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ async def init_database():
     
     async with engine.begin() as conn:
         # Import models to ensure they're registered
-        from src.aimem_api import models  # noqa: F401
+        from src.mem8_api import models  # noqa: F401
         
         # Drop all existing tables to avoid conflicts
         await conn.run_sync(metadata.drop_all)

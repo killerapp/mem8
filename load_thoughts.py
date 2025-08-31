@@ -10,8 +10,8 @@ import sys
 backend_path = Path(__file__).parent / "backend" / "src"
 sys.path.insert(0, str(backend_path))
 
-from aimem_api.models.thought import Thought
-from aimem_api.database import get_database
+from mem8_api.models.thought import Thought
+from mem8_api.database import get_database
 from sqlalchemy.orm import Session
 
 

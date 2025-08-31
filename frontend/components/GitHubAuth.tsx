@@ -125,7 +125,7 @@ export function GitHubAuth() {
   return (
     <div className="flex flex-col items-center justify-center p-8 space-y-4">
       <div className="text-gray-400 font-mono text-center">
-        <div>&gt; AI-MEM TERMINAL</div>
+        <div>&gt; mem8 TERMINAL</div>
         <div>&gt; AUTHENTICATION REQUIRED</div>
       </div>
       
@@ -146,7 +146,7 @@ export function GitHubAuth() {
       <div className="border-t border-gray-600 pt-4">
         <Button
           onClick={() => {
-            localStorage.setItem('ai-mem-local-mode', 'true');
+            localStorage.setItem('mem8-local-mode', 'true');
             window.location.reload();
           }}
           className="w-full bg-gray-800 border border-gray-500 text-gray-400 hover:bg-gray-500 hover:text-black font-mono"

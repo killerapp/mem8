@@ -1,4 +1,4 @@
-"""Utility functions for AI-Mem."""
+"""Utility functions for mem8."""
 
 import os
 import logging
@@ -27,7 +27,7 @@ def get_shared_directory() -> Path:
         return _get_unix_shared_directory()
     else:
         # Fallback to user directory
-        return Path.home() / "AI-Mem-Shared"
+        return Path.home() / "mem8-Shared"
 
 
 def _get_windows_shared_directory() -> Path:
@@ -35,19 +35,19 @@ def _get_windows_shared_directory() -> Path:
     # Check for common Windows shared locations
     candidates = [
         # Network drives
-        Path("//shared/ai-mem"),
-        Path("Z:/AI-Mem"),
-        Path("Y:/AI-Mem"),
+        Path("//shared/mem8"),
+        Path("Z:/mem8"),
+        Path("Y:/mem8"),
         # Local shared folders
-        Path("C:/Shared/AI-Mem"),
-        Path(os.environ.get('USERPROFILE', '')) / "Documents" / "AI-Mem-Shared",
-        Path.home() / "AI-Mem-Shared",
+        Path("C:/Shared/mem8"),
+        Path(os.environ.get('USERPROFILE', '')) / "Documents" / "mem8-Shared",
+        Path.home() / "mem8-Shared",
     ]
     
     # Check for existing OneDrive or other cloud sync folders
     onedrive_path = os.environ.get('OneDrive')
     if onedrive_path:
-        candidates.insert(0, Path(onedrive_path) / "AI-Mem-Shared")
+        candidates.insert(0, Path(onedrive_path) / "mem8-Shared")
     
     # Return first accessible location
     for path in candidates:
@@ -55,19 +55,19 @@ def _get_windows_shared_directory() -> Path:
             return path
     
     # Fallback
-    return Path.home() / "AI-Mem-Shared"
+    return Path.home() / "mem8-Shared"
 
 
 def _get_unix_shared_directory() -> Path:
     """Get Unix-like system shared directory."""
     candidates = [
         # Common Unix shared locations
-        Path("/shared/ai-mem"),
-        Path("/mnt/shared/ai-mem"),
-        Path("/opt/ai-mem"),
-        Path.home() / "AI-Mem-Shared",
+        Path("/shared/mem8"),
+        Path("/mnt/shared/mem8"),
+        Path("/opt/mem8"),
+        Path.home() / "mem8-Shared",
         # Check for mounted network drives
-        Path("/media") / os.environ.get('USER', 'shared') / "ai-mem",
+        Path("/media") / os.environ.get('USER', 'shared') / "mem8",
     ]
     
     # Return first accessible location
@@ -76,7 +76,7 @@ def _get_unix_shared_directory() -> Path:
             return path
     
     # Fallback
-    return Path.home() / "AI-Mem-Shared"
+    return Path.home() / "mem8-Shared"
 
 
 def _can_create_directory(path: Path) -> bool:
@@ -96,8 +96,8 @@ def is_symlink_supported() -> bool:
         # Windows requires special privileges for symlinks in older versions
         try:
             # Try creating a test symlink
-            test_dir = Path.home() / ".ai-mem-test"
-            test_link = Path.home() / ".ai-mem-test-link"
+            test_dir = Path.home() / ".mem8-test"
+            test_link = Path.home() / ".mem8-test-link"
             
             test_dir.mkdir(exist_ok=True)
             if test_link.exists():

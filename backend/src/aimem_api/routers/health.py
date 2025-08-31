@@ -20,7 +20,7 @@ async def health_check() -> Dict[str, Any]:
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "service": "aimem-api",
+        "service": "mem8-api",
         "version": "0.1.0"
     }
 

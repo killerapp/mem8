@@ -5,7 +5,7 @@ from sqlalchemy import String, JSON
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PostgresUUID
 
 # Determine database type from environment or default to SQLite
-database_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./aimem.db")
+database_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./mem8.db")
 
 # Choose appropriate types based on database
 if database_url.startswith("postgresql"):

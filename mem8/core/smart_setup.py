@@ -1,4 +1,4 @@
-"""Smart setup functionality for AI-Mem quick-start workflow."""
+"""Smart setup functionality for mem8 quick-start workflow."""
 
 import os
 import subprocess
@@ -74,7 +74,7 @@ def find_git_repos(base_path: Path, max_depth: int = 1) -> List[Dict[str, Any]]:
 
 
 def analyze_git_repository(repo_path: Path) -> Optional[Dict[str, Any]]:
-    """Analyze a git repository for AI-Mem relevant information."""
+    """Analyze a git repository for mem8 relevant information."""
     try:
         # Get basic git info
         result = subprocess.run(
@@ -113,8 +113,8 @@ def analyze_git_repository(repo_path: Path) -> Optional[Dict[str, Any]]:
             if candidate.exists() and candidate.is_dir():
                 thoughts_paths.append(str(candidate))
         
-        # Check if it's an AI-Mem project
-        is_ai_mem_project = (repo_root / 'ai_mem').exists() or repo_name == 'ai-mem'
+        # Check if it's an mem8 project
+        is_ai_mem_project = (repo_root / 'ai_mem').exists() or repo_name == 'mem8'
         
         # Check if it's a Claude Code project
         is_claude_project = (repo_root / '.claude').exists()
@@ -149,7 +149,7 @@ def infer_project_type() -> str:
     elif (cwd / '.claude').exists():
         return 'claude-code'
     elif (cwd / 'thoughts').exists():
-        return 'ai-mem'
+        return 'mem8'
     else:
         return 'general'
 
@@ -187,7 +187,7 @@ def find_optimal_shared_location() -> Path:
             current = current.parent
         
         if projects_parent:
-            candidate_shared = projects_parent / 'ai-mem-shared'
+            candidate_shared = projects_parent / 'mem8-shared'
             if candidate_shared.exists() or can_create_directory(candidate_shared):
                 return candidate_shared
     
@@ -227,7 +227,7 @@ def generate_smart_config(context: Dict[str, Any], repos_arg: Optional[str] = No
 
 
 def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
-    """Create minimal AI-Mem structure with smart defaults."""
+    """Create minimal mem8 structure with smart defaults."""
     results = {'created': [], 'linked': [], 'errors': []}
     
     # Create thoughts directory
@@ -302,10 +302,10 @@ def launch_web_ui() -> bool:
 def show_setup_instructions():
     """Show instructions for setting up backend."""
     instructions = """
-🚀 To launch the AI-Mem web interface:
+🚀 To launch the mem8 web interface:
 
 1. Start the backend:
-   cd backend && uv run uvicorn aimem_api.main:app --reload --host 127.0.0.1 --port 8000
+   cd backend && uv run uvicorn mem8_api.main:app --reload --host 127.0.0.1 --port 8000
 
 2. Start the frontend:
    cd frontend && npm run dev -- --port 20040

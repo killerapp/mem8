@@ -1,4 +1,4 @@
-"""Database models for AI-Mem API."""
+"""Database models for mem8 API."""
 
 from .base import TimestampMixin, UUIDMixin
 from .thought import Thought

@@ -17,7 +17,7 @@ jobs:
     concurrency: release
     environment:
       name: pypi
-      url: https://pypi.org/project/ai-mem/
+      url: https://pypi.org/project/mem8/
 
     steps:
       - uses: actions/checkout@v4

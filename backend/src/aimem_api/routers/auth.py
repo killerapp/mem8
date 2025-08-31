@@ -94,7 +94,7 @@ async def get_current_user_or_local(
     if local_mode == "true":
         # Return a fake local user for local mode
         user = User(
-            email="local@ai-mem.com",
+            email="local@mem8.com",
             username="local",
             full_name="Local User",
             hashed_password=None,

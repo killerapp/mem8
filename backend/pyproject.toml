@@ -1,7 +1,7 @@
 [project]
-name = "aimem-api"
+name = "mem8-api"
 version = "0.1.0"
-description = "AI-Mem Backend API for team collaboration and synchronization"
+description = "mem8 Backend API for team collaboration and synchronization"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

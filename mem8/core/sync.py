@@ -1,4 +1,4 @@
-"""Synchronization functionality for AI-Mem."""
+"""Synchronization functionality for mem8."""
 
 import os
 import shutil

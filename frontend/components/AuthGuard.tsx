@@ -15,7 +15,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     // Check authentication status
     const checkAuth = () => {
       // Check for local mode first
-      const isLocalMode = localStorage.getItem('ai-mem-local-mode') === 'true';
+      const isLocalMode = localStorage.getItem('mem8-local-mode') === 'true';
       const authenticated = isLocalMode || authManager.isAuthenticated();
       setIsAuthenticated(authenticated);
     };

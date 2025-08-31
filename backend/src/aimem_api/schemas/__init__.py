@@ -1,4 +1,4 @@
-"""Pydantic schemas for AI-Mem API."""
+"""Pydantic schemas for mem8 API."""
 
 from .thought import (
     ThoughtBase,

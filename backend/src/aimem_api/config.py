@@ -1,4 +1,4 @@
-"""Configuration management for AI-Mem API."""
+"""Configuration management for mem8 API."""
 
 from functools import lru_cache
 from typing import List
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     # Default: PostgreSQL for Docker/cloud-friendly deployment
     # Fallback: SQLite for local development without Docker
     database_url: str = Field(
-        default="postgresql+asyncpg://aimem_user:aimem_password@localhost:5432/aimem",
+        default="postgresql+asyncpg://mem8_user:mem8_password@localhost:5432/mem8",
         description="Database connection URL (PostgreSQL by default, SQLite fallback for local dev)"
     )
     

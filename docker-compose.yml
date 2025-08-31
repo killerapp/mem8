@@ -1,4 +1,4 @@
-# AI-Mem Full Stack Docker Compose
+# mem8 Full Stack Docker Compose
 # Cloud-friendly setup with PostgreSQL for production-ready deployment
 
 version: '3.8'
@@ -7,11 +7,11 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: aimem-postgres
+    container_name: mem8-postgres
     environment:
-      POSTGRES_DB: aimem
-      POSTGRES_USER: aimem_user
-      POSTGRES_PASSWORD: aimem_password
+      POSTGRES_DB: mem8
+      POSTGRES_USER: mem8_user
+      POSTGRES_PASSWORD: mem8_password
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -19,18 +19,18 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aimem_user -d aimem"]
+      test: ["CMD-SHELL", "pg_isready -U mem8_user -d mem8"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - aimem-network
+      - mem8-network
     restart: unless-stopped
 
   # Redis Cache (optional, for future features)
   redis:
     image: redis:7-alpine
-    container_name: aimem-redis
+    container_name: mem8-redis
     ports:
       - "6379:6379"
     volumes:
@@ -41,7 +41,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - aimem-network
+      - mem8-network
     restart: unless-stopped
 
   # Backend API
@@ -49,9 +49,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: aimem-backend
+    container_name: mem8-backend
     environment:
-      - DATABASE_URL=postgresql+asyncpg://aimem_user:aimem_password@postgres:5432/aimem
+      - DATABASE_URL=postgresql+asyncpg://mem8_user:mem8_password@postgres:5432/mem8
       - REDIS_URL=redis://redis:6379
       - DEBUG=false
       - SECRET_KEY=your-secret-key-change-in-production
@@ -65,7 +65,7 @@ services:
     volumes:
       - ./backend/src:/app/src  # Development hot reload
     networks:
-      - aimem-network
+      - mem8-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
@@ -78,7 +78,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: aimem-frontend
+    container_name: mem8-frontend
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - NODE_ENV=production
@@ -88,7 +88,7 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - aimem-network
+      - mem8-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
@@ -103,5 +103,5 @@ volumes:
     driver: local
 
 networks:
-  aimem-network:
+  mem8-network:
     driver: bridge

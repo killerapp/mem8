@@ -1,11 +1,11 @@
-"""Claude Code integration functionality for AI-Mem."""
+"""Claude Code integration functionality for mem8."""
 
 from pathlib import Path
 from typing import Dict, Any, Optional
 
 
 def generate_claude_memory_integration(config: Dict[str, Any]) -> str:
-    """Generate CLAUDE.md content for AI-Mem integration."""
+    """Generate CLAUDE.md content for mem8 integration."""
     repos_config = ""
     if config.get('repositories'):
         repos_config = "\n".join([
@@ -13,12 +13,12 @@ def generate_claude_memory_integration(config: Dict[str, Any]) -> str:
             for repo in config.get('repositories', [])
         ])
     else:
-        repos_config = "- No repositories discovered (run ai-mem quick-start to discover)"
+        repos_config = "- No repositories discovered (run mem8 quick-start to discover)"
     
     claude_md_content = f"""
 # AI Memory Integration
 
-This project uses AI-Mem for memory management across repositories.
+This project uses mem8 for memory management across repositories.
 
 ## Available Repositories
 {repos_config}
@@ -26,9 +26,9 @@ This project uses AI-Mem for memory management across repositories.
 ## Memory Commands
 - `/setup-memory` - Configure AI memory for this project
 - `/browse-memories` - Search and explore thoughts across repositories
-- `ai-mem search "query"` - Full-text search across all memories
-- `ai-mem quick-start --web` - Launch visual memory browser
-- `ai-mem dashboard` - Open web interface
+- `mem8 search "query"` - Full-text search across all memories
+- `mem8 quick-start --web` - Launch visual memory browser
+- `mem8 dashboard` - Open web interface
 
 ## Shared Thoughts Location
 Shared thoughts: `{config.get('shared_location', 'thoughts/shared/')}`
@@ -40,13 +40,13 @@ Shared thoughts: `{config.get('shared_location', 'thoughts/shared/')}`
 - User notes: `thoughts/{config.get('username', 'user')}/`
 
 ## Quick Start
-Run `ai-mem quick-start --web` to set up AI-Mem and launch the visual interface.
+Run `mem8 quick-start --web` to set up mem8 and launch the visual interface.
 """
     return claude_md_content
 
 
 def update_claude_md_integration(config: Dict[str, Any]) -> bool:
-    """Add AI-Mem integration section to existing CLAUDE.md."""
+    """Add mem8 integration section to existing CLAUDE.md."""
     claude_md_path = Path('.claude/CLAUDE.md')
     project_claude_md = Path('CLAUDE.md')
     
@@ -72,14 +72,14 @@ def update_claude_md_integration(config: Dict[str, Any]) -> bool:
 
 
 def create_minimal_claude_md(config: Dict[str, Any]) -> bool:
-    """Create a minimal CLAUDE.md file with AI-Mem integration."""
+    """Create a minimal CLAUDE.md file with mem8 integration."""
     claude_md = Path('CLAUDE.md')
     
     if not claude_md.exists():
         integration = generate_claude_memory_integration(config)
         minimal_content = f"""# Project Memory
 
-This project uses AI-Mem for intelligent memory management and team collaboration.
+This project uses mem8 for intelligent memory management and team collaboration.
 {integration}
 """
         try:
@@ -92,7 +92,7 @@ This project uses AI-Mem for intelligent memory management and team collaboratio
 
 
 def setup_claude_code_integration(config: Dict[str, Any]) -> Dict[str, Any]:
-    """Set up Claude Code integration for AI-Mem."""
+    """Set up Claude Code integration for mem8."""
     results = {'updated': [], 'created': [], 'errors': []}
     
     # Try to update existing CLAUDE.md

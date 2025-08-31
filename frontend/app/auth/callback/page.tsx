@@ -87,7 +87,7 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center">
       <div className="max-w-md w-full text-center space-y-4">
         <div className="text-2xl font-bold">
-          &gt; AI-MEM TERMINAL
+          &gt; mem8 TERMINAL
         </div>
         
         {(status === 'loading' || status === 'processing') && (

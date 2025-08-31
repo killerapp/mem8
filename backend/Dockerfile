@@ -1,4 +1,4 @@
-# Backend Dockerfile for AI-Mem
+# Backend Dockerfile for mem8
 FROM python:3.12-slim
 
 # Set environment variables
@@ -39,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/api/v1/health || exit 1
 
 # Default command
-CMD ["uv", "run", "python", "-m", "uvicorn", "aimem_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "python", "-m", "uvicorn", "mem8_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

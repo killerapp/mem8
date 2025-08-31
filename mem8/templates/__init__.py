@@ -1,1 +1,1 @@
-"""Templates package for ai-mem."""
+"""Templates package for mem8."""

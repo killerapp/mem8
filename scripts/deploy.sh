@@ -1,9 +1,9 @@
 #!/bin/bash
-# AI-Mem Production Deployment Script
+# mem8 Production Deployment Script
 
 set -e
 
-echo "🚀 Deploying AI-Mem full stack..."
+echo "🚀 Deploying mem8 full stack..."
 
 # Check if Docker is running
 if ! docker info >/dev/null 2>&1; then
@@ -19,7 +19,7 @@ docker-compose up --build -d
 echo "⏳ Waiting for services to be ready..."
 
 # Wait for PostgreSQL
-timeout 60s bash -c 'until docker-compose exec postgres pg_isready -U aimem_user -d aimem; do sleep 2; done'
+timeout 60s bash -c 'until docker-compose exec postgres pg_isready -U mem8_user -d mem8; do sleep 2; done'
 echo "✅ PostgreSQL ready"
 
 # Wait for backend

@@ -1,4 +1,4 @@
-"""Main FastAPI application for AI-Mem backend API."""
+"""Main FastAPI application for mem8 backend API."""
 
 import logging
 from contextlib import asynccontextmanager
@@ -29,17 +29,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Initializing database...")
     await init_db()
     
-    logger.info(f"AI-Mem API starting on {settings.host}:{settings.port}")
+    logger.info(f"mem8 API starting on {settings.host}:{settings.port}")
     yield
     
     # Cleanup
-    logger.info("Shutting down AI-Mem API...")
+    logger.info("Shutting down mem8 API...")
     await close_db()
 
 
 # Create FastAPI app
 app = FastAPI(
-    title="AI-Mem API",
+    title="mem8 API",
     description="Backend API for AI Memory Management and team collaboration",
     version="0.1.0",
     docs_url="/docs",
@@ -103,7 +103,7 @@ async def metrics() -> Response:
 async def root() -> dict[str, str]:
     """Root endpoint."""
     return {
-        "message": "AI-Mem API",
+        "message": "mem8 API",
         "version": "0.1.0",
         "docs": "/docs"
     }

@@ -1,1 +1,1 @@
-"""Core AI-Mem functionality."""
+"""Core mem8 functionality."""

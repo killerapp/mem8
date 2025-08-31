@@ -85,7 +85,7 @@ export class AuthManager {
    */
   getAuthHeaders(): Record<string, string> {
     // Check for local mode first
-    const isLocalMode = typeof window !== 'undefined' && localStorage.getItem('ai-mem-local-mode') === 'true';
+    const isLocalMode = typeof window !== 'undefined' && localStorage.getItem('mem8-local-mode') === 'true';
     if (isLocalMode) {
       return { 'X-Local-Mode': 'true' };
     }
