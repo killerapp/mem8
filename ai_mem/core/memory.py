@@ -3,6 +3,7 @@
 import os
 import shutil
 import time
+from importlib import resources
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from cookiecutter.main import cookiecutter
@@ -268,7 +269,13 @@ Use `ai-mem search` to find relevant content across all memories.
         ensure_directory_exists(agents_dir)
         
         # Copy from template if available
-        template_agents_dir = Path(__file__).parent.parent.parent / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "agents"
+        try:
+            import ai_mem.templates
+            template_agents_dir = resources.files(ai_mem.templates) / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "agents"
+        except (ImportError, AttributeError):
+            # Fallback for development
+            template_agents_dir = Path(__file__).parent.parent.parent / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "agents"
+        
         if template_agents_dir.exists():
             for agent_file in template_agents_dir.glob("*.md"):
                 target_file = agents_dir / agent_file.name
@@ -281,7 +288,13 @@ Use `ai-mem search` to find relevant content across all memories.
         ensure_directory_exists(commands_dir)
         
         # Copy from template if available
-        template_commands_dir = Path(__file__).parent.parent.parent / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "commands"
+        try:
+            import ai_mem.templates
+            template_commands_dir = resources.files(ai_mem.templates) / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "commands"
+        except (ImportError, AttributeError):
+            # Fallback for development
+            template_commands_dir = Path(__file__).parent.parent.parent / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "commands"
+        
         if template_commands_dir.exists():
             for command_file in template_commands_dir.glob("*.md"):
                 target_file = commands_dir / command_file.name

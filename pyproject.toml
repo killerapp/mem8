@@ -63,6 +63,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["ai_mem"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"claude-dot-md-template" = "ai_mem/templates/claude-dot-md-template"
+"shared-thoughts-template" = "ai_mem/templates/shared-thoughts-template"
+
 [tool.semantic_release]
 version_variables = [
     "ai_mem/__init__.py:__version__",

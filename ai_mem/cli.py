@@ -8,6 +8,7 @@ import shutil
 import sys
 import webbrowser
 import urllib.parse
+from importlib import resources
 from pathlib import Path
 from typing import Optional
 
@@ -116,20 +117,35 @@ def init(ctx, template: str, config_file: Optional[str], shared_dir: Optional[st
     
     try:
         workspace_dir = Path.cwd()
-        project_root = Path(__file__).parent.parent
         
         # Determine template path and requirements
-        if template == 'claude-config':
-            template_path = project_root / "claude-dot-md-template"
-            needs_shared = False
-        elif template == 'thoughts-repo':
-            template_path = project_root / "shared-thoughts-template" 
-            needs_shared = True
-        else:  # full
-            # Run both templates
-            claude_template_path = project_root / "claude-dot-md-template"
-            thoughts_template_path = project_root / "shared-thoughts-template"
-            needs_shared = True
+        try:
+            # Try to use package resources (for installed package)
+            import ai_mem.templates
+            template_base = resources.files(ai_mem.templates)
+            if template == 'claude-config':
+                template_path = template_base / "claude-dot-md-template"
+                needs_shared = False
+            elif template == 'thoughts-repo':
+                template_path = template_base / "shared-thoughts-template"
+                needs_shared = True
+            else:  # full
+                claude_template_path = template_base / "claude-dot-md-template"
+                thoughts_template_path = template_base / "shared-thoughts-template"
+                needs_shared = True
+        except (ImportError, AttributeError):
+            # Fallback to file-based path (for development)
+            project_root = Path(__file__).parent.parent
+            if template == 'claude-config':
+                template_path = project_root / "claude-dot-md-template"
+                needs_shared = False
+            elif template == 'thoughts-repo':
+                template_path = project_root / "shared-thoughts-template"
+                needs_shared = True
+            else:  # full
+                claude_template_path = project_root / "claude-dot-md-template"
+                thoughts_template_path = project_root / "shared-thoughts-template"
+                needs_shared = True
         
         # Check if workspace already exists and handle carefully
         existing_files = []
