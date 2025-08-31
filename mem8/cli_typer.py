@@ -201,10 +201,23 @@ def set_app_state(verbose: bool = False, config_dir: Optional[Path] = None):
 # Simple Commands (Phase 1)
 # ============================================================================
 
-@typer_app.command()
-def version():
-    """Show version information."""
-    console.print(f"mem8 version {__version__}")
+def version_callback(value: bool):
+    if value:
+        console.print(f"mem8 version {__version__}")
+        raise typer.Exit()
+
+
+@typer_app.callback()
+def main(
+    version: bool = typer.Option(
+        None, "--version", "-V", 
+        callback=version_callback,
+        is_eager=True,
+        help="Show version and exit"
+    )
+):
+    """Memory management CLI for the orchestr8 ecosystem."""
+    pass
 
 
 @typer_app.command()
