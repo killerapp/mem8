@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(ai-mem:*)
+allowed-tools: Bash(mem8:*)
 description: Browse and search AI memories across repositories
 ---
 
@@ -8,17 +8,17 @@ description: Browse and search AI memories across repositories
 Explore thoughts and memories across your repositories.
 
 ## Recent Memories
-!`ai-mem search --limit 10 ""`
+!`mem8 search --limit 10 ""`
 
 ## Repository Status
-!`ai-mem status`
+!`mem8 status`
 
 ## Interactive Search
-Use `ai-mem search "your query"` to find specific thoughts across all configured repositories.
+Use `mem8 search "your query"` to find specific thoughts across all configured repositories.
 
-Launch the web UI for visual exploration: `ai-mem quick-start --web`
+Launch the web UI for visual exploration: `mem8 quick-start --web`
 
 ## Quick Actions
-- Search with web UI: `ai-mem search "query" --web`
-- Open dashboard: `ai-mem dashboard`
-- Sync latest thoughts: `ai-mem sync`smal
+- Search with web UI: `mem8 search "query" --web`
+- Open dashboard: `mem8 dashboard`
+- Sync latest thoughts: `mem8 sync`smal

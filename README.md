@@ -40,11 +40,11 @@ mem8 is a comprehensive platform providing:
 
 ### 💻 CLI Features (Fully Working)
 ```bash
-ai-mem init --template full      # Initialize workspace with templates
-ai-mem status                    # Check workspace health  
-ai-mem sync                      # Bidirectional synchronization
-ai-mem search "query"            # Full-text search across thoughts
-ai-mem doctor --auto-fix         # Diagnose and repair issues
+mem8 init --template full      # Initialize workspace with templates
+mem8 status                    # Check workspace health  
+mem8 sync                      # Bidirectional synchronization
+mem8 search "query"            # Full-text search across thoughts
+mem8 doctor --auto-fix         # Diagnose and repair issues
 ```
 
 ### 🚀 API Features (Production Ready)
@@ -66,7 +66,7 @@ ai-mem doctor --auto-fix         # Diagnose and repair issues
 ## 🧪 Current Testing Status
 
 ### ✅ Working Without Setup
-- **CLI Commands**: `ai-mem status`, `ai-mem --help`, `ai-mem doctor`
+- **CLI Commands**: `mem8 status`, `mem8 --help`, `mem8 doctor`
 - **API Health**: `localhost:8000/api/v1/health` returns system status
 - **API Docs**: `localhost:8000/docs` - Interactive OpenAPI documentation  
 - **Frontend UI**: `localhost:20040` - Loads with login screen
@@ -89,8 +89,8 @@ ai-mem doctor --auto-fix         # Diagnose and repair issues
 ### Development Setup
 ```bash
 # Clone the repository
-git clone https://github.com/killerapp/ai-mem.git
-cd ai-mem
+git clone https://github.com/killerapp/mem8.git
+cd mem8
 
 # Start with Docker (recommended)
 docker-compose up -d
@@ -104,7 +104,7 @@ docker-compose up -d
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 SECRET_KEY=your_jwt_secret_key
-DATABASE_URL=postgresql://user:pass@localhost:5433/aimem
+DATABASE_URL=postgresql://user:pass@localhost:5433/mem8
 
 # Frontend (.env.local)
 NEXT_PUBLIC_API_URL=http://localhost:8000
@@ -134,7 +134,7 @@ cookiecutter shared-thoughts-template --config-file example-configs/shared-thoug
 
 ### Project Structure
 ```
-ai-mem/
+mem8/
 ├── frontend/                   # Next.js web interface
 │   ├── app/                   # App router pages
 │   │   ├── auth/             # Authentication pages
@@ -143,7 +143,7 @@ ai-mem/
 │   ├── hooks/               # React hooks (useAuth, useWebSocket)
 │   └── lib/                 # Utilities (API client, auth manager)
 ├── backend/                 # FastAPI backend
-│   └── src/aimem_api/      
+│   └── src/mem8_api/      
 │       ├── routers/         # API routes (auth, thoughts, teams)
 │       ├── models/          # SQLAlchemy models
 │       └── config.py        # Configuration management

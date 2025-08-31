@@ -1,19 +1,19 @@
-# AI-Mem Workspace Configuration
+# mem8 Workspace Configuration
 
 ## Project Information
-- Workspace: ai-mem
+- Workspace: mem8
 - Shared memory enabled: Yes
 - Templates: use cookiecutter for *-template directories
-- Git repository: ai-mem\n- Current branch: main\n
+- Git repository: mem8\n- Current branch: main\n
 
 ## Two main Roots
 - claude-dot-md-template - these have agents, commands and other claude code artifacts - they are cookiecutter artifacts and tools for this concern
 - shared-thoughts-template - these have the new thoughts constructs that are a main focus of implementations for this project see the current implementation for the latest notes on how to extend this.
 
 ## Memory Management
-- Use `ai-mem sync` to synchronize with shared memory
-- Use `ai-mem status` to check workspace status
-- Use `ai-mem search` to find content across memory
+- Use `mem8 sync` to synchronize with shared memory
+- Use `mem8 status` to check workspace status
+- Use `mem8 search` to find content across memory
 
 ## Shared Thoughts
 Access team thoughts via: @thoughts/shared/
@@ -22,14 +22,14 @@ Access team thoughts via: @thoughts/shared/
 
 # AI Memory Integration
 
-This project uses AI-Mem for memory management across repositories.
+This project uses mem8 for memory management across repositories.
 
 ## Available Repositories
-- ai-mem: C:\Users\vaski\projects\ai-mem\thoughts
+- mem8: C:\Users\vaski\projects\mem8\thoughts
 - agent-spy: No thoughts found
 - agent-zero: No thoughts found
 - agenticinsights.com: No thoughts found
-- ai-mem: C:\Users\vaski\projects\ai-mem\thoughts
+- mem8: C:\Users\vaski\projects\mem8\thoughts
 - claude-code-docs: No thoughts found
 - codebase-context-site: No thoughts found
 - codebase-context-spec: No thoughts found
@@ -55,12 +55,12 @@ This project uses AI-Mem for memory management across repositories.
 ## Memory Commands
 - `/setup-memory` - Configure AI memory for this project
 - `/browse-memories` - Search and explore thoughts across repositories
-- `ai-mem search "query"` - Full-text search across all memories
-- `ai-mem quick-start --web` - Launch visual memory browser
-- `ai-mem dashboard` - Open web interface
+- `mem8 search "query"` - Full-text search across all memories
+- `mem8 quick-start --web` - Launch visual memory browser
+- `mem8 dashboard` - Open web interface
 
 ## Shared Thoughts Location
-Shared thoughts: `C:\Users\vaski\ai-mem-shared`
+Shared thoughts: `C:\Users\vaski\mem8-shared`
 
 ## Workflow Integration  
 - Research documents: `thoughts/shared/research/`
@@ -69,4 +69,4 @@ Shared thoughts: `C:\Users\vaski\ai-mem-shared`
 - User notes: `thoughts/killerapp/`
 
 ## Quick Start
-Run `ai-mem quick-start --web` to set up AI-Mem and launch the visual interface.
+Run `mem8 quick-start --web` to set up mem8 and launch the visual interface.

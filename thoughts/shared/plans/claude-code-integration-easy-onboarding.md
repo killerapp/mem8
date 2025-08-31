@@ -2,7 +2,7 @@
 
 ## Overview
 
-Transform AI-Mem from a complex multi-template CLI tool into a streamlined, Claude Code-integrated memory management platform that makes it trivially easy for developers to get started with AI memory management and visualization across multiple repositories.
+Transform mem8 from a complex multi-template CLI tool into a streamlined, Claude Code-integrated memory management platform that makes it trivially easy for developers to get started with AI memory management and visualization across multiple repositories.
 
 ## Current State Analysis
 
@@ -25,18 +25,18 @@ Transform AI-Mem from a complex multi-template CLI tool into a streamlined, Clau
 # From any Claude Code project directory
 claude
 > /setup-memory
-# AI-Mem automatically discovers local repos, sets up integration, launches UI
+# mem8 automatically discovers local repos, sets up integration, launches UI
 
 # Or standalone
 cd ~/projects/my-project
-ai-mem quick-start
+mem8 quick-start
 # Guided 30-second setup with immediate thoughts visualization
 ```
 
 ### Success Verification:
 - New users can get thoughts visualization working in under 60 seconds
-- Claude Code users can access AI-Mem through natural slash commands
-- Thoughts from multiple repositories (ai-mem, orchestr8, agenticinsights) appear in unified UI
+- Claude Code users can access mem8 through natural slash commands
+- Thoughts from multiple repositories (mem8, orchestr8, agenticinsights) appear in unified UI
 - Zero manual configuration needed for common developer setups
 
 ## What We're NOT Doing
@@ -58,7 +58,7 @@ Replace complex template selection with intelligent defaults and guided setup fo
 
 ### Changes Required:
 
-#### 1. New CLI Command: `ai-mem quick-start`
+#### 1. New CLI Command: `mem8 quick-start`
 **File**: `ai_mem/cli.py`
 **Changes**: Add quick-start command that bypasses cookiecutter complexity
 
@@ -67,8 +67,8 @@ Replace complex template selection with intelligent defaults and guided setup fo
 @click.option('--repos', help='Comma-separated list of repository paths to discover')
 @click.option('--web', is_flag=True, help='Launch web UI after setup')
 def quick_start(repos, web):
-    """Set up AI-Mem with intelligent defaults in 30 seconds."""
-    console.print("🚀 Setting up AI-Mem with smart defaults...")
+    """Set up mem8 with intelligent defaults in 30 seconds."""
+    console.print("🚀 Setting up mem8 with smart defaults...")
     
     # 1. Auto-detect project context
     project_info = detect_project_context()
@@ -120,7 +120,7 @@ def discover_local_repositories():
 
 ```python
 def setup_minimal_structure(config):
-    """Create minimal AI-Mem structure with smart defaults."""
+    """Create minimal mem8 structure with smart defaults."""
     # Create thoughts directory
     thoughts_dir = Path('thoughts')
     thoughts_dir.mkdir(exist_ok=True)
@@ -150,7 +150,7 @@ def launch_web_ui():
         response = requests.get('http://localhost:8000/api/v1/health', timeout=2)
         if response.status_code == 200:
             webbrowser.open('http://localhost:20040')
-            console.print("🌐 AI-Mem UI opened in your browser!")
+            console.print("🌐 mem8 UI opened in your browser!")
         else:
             show_setup_instructions()
     except requests.RequestException:
@@ -160,9 +160,9 @@ def launch_web_ui():
 ### Success Criteria:
 
 #### Automated Verification:
-- [x] `ai-mem quick-start` completes successfully: `ai-mem quick-start && ls thoughts`
-- [x] Generated structure is valid: `ai-mem status` reports healthy workspace
-- [x] Multi-repo discovery works: `ai-mem quick-start --repos ../orchestr8,../agenticinsights`
+- [x] `mem8 quick-start` completes successfully: `mem8 quick-start && ls thoughts`
+- [x] Generated structure is valid: `mem8 status` reports healthy workspace
+- [x] Multi-repo discovery works: `mem8 quick-start --repos ../orchestr8,../agenticinsights`
 - [x] Web launch succeeds when backend running: Backend health check returns 200
 
 #### Manual Verification:
@@ -176,41 +176,41 @@ def launch_web_ui():
 ## Phase 2: Claude Code Integration
 
 ### Overview
-Create native Claude Code slash commands and memory integration for AI-Mem functionality.
+Create native Claude Code slash commands and memory integration for mem8 functionality.
 
 ### Changes Required:
 
 #### 1. Claude Code Commands Template
 **File**: `claude-dot-md-template/{{cookiecutter.project_slug}}/commands/setup-memory.md`
-**Changes**: Add AI-Mem setup command for Claude Code users
+**Changes**: Add mem8 setup command for Claude Code users
 
 ```markdown
 ---
-allowed-tools: Bash(ai-mem:*), Bash(git:*), Bash(mkdir:*) 
+allowed-tools: Bash(mem8:*), Bash(git:*), Bash(mkdir:*) 
 argument-hint: [--repos repo1,repo2] [--web]
 description: Set up AI memory management with multi-repo discovery
 ---
 
 # AI Memory Setup
 
-Set up AI-Mem memory management for this project and discover related repositories.
+Set up mem8 memory management for this project and discover related repositories.
 
 ## Setup Process
 
-1. Check if AI-Mem is installed:
-!`which ai-mem || echo "AI-Mem not found - install with: uv tool install ai-mem"`
+1. Check if mem8 is installed:
+!`which mem8 || echo "mem8 not found - install with: uv tool install mem8"`
 
 2. Run quick setup:
-!`ai-mem quick-start $ARGUMENTS`
+!`mem8 quick-start $ARGUMENTS`
 
 3. Verify setup:
-!`ai-mem status`
+!`mem8 status`
 
 ## Next Steps
 
-- Use `ai-mem search "query"` to find thoughts across repositories
-- Launch web UI with `ai-mem quick-start --web` for visual exploration
-- Sync thoughts across team with `ai-mem sync`
+- Use `mem8 search "query"` to find thoughts across repositories
+- Launch web UI with `mem8 quick-start --web` for visual exploration
+- Sync thoughts across team with `mem8 sync`
 ```
 
 #### 2. Memory Browser Command  
@@ -219,7 +219,7 @@ Set up AI-Mem memory management for this project and discover related repositori
 
 ```markdown
 ---
-allowed-tools: Bash(ai-mem:*)
+allowed-tools: Bash(mem8:*)
 description: Browse and search AI memories across repositories
 ---
 
@@ -228,24 +228,24 @@ description: Browse and search AI memories across repositories
 Explore thoughts and memories across your repositories.
 
 ## Recent Memories
-!`ai-mem search --recent --limit 10`
+!`mem8 search --recent --limit 10`
 
 ## Repository Status
-!`ai-mem status --repos`
+!`mem8 status --repos`
 
 ## Interactive Search
-Use `ai-mem search "your query"` to find specific thoughts across all configured repositories.
+Use `mem8 search "your query"` to find specific thoughts across all configured repositories.
 
-Launch the web UI for visual exploration: `ai-mem quick-start --web`
+Launch the web UI for visual exploration: `mem8 quick-start --web`
 ```
 
-#### 3. AI-Mem Project Memory Integration
+#### 3. mem8 Project Memory Integration
 **File**: `ai_mem/claude_integration.py` (new)  
-**Changes**: Generate CLAUDE.md additions for AI-Mem projects
+**Changes**: Generate CLAUDE.md additions for mem8 projects
 
 ```python
 def generate_claude_memory_integration(config):
-    """Generate CLAUDE.md content for AI-Mem integration."""
+    """Generate CLAUDE.md content for mem8 integration."""
     repos_config = "\n".join([
         f"- {repo['name']}: {repo['thoughts_path']}" 
         for repo in config.get('repositories', [])
@@ -254,7 +254,7 @@ def generate_claude_memory_integration(config):
     claude_md_content = f"""
 # AI Memory Integration
 
-This project uses AI-Mem for memory management across repositories.
+This project uses mem8 for memory management across repositories.
 
 ## Available Repositories
 {repos_config}
@@ -262,8 +262,8 @@ This project uses AI-Mem for memory management across repositories.
 ## Memory Commands
 - `/setup-memory` - Configure AI memory for this project
 - `/browse-memories` - Search and explore thoughts across repositories
-- `ai-mem search "query"` - Full-text search across all memories
-- `ai-mem quick-start --web` - Launch visual memory browser
+- `mem8 search "query"` - Full-text search across all memories
+- `mem8 quick-start --web` - Launch visual memory browser
 
 ## Shared Thoughts Location
 Shared thoughts: `{config.get('shared_location', 'thoughts/shared/')}`
@@ -282,7 +282,7 @@ Shared thoughts: `{config.get('shared_location', 'thoughts/shared/')}`
 
 ```python
 def update_claude_md_integration(config):
-    """Add AI-Mem integration section to existing CLAUDE.md."""
+    """Add mem8 integration section to existing CLAUDE.md."""
     claude_md = Path('.claude/CLAUDE.md')
     if claude_md.exists():
         content = claude_md.read_text()
@@ -290,7 +290,7 @@ def update_claude_md_integration(config):
             integration = generate_claude_memory_integration(config)
             content += f"\n\n{integration}"
             claude_md.write_text(content)
-            console.print("✅ Updated .claude/CLAUDE.md with AI-Mem integration")
+            console.print("✅ Updated .claude/CLAUDE.md with mem8 integration")
 ```
 
 ### Success Criteria:
@@ -302,7 +302,7 @@ def update_claude_md_integration(config):
 - [x] Memory browsing functional: `/browse-memories` returns recent thoughts
 
 #### Manual Verification:
-- [x] Claude Code users can discover and use AI-Mem through natural slash commands
+- [x] Claude Code users can discover and use mem8 through natural slash commands
 - [x] Memory integration feels native within Claude Code workflow
 - [x] Commands provide helpful output and next steps
 - [x] Integration doesn't interfere with existing Claude Code functionality
@@ -312,12 +312,12 @@ def update_claude_md_integration(config):
 ## Phase 3: Multi-Repository Discovery and Visualization
 
 ### Overview  
-Enhance frontend to automatically discover and visualize thoughts from multiple repositories (orchestr8, agenticinsights, ai-mem).
+Enhance frontend to automatically discover and visualize thoughts from multiple repositories (orchestr8, agenticinsights, mem8).
 
 ### Changes Required:
 
 #### 1. Repository Discovery Service
-**File**: `backend/src/aimem_api/services/repository_discovery.py` (new)
+**File**: `backend/src/mem8_api/services/repository_discovery.py` (new)
 **Changes**: Automatic repository discovery and thoughts aggregation
 
 ```python
@@ -354,7 +354,7 @@ class RepositoryDiscoveryService:
 ```
 
 #### 2. Multi-Repo API Endpoints
-**File**: `backend/src/aimem_api/routers/repositories.py` (new)
+**File**: `backend/src/mem8_api/routers/repositories.py` (new)
 **Changes**: API endpoints for repository management
 
 ```python
@@ -486,7 +486,7 @@ export function ThoughtCard({ thought }: { thought: ThoughtWithRepository }) {
 - [ ] Repository sync triggers correctly: Sync endpoint processes multiple repositories
 
 #### Manual Verification:
-- [ ] UI shows thoughts from ai-mem, orchestr8, and agenticinsights repositories
+- [ ] UI shows thoughts from mem8, orchestr8, and agenticinsights repositories
 - [ ] Repository filtering works smoothly in the interface
 - [ ] Thought cards clearly indicate source repository
 - [ ] Cross-repository search returns relevant results from all sources
@@ -521,9 +521,9 @@ def search(query, web):
 
 @cli.command()
 def dashboard():
-    """Launch AI-Mem web dashboard."""
+    """Launch mem8 web dashboard."""
     launch_web_ui()
-    console.print("Dashboard launched! Use 'ai-mem status' to check backend health.")
+    console.print("Dashboard launched! Use 'mem8 status' to check backend health.")
 ```
 
 #### 2. URL-based State Management
@@ -626,7 +626,7 @@ return (
         <button onClick={() => setSidebarOpen(true)}>
           <MenuIcon size={20} />
         </button>
-        <h1 className="font-mono text-lg">AI-Mem</h1>
+        <h1 className="font-mono text-lg">mem8</h1>
         <div /> {/* Spacer */}
       </div>
       
@@ -644,7 +644,7 @@ return (
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] CLI web integration works: `ai-mem search "test" --web` opens browser
+- [ ] CLI web integration works: `mem8 search "test" --web` opens browser
 - [ ] URL state management functional: URLs contain search/filter parameters
 - [ ] Keyboard shortcuts register: Browser dev tools show no event listener errors
 - [ ] Mobile layout renders correctly: `npm run build` generates responsive CSS
@@ -673,7 +673,7 @@ return (
 - Web UI state management with URL parameters
 
 ### Manual Testing Steps:
-1. **New User Flow**: Start in empty directory, run `ai-mem quick-start`, verify setup
+1. **New User Flow**: Start in empty directory, run `mem8 quick-start`, verify setup
 2. **Claude Code Integration**: Use `/setup-memory` in Claude session, check CLAUDE.md updates
 3. **Multi-Repo Discovery**: Place in ~/projects with orchestr8/agenticinsights, verify discovery
 4. **Mobile Experience**: Test responsive design on actual mobile devices

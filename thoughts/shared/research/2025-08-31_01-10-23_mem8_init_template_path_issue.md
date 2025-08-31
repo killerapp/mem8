@@ -3,7 +3,7 @@ date: 2025-08-31T01:10:23-05:00
 researcher: vaski
 git_commit: b0e0beb9ea705686073544b293bc6bc41f976389
 branch: main
-repository: ai-mem
+repository: mem8
 topic: "mem8 init command template path resolution issue when installed via uvx"
 tags: [research, codebase, mem8, cli, packaging, cookiecutter, templates]
 status: complete
@@ -17,7 +17,7 @@ last_updated_by: vaski
 **Researcher**: vaski
 **Git Commit**: b0e0beb9ea705686073544b293bc6bc41f976389
 **Branch**: main
-**Repository**: ai-mem
+**Repository**: mem8
 
 ## Research Question
 Why does `uvx mem8 init` fail with an error trying to use a local uv cache path (`C:\Users\vaski\AppData\Local\uv\cache\archive-v0\...`) instead of a GitHub URL or proper template path for the cookiecutter template?
@@ -93,7 +93,7 @@ Move templates into the package and update build config:
 ### Option 3: Fetch Templates from GitHub
 Change implementation to use GitHub URLs:
 ```python
-template_url = "https://github.com/killerapp/ai-mem/claude-dot-md-template"
+template_url = "https://github.com/killerapp/mem8/claude-dot-md-template"
 cookiecutter(template_url, ...)
 ```
 
@@ -105,7 +105,7 @@ template_path = resources.files("ai_mem") / "templates" / "claude-dot-md-templat
 ```
 
 ## Why OneDrive Appeared in Error
-The error message showed "Using shared directory: C:\Users\vaski\OneDrive\AI-Mem-Shared" - this is unrelated to the template path issue. It's the shared directory for thoughts synchronization, printed just before the cookiecutter call fails.
+The error message showed "Using shared directory: C:\Users\vaski\OneDrive\mem8-Shared" - this is unrelated to the template path issue. It's the shared directory for thoughts synchronization, printed just before the cookiecutter call fails.
 
 ## Open Questions
 1. Was the intention to distribute templates with the package or fetch from GitHub?

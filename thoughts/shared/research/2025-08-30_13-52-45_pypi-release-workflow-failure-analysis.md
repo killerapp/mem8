@@ -3,7 +3,7 @@ date: 2025-08-30T13:52:45-08:00
 researcher: AI Assistant
 git_commit: 20529cf77ef9bed40e3531e522ac1b77955c22fd
 branch: main
-repository: ai-mem
+repository: mem8
 topic: "PyPI release workflow failure - No dist directory found analysis"
 tags: [research, pypi, semantic-release, github-actions, conventional-commits]
 status: complete
@@ -17,7 +17,7 @@ last_updated_by: AI Assistant
 **Researcher**: AI Assistant  
 **Git Commit**: 20529cf77ef9bed40e3531e522ac1b77955c22fd  
 **Branch**: main  
-**Repository**: ai-mem  
+**Repository**: mem8  
 
 ## Research Question
 
@@ -79,11 +79,11 @@ Successfully built dist\ai_mem-0.1.0.tar.gz and dist\ai_mem-0.1.0-py3-none-any.w
 
 **Confirmation**: Build system works correctly - issue is not with hatchling or uv configuration.
 
-### Configuration Comparison (orchestr8 vs ai-mem)
+### Configuration Comparison (orchestr8 vs mem8)
 
 **Key Differences Found**:
 1. **Directory Structure**: orchestr8 uses `working-directory: ./o8-cli` but has identical semantic-release config
-2. **Build Backend**: orchestr8 uses setuptools vs ai-mem's hatchling (not the issue)
+2. **Build Backend**: orchestr8 uses setuptools vs mem8's hatchling (not the issue)
 3. **Commit Patterns**: orchestr8 consistently uses conventional commits (`feat:`, `fix:`, etc.)
 
 **Working orchestr8 Examples**:
@@ -128,7 +128,7 @@ git commit -m "feat: add comprehensive research documentation and analysis tools
 
 ## Related Research
 
-This is the first research document analyzing the ai-mem release workflow.
+This is the first research document analyzing the mem8 release workflow.
 
 ## Open Questions
 

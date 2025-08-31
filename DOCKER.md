@@ -1,6 +1,6 @@
-# AI-Mem Docker Setup
+# mem8 Docker Setup
 
-This document describes how to run AI-Mem using Docker for local development and production deployment.
+This document describes how to run mem8 using Docker for local development and production deployment.
 
 ## Quick Start
 
@@ -13,7 +13,7 @@ For local development with hot reload and easier debugging:
 ./scripts/dev-setup.sh
 
 # Then run backend and frontend locally
-cd backend && uv run python -m uvicorn aimem_api.main:app --reload --host 127.0.0.1 --port 8000
+cd backend && uv run python -m uvicorn mem8_api.main:app --reload --host 127.0.0.1 --port 8000
 cd frontend && npm run dev
 ```
 
@@ -36,7 +36,7 @@ For production-like deployment with all services in containers:
 
 ### Networking
 
-All services run on a dedicated Docker network (`aimem-network`) for secure inter-service communication.
+All services run on a dedicated Docker network (`mem8-network`) for secure inter-service communication.
 
 ### Volumes
 
@@ -115,7 +115,7 @@ All services include health checks:
 
 1. Ensure PostgreSQL is running: `docker-compose ps postgres`
 2. Check logs: `docker-compose logs postgres`
-3. Test connection: `docker-compose exec postgres psql -U aimem_user -d aimem`
+3. Test connection: `docker-compose exec postgres psql -U mem8_user -d mem8`
 
 ### Backend Startup Issues
 

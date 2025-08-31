@@ -15,5 +15,5 @@ This directory contains shared thoughts and memory for the team.
 
 ## Usage
 
-Use `ai-mem sync` to keep your local workspace in sync with shared memory.
-Use `ai-mem search` to find relevant content across all memories.
+Use `mem8 sync` to keep your local workspace in sync with shared memory.
+Use `mem8 search` to find relevant content across all memories.

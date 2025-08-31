@@ -1,7 +1,7 @@
-# AI-Mem Quick Start Guide 🚀
+# mem8 Quick Start Guide 🚀
 
 ## Overview
-AI-Mem is now ready with GitHub authentication integration! Here's how to get it running:
+mem8 is now ready with GitHub authentication integration! Here's how to get it running:
 
 ## Prerequisites
 - Python 3.11+
@@ -22,11 +22,11 @@ uv sync
 cp .env.example .env
 
 # For testing with SQLite (no database setup needed)
-echo "DATABASE_URL=sqlite+aiosqlite:///./aimem.db" >> .env
+echo "DATABASE_URL=sqlite+aiosqlite:///./mem8.db" >> .env
 echo "SECRET_KEY=test-secret-key-for-development" >> .env
 
 # Start the API server
-uv run uvicorn aimem_api.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn mem8_api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The API will be available at: http://localhost:8000
@@ -64,7 +64,7 @@ const ws = new WebSocket('ws://localhost:8000/api/v1/sync/test-team-id');
 ## GitHub OAuth Setup (Optional)
 
 1. Create a GitHub OAuth App at: https://github.com/settings/applications/new
-   - Application name: `AI-Mem Development`  
+   - Application name: `mem8 Development`  
    - Homepage URL: `http://localhost:20040`
    - Authorization callback URL: `http://localhost:20040/auth/callback`
 

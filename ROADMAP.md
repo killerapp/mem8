@@ -1,11 +1,11 @@
-# AI-Mem Development Roadmap
+# mem8 Development Roadmap
 
 **Last Updated**: 2025-08-30  
 **Current Status**: Phase 3 - Production Polish
 
 ## Overview
 
-AI-Mem is a comprehensive AI memory management platform for team collaboration, now with a complete CLI, backend API, and web frontend. The system integrates with Claude Code for seamless AI-assisted development workflows.
+mem8 is a comprehensive AI memory management platform for team collaboration, now with a complete CLI, backend API, and web frontend. The system integrates with Claude Code for seamless AI-assisted development workflows.
 
 ---
 
@@ -203,7 +203,7 @@ AI-Mem is a comprehensive AI memory management platform for team collaboration, 
 
 ## Contributing
 
-The AI-Mem platform is now ready for:
+The mem8 platform is now ready for:
 - ✅ **Production deployment** for single teams
 - ✅ **Feature contributions** and enhancements
 - ✅ **Integration projects** with Claude Code workflows

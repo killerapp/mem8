@@ -157,7 +157,7 @@ Create the `ai_mem/templates/` directory structure and ensure it's recognized as
 **Changes**: Create empty init file
 
 ```python
-"""Templates package for ai-mem."""
+"""Templates package for mem8."""
 ```
 
 ### Success Criteria:

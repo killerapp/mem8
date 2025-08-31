@@ -3,8 +3,8 @@ date: 2025-08-30T12:05:35-05:00
 researcher: Claude Code
 git_commit: 74ab0c2a677964197cae0337281e50d87f42c679
 branch: main
-repository: ai-mem
-topic: "Thoughts system and multi-repository integration for showing thoughts across ai-mem, orchestr8, and agenticinsights"
+repository: mem8
+topic: "Thoughts system and multi-repository integration for showing thoughts across mem8, orchestr8, and agenticinsights"
 tags: [research, thoughts, multi-repo, git-worktrees, codebase-architecture, ui-display, orchestr8, agenticinsights]
 status: complete
 last_updated: 2025-08-30
@@ -17,18 +17,18 @@ last_updated_by: Claude Code
 **Researcher**: Claude Code
 **Git Commit**: 74ab0c2a677964197cae0337281e50d87f42c679
 **Branch**: main
-**Repository**: ai-mem
+**Repository**: mem8
 
 ## Research Question
-Review the ROADMAP.md and README.md and start showing the 'thoughts' - at least the ones in the current repo under 'thoughts' right here in this worktree. Thoughts may need to combine multiple git worktrees locally, which are used inside of the template instructions. The UI should show thoughts about this project (ai-mem), and ideally the others in GitHub like orchestr8 and agenticinsights to give a broad view of the repos.
+Review the ROADMAP.md and README.md and start showing the 'thoughts' - at least the ones in the current repo under 'thoughts' right here in this worktree. Thoughts may need to combine multiple git worktrees locally, which are used inside of the template instructions. The UI should show thoughts about this project (mem8), and ideally the others in GitHub like orchestr8 and agenticinsights to give a broad view of the repos.
 
 ## Summary
-The AI-Mem project implements a comprehensive thoughts management system with a three-tier architecture (CLI, Backend API, Web UI) that's production-ready and capable of multi-repository integration. The system currently shows 5 key thoughts documents about the ai-mem project itself and has robust patterns that can be extended to aggregate thoughts from orchestr8, agenticinsights, and other repositories through git worktrees and shared directory synchronization.
+The mem8 project implements a comprehensive thoughts management system with a three-tier architecture (CLI, Backend API, Web UI) that's production-ready and capable of multi-repository integration. The system currently shows 5 key thoughts documents about the mem8 project itself and has robust patterns that can be extended to aggregate thoughts from orchestr8, agenticinsights, and other repositories through git worktrees and shared directory synchronization.
 
-## Current Thoughts in AI-Mem Repository
+## Current Thoughts in mem8 Repository
 
 ### Implementation Plans
-- `thoughts/shared/plans/ai-mem-orchestr8-implementation.md` - Comprehensive implementation plan for AI-Mem Orchestr8 system with CLI lifecycle management, backend API, web frontend, and Kubernetes deployment
+- `thoughts/shared/plans/mem8-orchestr8-implementation.md` - Comprehensive implementation plan for mem8 Orchestr8 system with CLI lifecycle management, backend API, web frontend, and Kubernetes deployment
 
 ### Research Documents  
 - `thoughts/shared/research/2025-08-30_09-27-55_cli-polish-implementation.md` - Research on CLI polish and first-class implementation with Typer/Rich for Windows 11, including emoji support and Claude Code integration
@@ -51,16 +51,16 @@ Current implementation in `frontend/app/page.tsx:13-115`:
 - **Authentication Flow** with GitHub OAuth and user avatar display
 
 ### Backend API Endpoints
-Comprehensive CRUD operations in `backend/src/aimem_api/routers/thoughts.py:25-125`:
+Comprehensive CRUD operations in `backend/src/mem8_api/routers/thoughts.py:25-125`:
 - `GET /api/v1/thoughts/` - List thoughts with team-based filtering
 - `POST /api/v1/thoughts/` - Create new thoughts with content analysis
 - `GET /api/v1/thoughts/{id}` - Retrieve specific thoughts
 - `PUT /api/v1/thoughts/{id}` - Update existing thoughts
 - `DELETE /api/v1/thoughts/{id}` - Remove thoughts
-- Advanced search via `backend/src/aimem_api/routers/search.py:18-52`
+- Advanced search via `backend/src/mem8_api/routers/search.py:18-52`
 
 ### Database Schema
-PostgreSQL model in `backend/src/aimem_api/models/thought.py:17-70`:
+PostgreSQL model in `backend/src/mem8_api/models/thought.py:17-70`:
 - **Core Fields**: title (String 500), content (Text), path (String 1000)
 - **Git Integration**: git_commit_hash (String 40), git_branch (String 200)
 - **Team Organization**: team_id with Foreign Key constraints
@@ -69,10 +69,10 @@ PostgreSQL model in `backend/src/aimem_api/models/thought.py:17-70`:
 
 ### CLI Commands for Synchronization
 Available commands in `ai_mem/cli.py:55-345`:
-- `ai-mem status` - Check workspace health and git integration
-- `ai-mem sync` - Bidirectional synchronization with shared memory
-- `ai-mem search "query"` - Full-text search across thoughts
-- `ai-mem init --template full` - Initialize with templates
+- `mem8 status` - Check workspace health and git integration
+- `mem8 sync` - Bidirectional synchronization with shared memory
+- `mem8 search "query"` - Full-text search across thoughts
+- `mem8 init --template full` - Initialize with templates
 
 ## Multi-Repository Integration Architecture
 
@@ -107,8 +107,8 @@ Bidirectional sync in `ai_mem/core/sync.py:23-83`:
 
 ## Code References
 - `frontend/app/page.tsx:13` - Main dashboard component with thoughts display
-- `backend/src/aimem_api/routers/thoughts.py:25` - Thoughts API endpoints
-- `backend/src/aimem_api/models/thought.py:17` - Database schema
+- `backend/src/mem8_api/routers/thoughts.py:25` - Thoughts API endpoints
+- `backend/src/mem8_api/models/thought.py:17` - Database schema
 - `ai_mem/cli.py:249` - CLI sync command implementation
 - `ai_mem/core/sync.py:23` - Synchronization logic
 - `shared-thoughts-template/cookiecutter.json` - Multi-repo template config
@@ -136,7 +136,7 @@ Bidirectional sync in `ai_mem/core/sync.py:23-83`:
 - Cross-repository content indexing capability
 
 ## Historical Context (from thoughts/)
-- `thoughts/shared/plans/ai-mem-orchestr8-implementation.md` - Shows complete roadmap including Kubernetes deployment integration
+- `thoughts/shared/plans/mem8-orchestr8-implementation.md` - Shows complete roadmap including Kubernetes deployment integration
 - `thoughts/shared/research/2025-08-30_09-27-55_cli-polish-implementation.md` - Documents CLI evolution from Click to potential Typer migration
 - `thoughts/shared/prs/phase1_implementation_description.md` - Chronicles Phase 1 completion status
 - `thoughts/shared/prs/1_description.md` - Documents Phase 2 backend implementation
@@ -155,8 +155,8 @@ repositories:
     url: "https://github.com/your-org/agenticinsights" 
     thoughts_path: "thoughts"
     sync_enabled: true
-  ai-mem:
-    url: "https://github.com/your-org/ai-mem"
+  mem8:
+    url: "https://github.com/your-org/mem8"
     thoughts_path: "thoughts/shared"
     sync_enabled: true
 ```

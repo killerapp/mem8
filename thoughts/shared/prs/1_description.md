@@ -2,7 +2,7 @@
 
 ## What problem does this solve?
 
-This PR implements Phase 2 of the AI-Mem Orchestr8 system - the backend API service. According to the implementation plan in `thoughts/shared/plans/ai-mem-orchestr8-implementation.md`, Phase 2 establishes the core backend infrastructure needed for team collaboration and real-time synchronization of AI memory content.
+This PR implements Phase 2 of the mem8 Orchestr8 system - the backend API service. According to the implementation plan in `thoughts/shared/plans/mem8-orchestr8-implementation.md`, Phase 2 establishes the core backend infrastructure needed for team collaboration and real-time synchronization of AI memory content.
 
 The Phase 1 CLI foundation was completed successfully, and this Phase 2 work provides the API service that the CLI and future frontend will integrate with.
 
@@ -84,7 +84,7 @@ The Phase 1 CLI foundation was completed successfully, and this Phase 2 work pro
 - [ ] Unit tests pass: `pytest` (not yet implemented - dev dependency available)
 - [ ] Linting passes: `ruff check .` (not yet implemented - dev dependency available)  
 - [ ] Type checking passes: `mypy .` (not yet implemented - dev dependency available)
-- [x] FastAPI server starts successfully: `cd backend && uv run uvicorn aimem_api.main:app --host 127.0.0.1 --port 8000`
+- [x] FastAPI server starts successfully: `cd backend && uv run uvicorn mem8_api.main:app --host 127.0.0.1 --port 8000`
 - [x] API documentation generates correctly: Visit `http://127.0.0.1:8000/docs`
 - [x] Health endpoints respond correctly: `curl http://127.0.0.1:8000/health`
 
@@ -109,7 +109,7 @@ None - this is a new backend service with no existing API to break.
 ## Changelog entry
 
 ```
-- Added: Complete FastAPI backend API service for AI-Mem system
+- Added: Complete FastAPI backend API service for mem8 system
 - Added: Database models for Users, Teams, and Thoughts with PostgreSQL
 - Added: REST API endpoints for CRUD operations on all entities
 - Added: Search service with full-text capabilities and suggestion engine
@@ -158,4 +158,4 @@ None - this is a new backend service with no existing API to break.
 - Test database isolation patterns established
 - Mock framework ready for external service testing
 
-This implementation provides a solid foundation for Phase 3 (Web Frontend) and Phase 4 (Kubernetes deployment) as outlined in the AI-Mem implementation plan.
+This implementation provides a solid foundation for Phase 3 (Web Frontend) and Phase 4 (Kubernetes deployment) as outlined in the mem8 implementation plan.
