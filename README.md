@@ -17,7 +17,8 @@ mem8 is a comprehensive platform providing:
 ### Phase 1: CLI Foundation ✅ COMPLETE
 - **Rich CLI Interface** - Typer framework with comprehensive Windows support and enhanced type safety
 - **Template Management** - 3 cookiecutter templates (claude-config, thoughts-repo, full)
-- **Core Commands** - init, sync, search, status, doctor, team, deploy
+- **Core Commands** - init, sync, search, status, doctor
+- **Experimental Placeholders** - team, deploy
 - **Data Protection** - Sophisticated preservation of existing workspace data
 - **UTF-8 Excellence** - Perfect emoji support across all Windows terminals
 
@@ -47,7 +48,11 @@ mem8 search "query"            # Full-text search across thoughts
 mem8 doctor --auto-fix         # Diagnose and repair issues
 ```
 
+=======
+*Note: `team` and `deploy` commands are experimental placeholders and not yet functional.*
+
 ### 🚀 API Features (Beta)
+
 - **Authentication**: `/api/v1/auth/*` - Complete GitHub OAuth flow
 - **Health Monitoring**: `/api/v1/health` - System health and diagnostics
 - **Thoughts Management**: `/api/v1/thoughts/*` - Full CRUD operations
