@@ -115,7 +115,7 @@ mem8 is a comprehensive AI memory management platform for team collaboration, no
 5. **Database**: PostgreSQL with proper models and relationships
 
 ### 🔧 Minor Polish Items (1-2 days):
-1. **WebSocket Activation**: Uncomment endpoint in main.py for real-time features
+1. **WebSocket Hardening**: Real-time features are beta; add tests and reconnection logic
 2. **Seed Data**: Add initial teams/thoughts for demonstration
 3. **Test Suite**: Update tests to match evolved implementation
 4. **Favicon**: Fix frontend favicon conflict warning

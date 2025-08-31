@@ -34,7 +34,7 @@ mem8 is a comprehensive platform providing:
 - **Next.js 15** - Modern React with App Router and TypeScript
 - **Terminal Aesthetic** - Exceptional retro computing UI with scanlines and glows
 - **Authentication Flow** - Seamless GitHub OAuth integration
-- **Real-time Framework** - WebSocket integration ready for collaboration
+- **Real-time Framework** - WebSocket integration ready for collaboration (beta)
 - **Responsive Design** - Beautiful interface across all screen sizes
 
 ## ✨ Features
@@ -81,12 +81,11 @@ mem8 doctor --auto-fix         # Diagnose and repair issues
 - **Thoughts API**: All CRUD operations require GitHub OAuth login
 - **Teams API**: Team management requires authenticated user
 - **Search API**: Advanced search requires user authentication
-- **WebSocket**: Real-time features need authenticated connection
+- **WebSocket**: Real-time features need authenticated connection (beta)
 
 ### 🔧 Setup Required
 - **GitHub OAuth**: Configure OAuth app for authentication  
 - **Database Seed**: No default data - database starts empty
-- **WebSocket**: Endpoint exists but commented out (line 91 in main.py)
 - **Environment Variables**: GitHub client ID/secret needed for auth flow
 
 ## 🚀 Quick Start
