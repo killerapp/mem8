@@ -57,7 +57,7 @@ curl http://localhost:8000/api/v1/health
 ### WebSocket Test
 Open browser dev tools and test WebSocket connection:
 ```javascript
-// This will fail auth but shows the endpoint is available
+// WebSocket sync is in beta and requires authentication
 const ws = new WebSocket('ws://localhost:8000/api/v1/sync/test-team-id');
 ```
 
@@ -89,14 +89,14 @@ GITHUB_CLIENT_SECRET=your_client_secret_here
 - JWT token management
 - Thoughts CRUD operations
 - Teams management
-- Real-time WebSocket sync
+- Real-time WebSocket sync (beta)
 - Docker ready
 
 ### Frontend (Phase 3) - 95% Complete  
 - Terminal-style UI with dark theme
 - GitHub OAuth integration
 - API client with auth headers
-- WebSocket real-time updates
+- WebSocket real-time updates (beta)
 - React Query state management
 
 ### Missing/In Progress
