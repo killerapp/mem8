@@ -1,14 +1,14 @@
 # mem8 - Memory Management for the Orchestr8 Ecosystem
 
-A production-ready memory management platform for the orchestr8 ecosystem with CLI, API, and web interface for team collaboration with shared thoughts.
+A beta-stage memory management platform for the orchestr8 ecosystem with CLI, API, and web interface for team collaboration with shared thoughts.
 
 ## 🎯 Overview
 
-**Current Status: Production Ready (Phase 3 Complete)**
+**Current Status: Beta (Phase 3 In Progress)**
 
 mem8 is a comprehensive platform providing:
 - **💻 Advanced CLI** - Full workspace management with Windows UTF-8 support and rich UI
-- **🚀 FastAPI Backend** - Production-grade API with PostgreSQL, authentication, and real-time capabilities  
+- **🚀 FastAPI Backend** - Robust API with PostgreSQL, authentication, and real-time capabilities
 - **🖥️ Terminal Web UI** - Stunning retro interface with live collaboration features
 - **🎯 Orchestr8 Integration** - Seamless integration with orchestr8 ecosystem and o8 CLI
 
@@ -48,9 +48,11 @@ mem8 search "query"            # Full-text search across thoughts
 mem8 doctor --auto-fix         # Diagnose and repair issues
 ```
 
+=======
 *Note: `team` and `deploy` commands are experimental placeholders and not yet functional.*
 
-### 🚀 API Features (Production Ready)
+### 🚀 API Features (Beta)
+
 - **Authentication**: `/api/v1/auth/*` - Complete GitHub OAuth flow
 - **Health Monitoring**: `/api/v1/health` - System health and diagnostics
 - **Thoughts Management**: `/api/v1/thoughts/*` - Full CRUD operations

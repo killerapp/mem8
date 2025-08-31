@@ -1,5 +1,5 @@
 # mem8 Full Stack Docker Compose
-# Cloud-friendly setup with PostgreSQL for production-ready deployment
+# Cloud-friendly setup with PostgreSQL for production-like deployment
 
 version: '3.8'
 

@@ -1,7 +1,7 @@
 # mem8 Quick Start Guide 🚀
 
 ## Overview
-mem8 is now ready with GitHub authentication integration! Here's how to get it running:
+mem8 now includes GitHub authentication integration and is currently in beta. Here's how to get it running:
 
 ## Prerequisites
 - Python 3.11+
@@ -126,4 +126,4 @@ GITHUB_CLIENT_SECRET=your_client_secret_here
 3. **Connect real semantic search** - Replace text search fallback
 4. **Polish the UI** - Add missing pages and notifications
 
-The system is functionally complete and ready for integration with your AgenticInsights.com auth system! 🎉
+  The system is functionally complete but still in beta; it's ready for integration testing with your AgenticInsights.com auth system. 🎉
