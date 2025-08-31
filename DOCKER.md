@@ -29,7 +29,7 @@ For production-like deployment with all services in containers:
 
 ### Services
 
-- **PostgreSQL**: Primary database (production-ready)
+- **PostgreSQL**: Primary database (production-grade)
 - **Redis**: Cache and session storage
 - **Backend**: FastAPI application with automatic database migration
 - **Frontend**: Next.js application with optimized production build
