@@ -2,11 +2,21 @@
 
 import shutil
 import json
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from .config import Config
 from .thought_entity import ThoughtEntity
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    """Custom JSON encoder for datetime objects."""
+    def default(self, obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        elif isinstance(obj, Path):
+            return str(obj)
+        return super().default(obj)
 
 
 class ThoughtActionEngine:
@@ -166,7 +176,7 @@ class ThoughtActionEngine:
         }
         
         with open(backup_meta, 'w', encoding='utf-8') as f:
-            json.dump(metadata, f, indent=2)
+            json.dump(metadata, f, indent=2, cls=DateTimeEncoder)
             
         return backup_path
     
@@ -183,7 +193,7 @@ class ThoughtActionEngine:
         }
         
         with open(self.audit_log, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(log_entry) + '\n')
+            f.write(json.dumps(log_entry, cls=DateTimeEncoder) + '\n')
     
     def _preview_delete(self, entities: List[ThoughtEntity]) -> Dict[str, Any]:
         """Preview delete operation."""

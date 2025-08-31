@@ -122,7 +122,7 @@ class AppState:
         self._config = Config(config_dir)
         self._memory_manager = MemoryManager(self._config)
         self._sync_manager = SyncManager(self._config)
-        self._query_engine = IntelligentQueryEngine(self._config)
+        self._query_engine = IntelligentQueryEngine(self._memory_manager.thought_discovery)
         self._action_engine = ThoughtActionEngine(self._config)
         self._initialized = True
     
@@ -476,115 +476,6 @@ def complete_thought_queries(incomplete: str):
 # Complex Commands (Phase 2)
 # ============================================================================
 
-@typer_app.command()
-def find(
-    query: Annotated[str, typer.Argument(
-        help="Natural language query for finding thoughts",
-        autocompletion=complete_thought_queries
-    )],
-    action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
-    )] = None,
-    dry_run: Annotated[bool, typer.Option(
-        "--dry-run", help="Show what would be done without executing"
-    )] = False,
-    scope: Annotated[SearchScope, typer.Option(
-        "--scope", help="Limit search scope"
-    )] = SearchScope.ALL,
-    thought_type: Annotated[ThoughtType, typer.Option(
-        "--type", help="Limit to thought type"
-    )] = ThoughtType.ALL,
-    limit: Annotated[int, typer.Option(
-        "--limit", help="Maximum results to return"
-    )] = 20,
-    force: Annotated[bool, typer.Option(
-        "--force", help="Skip confirmation prompts for destructive actions"
-    )] = False,
-    verbose: Annotated[bool, typer.Option(
-        "--verbose", "-v", help="Enable verbose output"
-    )] = False
-):
-    """Find thoughts using intelligent natural language queries."""
-    from rich.table import Table
-    from pathlib import Path
-    
-    set_app_state(verbose=verbose)
-    state = get_state()
-    memory_manager = state.memory_manager
-    
-    # Initialize intelligent query engine
-    query_engine = state.query_engine
-    
-    console.print(f"[bold blue]🔍 Finding: '{query}'[/bold blue]")
-    if action:
-        action_color = "yellow" if dry_run else "red" if action == ActionType.DELETE else "cyan"
-        dry_run_text = " (dry run)" if dry_run else ""
-        console.print(f"[bold {action_color}]Action: {action.value}{dry_run_text}[/bold {action_color}]")
-    
-    try:
-        # Parse natural language query
-        intent = query_engine.parse_query(query)
-        
-        # Show parsed intent for debugging
-        if verbose:
-            console.print(f"[dim]Parsed intent: type={intent.target_type}, status={intent.status_filter}, content='{intent.content_query}'[/dim]")
-        
-        # Execute query
-        results = query_engine.execute_query(intent)
-        
-        # Apply CLI filters (override intent if specified)
-        if scope != SearchScope.ALL:
-            results = [r for r in results if r.scope == scope.value]
-        if thought_type != ThoughtType.ALL:
-            results = [r for r in results if r.type == thought_type.value]
-            
-        # Limit results
-        results = results[:limit]
-        
-        if not results:
-            console.print("[yellow]❌ No thoughts found matching your query[/yellow]")
-            return
-            
-        # Display results table
-        table = Table(title=f"Found {len(results)} thoughts")
-        table.add_column("Type", style="cyan", width=10)
-        table.add_column("Title", style="green")
-        table.add_column("Status", style="yellow", width=12)
-        table.add_column("Scope", style="blue", width=10)  
-        table.add_column("Path", style="dim")
-        
-        for entity in results:
-            # Extract title from metadata or content
-            title = entity.metadata.get('topic', entity.path.stem)
-            if len(title) > 40:
-                title = title[:37] + "..."
-                
-            # Format path relative to workspace
-            try:
-                rel_path = entity.path.relative_to(Path.cwd())
-            except ValueError:
-                rel_path = entity.path
-                
-            table.add_row(
-                entity.type.title(),
-                title,
-                entity.lifecycle_state.replace('_', ' ').title(),
-                entity.scope.title(),
-                str(rel_path)
-            )
-            
-        console.print(table)
-        
-        # Execute action if specified
-        if action and not dry_run:
-            _execute_action(action.value, results, force, verbose)
-        elif action and dry_run:
-            _preview_action(action.value, results)
-            
-    except Exception as e:
-        console.print(f"❌ [bold red]Error during search: {e}[/bold red]")
-        if verbose:
-            console.print_exception()
 
 
 def _execute_action(action: str, results: list, force: bool, verbose: bool):
@@ -596,29 +487,34 @@ def _execute_action(action: str, results: list, force: bool, verbose: bool):
             console.print("❌ [yellow]Action cancelled[/yellow]")
             return
     
-    # Get action engine for execution
-    action_engine = get_action_engine()
+    # Get action engine for execution  
+    state = get_state()
+    action_engine = state.action_engine
     
-    for entity in results:
-        try:
-            if action == 'show':
+    try:
+        if action == 'show':
+            for entity in results:
                 console.print(f"📄 [bold]{entity.path}[/bold]")
                 content = entity.path.read_text(encoding='utf-8')
                 console.print(content[:500] + "..." if len(content) > 500 else content)
                 console.print()
-            elif action == 'delete':
-                action_engine.delete_thought(entity)
-                console.print(f"🗑️  [red]Deleted: {entity.path.name}[/red]")
-            elif action == 'archive':
-                action_engine.archive_thought(entity)
-                console.print(f"📦 [yellow]Archived: {entity.path.name}[/yellow]")
-            elif action == 'promote':
-                action_engine.promote_thought(entity)
-                console.print(f"⭐ [green]Promoted: {entity.path.name}[/green]")
-        except Exception as e:
-            console.print(f"❌ [red]Error {action}ing {entity.path.name}: {e}[/red]")
-            if verbose:
-                console.print_exception()
+        elif action == 'delete':
+            # Use the bulk delete method
+            result = action_engine.delete_thoughts(results, dry_run=False)
+            for success_path in result['success']:
+                console.print(f"🗑️  [red]Deleted: {Path(success_path).name}[/red]")
+            for error in result['errors']:
+                console.print(f"❌ [red]Error deleting: {error}[/red]")
+        elif action == 'archive':
+            # For now, just show that archive isn't fully implemented
+            console.print(f"❌ [yellow]Archive action not yet fully implemented[/yellow]")
+        elif action == 'promote':
+            # For now, just show that promote isn't fully implemented  
+            console.print(f"❌ [yellow]Promote action not yet fully implemented[/yellow]")
+    except Exception as e:
+        console.print(f"❌ [red]Error executing {action}: {e}[/red]")
+        if verbose:
+            console.print_exception()
 
 
 def _preview_action(action: str, results: list):
@@ -642,6 +538,232 @@ def _preview_action(action: str, results: list):
         
     console.print(table)
     console.print(f"[dim]Run without --dry-run to execute[/dim]")
+
+
+# ============================================================================
+# Find Subcommands - New Structure
+# ============================================================================
+
+# Create find subcommand app
+find_app = typer.Typer(name="find", help="Find thoughts by category and keywords")
+typer_app.add_typer(find_app, name="find")
+
+def _find_thoughts_new(
+    filter_type: str = "all",
+    filter_value: str = None,
+    keywords: Optional[str] = None,
+    limit: int = 20,
+    action: Optional[ActionType] = None,
+    dry_run: bool = False,
+    force: bool = False,
+    verbose: bool = False
+):
+    """Core find logic used by all subcommands."""
+    from rich.table import Table
+    from pathlib import Path
+    import re
+    
+    set_app_state(verbose=verbose)
+    state = get_state()
+    discovery = state.memory_manager.thought_discovery
+    
+    # Get filtered thoughts using existing methods
+    if filter_type == "type":
+        results = discovery.find_by_type(filter_value)
+    elif filter_type == "scope":
+        results = discovery.find_by_scope(filter_value)
+    elif filter_type == "status":
+        results = discovery.find_by_status(filter_value)
+    else:
+        results = discovery.discover_all_thoughts()
+    
+    # Apply keyword filter if provided
+    if keywords and keywords.strip():
+        keyword_results = []
+        # Split keywords by spaces, treat each as regex pattern
+        patterns = [re.compile(k.strip(), re.IGNORECASE) for k in keywords.split() if k.strip()]
+        
+        for entity in results:
+            # Search in content, title, tags
+            searchable_text = (
+                entity.content + ' ' + 
+                str(entity.metadata.get('topic', '')) + ' ' +
+                ' '.join(entity.metadata.get('tags', []))
+            )
+            
+            # Match if ANY pattern matches (OR logic)
+            if any(pattern.search(searchable_text) for pattern in patterns):
+                keyword_results.append(entity)
+        
+        results = keyword_results
+    
+    # Limit results
+    results = results[:limit]
+    
+    if not results:
+        console.print("[yellow]❌ No thoughts found[/yellow]")
+        return
+    
+    # Show what we're finding
+    search_desc = filter_value or filter_type
+    if keywords:
+        search_desc += f" matching '{keywords}'"
+    console.print(f"[bold blue]🔍 Finding: {search_desc}[/bold blue]")
+    
+    if action:
+        action_color = "yellow" if dry_run else "red" if action == ActionType.DELETE else "cyan"
+        dry_run_text = " (dry run)" if dry_run else ""
+        console.print(f"[bold {action_color}]Action: {action.value}{dry_run_text}[/bold {action_color}]")
+    
+    # Display results table
+    table = Table(title=f"Found {len(results)} thoughts")
+    table.add_column("Type", style="cyan", width=10)
+    table.add_column("Title", style="green")
+    table.add_column("Status", style="yellow", width=12)
+    table.add_column("Scope", style="blue", width=10)
+    table.add_column("Path", style="dim")
+    
+    for entity in results:
+        # Extract title from metadata or content
+        title = entity.metadata.get('topic', entity.path.stem)
+        if len(title) > 40:
+            title = title[:37] + "..."
+        
+        # Format path relative to workspace
+        try:
+            rel_path = entity.path.relative_to(Path.cwd())
+        except ValueError:
+            rel_path = entity.path
+        
+        table.add_row(
+            entity.type.title(),
+            title,
+            entity.lifecycle_state or "Unknown",
+            entity.scope or "Unknown",
+            str(rel_path)
+        )
+    
+    console.print(table)
+    
+    # Execute action if specified
+    if action and not dry_run:
+        _execute_action(action.value, results, force, verbose)
+    elif action and dry_run:
+        _preview_action(action.value, results)
+
+@find_app.command("all")
+def find_all_new(
+    keywords: Annotated[Optional[str], typer.Argument(
+        help="Keywords to search for (space-separated, supports regex)"
+    )] = None,
+    limit: Annotated[int, typer.Option(
+        "--limit", help="Maximum results to return"
+    )] = 20,
+    action: Annotated[Optional[ActionType], typer.Option(
+        "--action", help="Action to perform on found thoughts"
+    )] = None,
+    dry_run: Annotated[bool, typer.Option(
+        "--dry-run", help="Show what would be done without executing"
+    )] = False,
+    force: Annotated[bool, typer.Option(
+        "--force", help="Skip confirmation prompts for destructive actions"
+    )] = False,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Find all thoughts, optionally filtered by keywords."""
+    _find_thoughts_new("all", None, keywords, limit, action, dry_run, force, verbose)
+
+@find_app.command("plans")
+def find_plans_new(
+    keywords: Annotated[Optional[str], typer.Argument(
+        help="Keywords to search for (space-separated, supports regex)"
+    )] = None,
+    limit: Annotated[int, typer.Option(
+        "--limit", help="Maximum results to return"
+    )] = 20,
+    action: Annotated[Optional[ActionType], typer.Option(
+        "--action", help="Action to perform on found thoughts"
+    )] = None,
+    dry_run: Annotated[bool, typer.Option(
+        "--dry-run", help="Show what would be done without executing"
+    )] = False,
+    force: Annotated[bool, typer.Option(
+        "--force", help="Skip confirmation prompts for destructive actions"
+    )] = False,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Find plan documents, optionally filtered by keywords."""
+    _find_thoughts_new("type", "plan", keywords, limit, action, dry_run, force, verbose)
+
+@find_app.command("research")
+def find_research_new(
+    keywords: Annotated[Optional[str], typer.Argument(
+        help="Keywords to search for (space-separated, supports regex)"
+    )] = None,
+    limit: Annotated[int, typer.Option(
+        "--limit", help="Maximum results to return"
+    )] = 20,
+    action: Annotated[Optional[ActionType], typer.Option(
+        "--action", help="Action to perform on found thoughts"
+    )] = None,
+    dry_run: Annotated[bool, typer.Option(
+        "--dry-run", help="Show what would be done without executing"
+    )] = False,
+    force: Annotated[bool, typer.Option(
+        "--force", help="Skip confirmation prompts for destructive actions"
+    )] = False,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Find research documents, optionally filtered by keywords."""
+    _find_thoughts_new("type", "research", keywords, limit, action, dry_run, force, verbose)
+
+@find_app.command("shared")
+def find_shared_new(
+    keywords: Annotated[Optional[str], typer.Argument(
+        help="Keywords to search for (space-separated, supports regex)"
+    )] = None,
+    limit: Annotated[int, typer.Option(
+        "--limit", help="Maximum results to return"
+    )] = 20,
+    action: Annotated[Optional[ActionType], typer.Option(
+        "--action", help="Action to perform on found thoughts"
+    )] = None,
+    dry_run: Annotated[bool, typer.Option(
+        "--dry-run", help="Show what would be done without executing"
+    )] = False,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Find shared thoughts, optionally filtered by keywords."""
+    _find_thoughts_new("scope", "shared", keywords, limit, action, dry_run, verbose)
+
+@find_app.command("completed")
+def find_completed_new(
+    keywords: Annotated[Optional[str], typer.Argument(
+        help="Keywords to search for (space-separated, supports regex)"
+    )] = None,
+    limit: Annotated[int, typer.Option(
+        "--limit", help="Maximum results to return"
+    )] = 20,
+    action: Annotated[Optional[ActionType], typer.Option(
+        "--action", help="Action to perform on found thoughts"
+    )] = None,
+    dry_run: Annotated[bool, typer.Option(
+        "--dry-run", help="Show what would be done without executing"
+    )] = False,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Find completed thoughts, optionally filtered by keywords."""
+    _find_thoughts_new("status", "completed", keywords, limit, action, dry_run, verbose)
 
 
 # ============================================================================
