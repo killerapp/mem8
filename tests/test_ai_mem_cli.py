@@ -78,7 +78,8 @@ class Testmem8CLI:
     def test_version(self):
         """Test that version command works."""
         result = self.run_mem8(["--version"])
-        assert "1.5.0" in result.stdout
+        assert "mem8, version" in result.stdout
+        assert result.returncode == 0
     
     def test_status_uninitialized(self):
         """Test status command on uninitialized workspace."""
