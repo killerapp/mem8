@@ -1,12 +1,12 @@
 """
-Pytest configuration for AI-Mem tests.
+Pytest configuration for mem8 tests.
 """
 
 import pytest
 import sys
 from pathlib import Path
 
-# Add the parent directory to sys.path so we can import ai_mem
+# Add the parent directory to sys.path so we can import mem8
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 

@@ -121,8 +121,8 @@ def init(ctx, template: str, config_file: Optional[str], shared_dir: Optional[st
         # Determine template path and requirements
         try:
             # Try to use package resources (for installed package)
-            import ai_mem.templates
-            template_base = resources.files(ai_mem.templates)
+            import mem8.templates
+            template_base = resources.files(mem8.templates)
             if template == 'claude-config':
                 template_path = template_base / "claude-dot-md-template"
                 needs_shared = False

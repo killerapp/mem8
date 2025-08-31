@@ -1,4 +1,4 @@
-"""Memory management functionality for AI-Mem."""
+"""Memory management functionality for mem8."""
 
 import os
 import shutil
@@ -32,7 +32,7 @@ class MemoryManager:
         template: str = "default",
         force: bool = False
     ) -> Dict[str, Any]:
-        """Initialize AI-Mem workspace."""
+        """Initialize mem8 workspace."""
         try:
             workspace_dir = self.config.workspace_dir
             
@@ -156,7 +156,7 @@ class MemoryManager:
         """Create CLAUDE.md with template content."""
         git_info = get_git_info()
         
-        content = f"""# AI-Mem Workspace Configuration
+        content = f"""# mem8 Workspace Configuration
 
 ## Project Information
 - Workspace: {self.config.workspace_dir.name}
@@ -170,9 +170,9 @@ class MemoryManager:
         
         content += """
 ## Memory Management
-- Use `ai-mem sync` to synchronize with shared memory
-- Use `ai-mem status` to check workspace status
-- Use `ai-mem search` to find content across memory
+- Use `mem8 sync` to synchronize with shared memory
+- Use `mem8 status` to check workspace status
+- Use `mem8 search` to find content across memory
 
 ## Shared Thoughts
 Access team thoughts via: @thoughts/shared/
@@ -226,8 +226,8 @@ This directory contains shared thoughts and memory for the team.
 
 ## Usage
 
-Use `ai-mem sync` to keep your local workspace in sync with shared memory.
-Use `ai-mem search` to find relevant content across all memories.
+Use `mem8 sync` to keep your local workspace in sync with shared memory.
+Use `mem8 search` to find relevant content across all memories.
 """
         
         readme_path = shared_thoughts_dir / "README.md"
@@ -261,7 +261,7 @@ Use `ai-mem search` to find relevant content across all memories.
                 ensure_directory_exists(shared_link)
                 note_file = shared_link / "README.md"
                 with open(note_file, 'w', encoding='utf-8') as f:
-                    f.write(f"# Shared Memory\\n\\nShared directory: {shared_thoughts_dir}\\n\\nUse `ai-mem sync` to synchronize.")
+                    f.write(f"# Shared Memory\\n\\nShared directory: {shared_thoughts_dir}\\n\\nUse `mem8 sync` to synchronize.")
     
     def _setup_agents(self, claude_dir: Path) -> None:
         """Set up AI agents from template."""
@@ -270,8 +270,8 @@ Use `ai-mem search` to find relevant content across all memories.
         
         # Copy from template if available
         try:
-            import ai_mem.templates
-            template_agents_dir = resources.files(ai_mem.templates) / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "agents"
+            import mem8.templates
+            template_agents_dir = resources.files(mem8.templates) / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "agents"
         except (ImportError, AttributeError):
             # Fallback for development
             template_agents_dir = Path(__file__).parent.parent.parent / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "agents"
@@ -289,8 +289,8 @@ Use `ai-mem search` to find relevant content across all memories.
         
         # Copy from template if available
         try:
-            import ai_mem.templates
-            template_commands_dir = resources.files(ai_mem.templates) / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "commands"
+            import mem8.templates
+            template_commands_dir = resources.files(mem8.templates) / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "commands"
         except (ImportError, AttributeError):
             # Fallback for development
             template_commands_dir = Path(__file__).parent.parent.parent / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "commands"
