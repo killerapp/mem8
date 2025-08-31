@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Test suite for AI-Mem CLI init command data preservation.
+Test suite for mem8 CLI init command data preservation.
 Tests that init command properly protects existing thoughts/shared data.
 """
 
 import os
+import sys
 import subprocess
 import tempfile
 import shutil
@@ -18,7 +19,7 @@ class TestInitDataPreservation:
     
     def setup_method(self):
         """Set up test environment for each test."""
-        self.test_dir = Path(tempfile.mkdtemp(prefix="ai-mem-init-test-"))
+        self.test_dir = Path(tempfile.mkdtemp(prefix="mem8-init-test-"))
         self.original_cwd = Path.cwd()
         os.chdir(self.test_dir)
         
@@ -45,19 +46,22 @@ class TestInitDataPreservation:
         if self.test_dir.exists():
             shutil.rmtree(self.test_dir, ignore_errors=True)
     
-    def run_aimem(self, args, expect_success=True, input_text=None):
-        """Run aimem command and return result."""
+    def run_mem8(self, args, expect_success=True, input_text=None):
+        """Run mem8 command and return result."""
+        env = os.environ.copy()
+        env['PYTHONPATH'] = str(Path(__file__).parent.parent)
         result = subprocess.run(
-            ["aimem"] + args,
+            [sys.executable, "-m", "mem8.cli"] + args,
             capture_output=True,
             text=True,
             encoding='utf-8',
             errors='replace',
-            input=input_text
+            input=input_text,
+            env=env
         )
         
         if expect_success and result.returncode != 0:
-            print(f"Command failed: aimem {' '.join(args)}")
+            print(f"Command failed: mem8 {' '.join(args)}")
             print(f"STDOUT: {result.stdout}")
             print(f"STDERR: {result.stderr}")
             raise AssertionError(f"Expected success but got return code {result.returncode}")
@@ -66,7 +70,7 @@ class TestInitDataPreservation:
     
     def test_init_detects_existing_thoughts_shared(self):
         """Test that init command detects existing thoughts/shared directory."""
-        result = self.run_aimem(["init", "--template", "thoughts-repo"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "thoughts-repo"], expect_success=False)
         
         assert "Existing workspace components found" in result.stdout
         assert "thoughts directory" in result.stdout
@@ -81,7 +85,7 @@ class TestInitDataPreservation:
         claude_dir.mkdir()
         (claude_dir / "CLAUDE.md").write_text("# Existing Claude Config")
         
-        result = self.run_aimem(["init", "--template", "claude-config"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "claude-config"], expect_success=False)
         
         assert "Existing workspace components found" in result.stdout
         assert ".claude directory" in result.stdout
@@ -94,7 +98,7 @@ class TestInitDataPreservation:
         claude_dir.mkdir()
         (claude_dir / "CLAUDE.md").write_text("# Existing Config")
         
-        result = self.run_aimem(["init", "--template", "full"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "full"], expect_success=False)
         
         assert "Existing workspace components found" in result.stdout
         assert ".claude directory" in result.stdout
@@ -110,7 +114,7 @@ class TestInitDataPreservation:
         original_architecture = (self.user_decisions / "architecture.md").read_text()
         
         # This will fail during cookiecutter prompts, but should preserve data
-        result = self.run_aimem([
+        result = self.run_mem8([
             "init", "--template", "thoughts-repo", "--force"
         ], expect_success=False)
         
@@ -136,7 +140,7 @@ class TestInitDataPreservation:
         os.chdir(clean_dir)
         
         # This should not show any warnings
-        result = self.run_aimem(["init", "--template", "thoughts-repo"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "thoughts-repo"], expect_success=False)
         
         # Should fail due to cookiecutter prompts, but no warnings about existing files
         assert "Existing workspace components found" not in result.stdout
@@ -146,7 +150,7 @@ class TestInitDataPreservation:
     
     def test_force_flag_suggestions(self):
         """Test that helpful suggestions are provided."""
-        result = self.run_aimem(["init", "--template", "full"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "full"], expect_success=False)
         
         assert "Options:" in result.stdout
         assert "--force to overwrite" in result.stdout
@@ -163,7 +167,7 @@ class TestInitDataPreservation:
         # Remove the thoughts directory we created in setup
         shutil.rmtree(self.thoughts_dir)
         
-        result = self.run_aimem(["init", "--template", "claude-config"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "claude-config"], expect_success=False)
         
         assert ".claude directory" in result.stdout
         assert "thoughts" not in result.stdout  # Should not mention thoughts for claude-config
@@ -171,7 +175,7 @@ class TestInitDataPreservation:
     def test_thoughts_repo_template_only_checks_thoughts(self):
         """Test that thoughts-repo template only checks thoughts directory."""
         # Create separate test without .claude
-        clean_test_dir = Path(tempfile.mkdtemp(prefix="ai-mem-thoughts-only-"))
+        clean_test_dir = Path(tempfile.mkdtemp(prefix="mem8-thoughts-only-"))
         old_test_dir = self.test_dir
         self.test_dir = clean_test_dir
         os.chdir(clean_test_dir)
@@ -183,7 +187,7 @@ class TestInitDataPreservation:
             shared_dir.mkdir(parents=True)
             (shared_dir / "test.md").write_text("test data")
             
-            result = self.run_aimem(["init", "--template", "thoughts-repo"], expect_success=False)
+            result = self.run_mem8(["init", "--template", "thoughts-repo"], expect_success=False)
             
             assert "thoughts directory" in result.stdout
             assert ".claude" not in result.stdout  # Should not mention .claude for thoughts-repo
@@ -207,7 +211,7 @@ class TestInitDataPreservation:
         (self.shared_dir / "data.json").write_text('{"key": "important_value"}')
         (self.shared_dir / "script.py").write_text("# Important script\nprint('preserve me')")
         
-        result = self.run_aimem([
+        result = self.run_mem8([
             "init", "--template", "thoughts-repo", "--force"  
         ], expect_success=False)
         
@@ -224,11 +228,11 @@ def run_manual_preservation_test():
     Manual test to demonstrate the data preservation functionality.
     Run this to see the preservation behavior in action.
     """
-    print("🧪 Testing AI-Mem Init Data Preservation...")
+    print("🧪 Testing mem8 Init Data Preservation...")
     print("=" * 50)
     
     # Create test directory
-    test_dir = Path(tempfile.mkdtemp(prefix="ai-mem-preservation-demo-"))
+    test_dir = Path(tempfile.mkdtemp(prefix="mem8-preservation-demo-"))
     original_cwd = Path.cwd()
     
     try:
@@ -275,7 +279,7 @@ This represents months of important work that must never be lost!
         # Test 1: Show warning without --force
         print("\\n🔍 Test 1: Running init without --force (should warn and abort)")
         result = subprocess.run(
-            ["aimem", "init", "--template", "thoughts-repo"],
+            ["mem8", "init", "--template", "thoughts-repo"],
             capture_output=True, text=True
         )
         print("Result:")
@@ -285,7 +289,7 @@ This represents months of important work that must never be lost!
         print("\\n🛡️ Test 2: Running init with --force (should preserve data)")
         # Note: This will fail at cookiecutter prompts, but will show preservation
         result = subprocess.run(
-            ["aimem", "init", "--template", "thoughts-repo", "--force"],
+            ["mem8", "init", "--template", "thoughts-repo", "--force"],
             capture_output=True, text=True, input="\\n" * 10  # Skip cookiecutter prompts
         )
         print("Result:")
