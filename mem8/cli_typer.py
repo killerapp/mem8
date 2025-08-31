@@ -955,7 +955,7 @@ def sync(
 # ============================================================================
 
 # Create team subapp
-team_app = typer.Typer(name="team", help="Team collaboration commands")
+team_app = typer.Typer(name="team", help="Experimental team collaboration commands")
 typer_app.add_typer(team_app, name="team")
 
 @team_app.command()
@@ -964,7 +964,7 @@ def create(
     description: Annotated[Optional[str], typer.Option("--description", help="Team description")] = None,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
-    """Create a new team."""
+    """Create a new team (experimental)."""
     set_app_state(verbose=verbose)
     
     console.print(f"[bold blue]Creating team: {name}[/bold blue]")
@@ -979,7 +979,7 @@ def create(
 def list(
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
-    """List available teams."""
+    """List available teams (experimental)."""
     set_app_state(verbose=verbose)
     
     console.print("[bold blue]Available teams:[/bold blue]")
@@ -991,15 +991,15 @@ def join(
     team_name: Annotated[str, typer.Argument(help="Team name to join")],
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
-    """Join an existing team."""
+    """Join an existing team (experimental)."""
     set_app_state(verbose=verbose)
     
     console.print(f"[bold blue]Joining team: {team_name}[/bold blue]")
     console.print("[yellow]⚠️  Team features require backend API (Phase 2)[/yellow]")
 
 
-# Create deploy subapp  
-deploy_app = typer.Typer(name="deploy", help="Deployment commands")
+# Create deploy subapp
+deploy_app = typer.Typer(name="deploy", help="Experimental deployment commands")
 typer_app.add_typer(deploy_app, name="deploy")
 
 @deploy_app.command()
@@ -1011,7 +1011,7 @@ def kubernetes(
     replicas: Annotated[int, typer.Option("--replicas", help="Number of replicas")] = 2,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
-    """Deploy to Kubernetes cluster."""
+    """Deploy to Kubernetes cluster (experimental)."""
     set_app_state(verbose=verbose)
     
     console.print(f"[bold blue]Deploying to Kubernetes ({env.value})...[/bold blue]")
@@ -1028,7 +1028,7 @@ def local(
     port: Annotated[int, typer.Option("--port", help="Port to run on")] = 8000,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
-    """Start local development server."""
+    """Start local development server (experimental)."""
     set_app_state(verbose=verbose)
     
     console.print(f"[bold blue]Starting local server on port {port}...[/bold blue]")
