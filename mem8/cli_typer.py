@@ -42,6 +42,7 @@ class ShellType(str, Enum):
     POWERSHELL = "powershell"
 
 
+# Legacy template types - kept for backwards compatibility but not used in new init
 class TemplateType(str, Enum):
     CLAUDE_CONFIG = "claude-config"
     THOUGHTS_REPO = "thoughts-repo"
@@ -649,82 +650,127 @@ def _preview_action(action: str, results: list):
 
 @typer_app.command()
 def init(
-    template: Annotated[TemplateType, typer.Option(
-        "--template", help="Template to use"
-    )] = TemplateType.FULL,
-    config_file: Annotated[Optional[Path], typer.Option(
-        "--config-file", help="Path to cookiecutter configuration YAML file",
-        exists=True
+    repos: Annotated[Optional[str], typer.Option(
+        "--repos", help="Comma-separated list of repository paths to discover"
     )] = None,
     shared_dir: Annotated[Optional[Path], typer.Option(
         "--shared-dir", help="Path to shared directory for thoughts"
     )] = None,
+    web: Annotated[bool, typer.Option(
+        "--web", help="Launch web UI after setup"
+    )] = False,
     force: Annotated[bool, typer.Option(
-        "--force", help="Force initialization even if directory exists"
+        "--force", help="Skip confirmation prompts and use smart defaults"
     )] = False,
     verbose: Annotated[bool, typer.Option(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
 ):
-    """Initialize mem8 workspace using cookiecutter templates."""
-    from cookiecutter.main import cookiecutter
+    """Initialize mem8 workspace with intelligent defaults and guided setup."""
+    from .core.smart_setup import (
+        detect_project_context, generate_smart_config, setup_minimal_structure,
+        launch_web_ui, show_setup_instructions
+    )
+    from .claude_integration import update_claude_md_integration
     
     set_app_state(verbose=verbose)
     
-    console.print(f"[bold blue]Initializing mem8 workspace with {template.value} template...[/bold blue]")
+    console.print("🚀 [bold blue]Setting up mem8 with intelligent defaults...[/bold blue]")
     
     try:
-        workspace_dir = Path.cwd()
+        # 1. Auto-detect project context
+        console.print("🔍 [dim]Analyzing project context...[/dim]")
+        context = detect_project_context()
         
-        # Determine template path and requirements
-        try:
-            from importlib import resources
-            if template == TemplateType.CLAUDE_CONFIG:
-                template_path = str(resources.files('mem8') / 'templates' / 'claude-dot-md-template')
-                requires_shared = False
-            elif template == TemplateType.THOUGHTS_REPO:
-                template_path = str(resources.files('mem8') / 'templates' / 'shared-thoughts-template')
-                requires_shared = True
-            else:  # FULL
-                # Use full template (both claude-dot-md and shared-thoughts)
-                template_path = str(resources.files('mem8') / 'templates' / 'claude-dot-md-template')
-                requires_shared = True
-        except (ImportError, FileNotFoundError) as e:
-            console.print(f"❌ [red]Template not found: {e}[/red]")
-            if verbose:
-                console.print_exception()
-            return
+        if verbose:
+            console.print(f"[dim]Detected: {context['project_type']} project, "
+                        f"{len(context['git_repos'])} repositories found[/dim]")
         
-        # Validate shared directory if required
-        if requires_shared and not shared_dir:
-            console.print("[yellow]⚠️  This template requires a shared directory.[/yellow]")
-            console.print("Use --shared-dir to specify the path to your shared thoughts repository.")
-            return
-            
-        # Prepare cookiecutter context
-        extra_context = {}
-        if config_file:
-            import yaml
-            with open(config_file, 'r') as f:
-                extra_context = yaml.safe_load(f)
+        # 2. Generate smart configuration
+        config = generate_smart_config(context, repos)
+        
+        # 3. Check for existing setup and conflicts
+        existing_thoughts = Path('thoughts').exists()
+        needs_confirmation = False
+        issues = []
+        
+        if existing_thoughts and not force:
+            issues.append("thoughts/ directory already exists")
+            needs_confirmation = True
+        
+        if config['repositories']:
+            repo_names = [r['name'] for r in config['repositories']]
+            console.print(f"📁 [green]Found repositories: {', '.join(repo_names)}[/green]")
+        else:
+            console.print("📁 [yellow]No repositories found in parent directories[/yellow]")
         
         if shared_dir:
-            extra_context['shared_thoughts_dir'] = str(shared_dir)
+            config['shared_location'] = shared_dir
         
-        # Run cookiecutter
-        output_dir = cookiecutter(
-            template_path,
-            output_dir=str(workspace_dir),
-            extra_context=extra_context,
-            overwrite_if_exists=force,
-            no_input=bool(config_file)
-        )
+        # 4. Handle confirmations if needed
+        if needs_confirmation and not force:
+            console.print("\n⚠️  [yellow]Issues detected:[/yellow]")
+            for issue in issues:
+                console.print(f"  • {issue}")
+            
+            import typer
+            proceed = typer.confirm("Continue with setup?")
+            if not proceed:
+                console.print("❌ [yellow]Setup cancelled[/yellow]")
+                return
         
-        console.print(f"✅ [green]Workspace initialized at: {output_dir}[/green]")
-        console.print("💡 [dim]Run 'mem8 status' to verify setup.[/dim]")
+        # 5. Create directory structure
+        console.print("📂 [dim]Creating directory structure...[/dim]")
+        setup_result = setup_minimal_structure(config)
+        
+        if setup_result['errors']:
+            console.print("❌ [red]Errors during setup:[/red]")
+            for error in setup_result['errors']:
+                console.print(f"  • {error}")
+            return
+        
+        # Show what was created
+        if setup_result['created']:
+            console.print("✅ [green]Created directories:[/green]")
+            for created in setup_result['created']:
+                console.print(f"  • {created}")
+        
+        if setup_result['linked']:
+            console.print("🔗 [blue]Created links:[/blue]")
+            for linked in setup_result['linked']:
+                console.print(f"  • {linked}")
+        
+        # 6. Update Claude Code integration if this is a Claude project
+        if context['is_claude_code_project']:
+            console.print("🤖 [cyan]Updating Claude Code integration...[/cyan]")
+            try:
+                update_claude_md_integration(config)
+                console.print("✅ [green]Updated .claude/CLAUDE.md with mem8 integration[/green]")
+            except Exception as e:
+                console.print(f"⚠️  [yellow]Failed to update CLAUDE.md: {e}[/yellow]")
+        
+        # 7. Launch web UI if requested
+        if web:
+            console.print("🌐 [cyan]Launching web UI...[/cyan]")
+            if launch_web_ui():
+                console.print("✅ [green]Web UI opened in your browser![/green]")
+            else:
+                console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
+                instructions = show_setup_instructions()
+                console.print(instructions)
+        
+        # 8. Show next steps
+        console.print("\n🎉 [bold green]Setup complete![/bold green]")
+        console.print("\n💡 [bold blue]Next steps:[/bold blue]")
+        console.print("  • Run [cyan]mem8 status[/cyan] to verify your setup")
+        console.print("  • Use [cyan]mem8 search \"query\"[/cyan] to find thoughts")
+        if not web:
+            console.print("  • Launch web UI with [cyan]mem8 dashboard[/cyan]")
+        if not context['is_claude_code_project']:
+            console.print("  • For Claude Code integration, add the /setup-memory command")
         
     except Exception as e:
-        console.print(f"❌ [red]Error during initialization: {e}[/red]")
+        console.print(f"❌ [bold red]Error during setup: {e}[/bold red]")
         if verbose:
             console.print_exception()
 
