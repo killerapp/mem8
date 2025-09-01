@@ -33,12 +33,12 @@ I can investigate logs, database state, and recent changes to help identify the 
 You have access to these key locations and tools:
 
 **Logs** (automatically created by `make daemon` and `make wui`):
-- MCP logs: `~/.humanlayer/logs/mcp-claude-approvals-*.log`
-- Combined WUI/Daemon logs: `~/.humanlayer/logs/wui-${BRANCH_NAME}/codelayer.log`
+- MCP logs: `~/.mem8/logs/mcp-claude-approvals-*.log`
+- Combined WUI/Daemon logs: `~/.mem8/logs/wui-${BRANCH_NAME}/codelayer.log`
 - First line shows: `[timestamp] starting [service] in [directory]`
 
 **Database**:
-- Location: `~/.humanlayer/daemon-{BRANCH_NAME}.db`
+- Location: `~/.mem8/daemon-{BRANCH_NAME}.db`
 - SQLite database with sessions, events, approvals, etc.
 - Can query directly with `sqlite3`
 
@@ -49,7 +49,7 @@ You have access to these key locations and tools:
 **Service Status**:
 - Check if daemon is running: `ps aux | grep hld`
 - Check if WUI is running: `ps aux | grep wui`
-- Socket exists: `~/.humanlayer/daemon.sock`
+- Socket exists: `~/.mem8/daemon.sock`
 
 ## Process Steps
 
@@ -74,8 +74,8 @@ Spawn parallel Task agents for efficient investigation:
 ```
 Task 1 - Check Recent Logs:
 Find and analyze the most recent logs for errors:
-1. Find latest daemon log: ls -t ~/.humanlayer/logs/daemon-*.log | head -1
-2. Find latest WUI log: ls -t ~/.humanlayer/logs/wui-*.log | head -1
+1. Find latest daemon log: ls -t ~/.mem8/logs/daemon-*.log | head -1
+2. Find latest WUI log: ls -t ~/.mem8/logs/wui-*.log | head -1
 3. Search for errors, warnings, or issues around the problem timeframe
 4. Note the working directory (first line of log)
 5. Look for stack traces or repeated errors
@@ -85,7 +85,7 @@ Return: Key errors/warnings with timestamps
 ```
 Task 2 - Database State:
 Check the current database state:
-1. Connect to database: sqlite3 ~/.humanlayer/daemon.db
+1. Connect to database: sqlite3 ~/.mem8/daemon.db
 2. Check schema: .tables and .schema for relevant tables
 3. Query recent data:
    - SELECT * FROM sessions ORDER BY created_at DESC LIMIT 5;
@@ -118,7 +118,7 @@ Based on the investigation, present a focused debug report:
 
 ### Evidence Found
 
-**From Logs** (`~/.humanlayer/logs/`):
+**From Logs** (`~/.mem8/logs/`):
 - [Error/warning with timestamp]
 - [Pattern or repeated issue]
 
@@ -169,15 +169,15 @@ Would you like me to investigate something specific further?
 
 **Find Latest Logs**:
 ```bash
-ls -t ~/.humanlayer/logs/daemon-*.log | head -1
-ls -t ~/.humanlayer/logs/wui-*.log | head -1
+ls -t ~/.mem8/logs/daemon-*.log | head -1
+ls -t ~/.mem8/logs/wui-*.log | head -1
 ```
 
 **Database Queries**:
 ```bash
-sqlite3 ~/.humanlayer/daemon.db ".tables"
-sqlite3 ~/.humanlayer/daemon.db ".schema sessions"
-sqlite3 ~/.humanlayer/daemon.db "SELECT * FROM sessions ORDER BY created_at DESC LIMIT 5;"
+sqlite3 ~/.mem8/daemon.db ".tables"
+sqlite3 ~/.mem8/daemon.db ".schema sessions"
+sqlite3 ~/.mem8/daemon.db "SELECT * FROM sessions ORDER BY created_at DESC LIMIT 5;"
 ```
 
 **Service Check**:

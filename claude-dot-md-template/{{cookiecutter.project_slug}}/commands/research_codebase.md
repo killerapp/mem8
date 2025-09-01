@@ -138,7 +138,7 @@ Then wait for the user's research query.
    - Replace local file references with permalinks in the document
 
 8. **Sync and present findings:**
-   - Run `humanlayer thoughts sync` to sync the thoughts directory
+   - Run `mem8 sync` to sync the thoughts directory
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
    - Ask if they have follow-up questions or need clarification

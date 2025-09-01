@@ -52,9 +52,9 @@ The team follows a specific workflow to ensure alignment before code implementat
 
 ### URL Mapping for Thoughts Documents
 When referencing thoughts documents, always provide GitHub links using the `links` parameter:
-- `thoughts/shared/...` → `https://github.com/humanlayer/thoughts/blob/main/repos/humanlayer/shared/...`
-- `thoughts/allison/...` → `https://github.com/humanlayer/thoughts/blob/main/repos/humanlayer/allison/...`
-- `thoughts/global/...` → `https://github.com/humanlayer/thoughts/blob/main/global/...`
+- `thoughts/shared/...` → `https://github.com/mem8/thoughts/blob/main/repos/mem8/shared/...`
+- `thoughts/allison/...` → `https://github.com/mem8/thoughts/blob/main/repos/mem8/allison/...`
+- `thoughts/global/...` → `https://github.com/mem8/thoughts/blob/main/global/...`
 
 ### Default Values
 - **Status**: Always create new tickets in "Triage" status
@@ -69,7 +69,7 @@ When referencing thoughts documents, always provide GitHub links using the `link
 ### Automatic Label Assignment
 Automatically apply labels based on the ticket content:
 - **hld**: For tickets about the `hld/` directory (the daemon)
-- **wui**: For tickets about `humanlayer-wui/`
+- **wui**: For tickets about `mem8-wui/`
 - **meta**: For tickets about `hlyr` commands, thoughts tool, or `thoughts/` directory
 
 Note: meta is mutually exclusive with hld/wui. Tickets can have both hld and wui, but not meta with either.
