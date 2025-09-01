@@ -38,3 +38,9 @@ Thumbs.db
 .env.*local*
 .env.*.local*
 
+# Test reports and coverage
+htmlcov/
+reports/
+.coverage
+.pytest_cache/
+

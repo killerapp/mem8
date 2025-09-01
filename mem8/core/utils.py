@@ -253,3 +253,45 @@ def ensure_directory_exists(path: Path) -> bool:
         return True
     except (OSError, PermissionError):
         return False
+
+
+def verify_templates() -> bool:
+    """Verify that template resources are accessible."""
+    try:
+        from importlib import resources
+        import mem8.templates
+        
+        template_base = resources.files(mem8.templates)
+        
+        # Check for both templates
+        claude_template = template_base / "claude-dot-md-template"
+        thoughts_template = template_base / "shared-thoughts-template"
+        
+        # Try to list files in templates
+        claude_exists = (claude_template / "cookiecutter.json").exists()
+        thoughts_exists = (thoughts_template / "cookiecutter.json").exists()
+        
+        return claude_exists and thoughts_exists
+        
+    except Exception:
+        return False
+
+
+def get_template_path(template_name: str) -> Path:
+    """Get the path to a template, with fallback to development."""
+    try:
+        from importlib import resources
+        import mem8.templates
+        
+        template_path = resources.files(mem8.templates) / template_name
+        if template_path.exists():
+            return template_path
+    except Exception:
+        pass
+    
+    # Development fallback
+    dev_path = Path(__file__).parent.parent.parent / template_name
+    if dev_path.exists():
+        return dev_path
+    
+    raise FileNotFoundError(f"Template not found: {template_name}")
