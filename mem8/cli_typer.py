@@ -388,7 +388,11 @@ def search(
     console.print(f"[bold blue]Searching for: '{query}' ({search_method})[/bold blue]")
     
     if method == SearchMethod.SEMANTIC:
-        console.print("[yellow]⚠️  Semantic search requires sentence-transformers library[/yellow]")
+        try:
+            import sentence_transformers
+        except ImportError:
+            console.print("[yellow]⚠️  Semantic search requires sentence-transformers library[/yellow]")
+            console.print("Install with: [dim]pip install 'mem8[semantic]'[/dim]")
     
     try:
         results = memory_manager.search_content(
