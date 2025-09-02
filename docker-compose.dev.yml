@@ -1,8 +1,6 @@
 # mem8 Development Docker Compose
 # Lightweight setup for local development with hot reload
 
-version: '3.8'
-
 services:
   # PostgreSQL Database for Development
   postgres-dev:

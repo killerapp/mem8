@@ -51,7 +51,7 @@ class TemplateType(str, Enum):
 
 class SearchMethod(str, Enum):
     FULLTEXT = "fulltext"
-    SEMANTIC = "semantic"
+    SEMANTIC = "semantic"  # Experimental
 
 
 class SearchScope(str, Enum):
@@ -349,12 +349,15 @@ def search(
     query: Annotated[str, typer.Argument(help="Search query")],
     limit: Annotated[int, typer.Option("--limit", help="Maximum number of results to return")] = 10,
     content_type: Annotated[ContentType, typer.Option("--type", help="Type of content to search")] = ContentType.ALL,
-    method: Annotated[SearchMethod, typer.Option("--method", help="Search method")] = SearchMethod.FULLTEXT,
+    method: Annotated[
+        SearchMethod,
+        typer.Option("--method", help="Search method (semantic is experimental)")
+    ] = SearchMethod.FULLTEXT,
     path: Annotated[Optional[str], typer.Option("--path", help="Restrict search to specific path")] = None,
     web: Annotated[bool, typer.Option("--web", help="Open results in web UI")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
-    """Search through AI memory and thoughts."""
+    """Search through AI memory and thoughts. Semantic search is experimental."""
     import urllib.parse
     import webbrowser
     from rich.table import Table
@@ -385,7 +388,11 @@ def search(
     console.print(f"[bold blue]Searching for: '{query}' ({search_method})[/bold blue]")
     
     if method == SearchMethod.SEMANTIC:
-        console.print("[yellow]⚠️  Semantic search requires sentence-transformers library[/yellow]")
+        try:
+            import sentence_transformers
+        except ImportError:
+            console.print("[yellow]⚠️  Semantic search requires sentence-transformers library[/yellow]")
+            console.print("Install with: [dim]pip install 'mem8[semantic]'[/dim]")
     
     try:
         results = memory_manager.search_content(
@@ -785,6 +792,11 @@ def find_completed_new(
 
 @typer_app.command()
 def init(
+    template: Optional[str] = typer.Option(
+        None,
+        "--template", "-t",
+        help="Force specific template: claude-config, thoughts-repo, or full (default: auto-detect)",
+    ),
     repos: Annotated[Optional[str], typer.Option(
         "--repos", help="Comma-separated list of repository paths to discover"
     )] = None,
@@ -824,6 +836,18 @@ def init(
         # 2. Generate smart configuration
         config = generate_smart_config(context, repos)
         
+        # 3. Auto-detect if templates should be installed
+        should_install_templates = False
+        template_type = template  # Use explicit template if provided
+        
+        if template:
+            # User explicitly requested templates
+            should_install_templates = True
+        elif context['is_claude_code_project']:
+            # Auto-detect Claude Code projects need templates
+            should_install_templates = True
+            template_type = "claude-config"  # Default for Claude projects
+        
         # 3. Check for existing setup and conflicts
         existing_thoughts = Path('thoughts').exists()
         needs_confirmation = False
@@ -858,6 +882,11 @@ def init(
         console.print("📂 [dim]Creating directory structure...[/dim]")
         setup_result = setup_minimal_structure(config)
         
+        # 6. Install templates if needed
+        if should_install_templates:
+            console.print("📦 [cyan]Installing templates...[/cyan]")
+            _install_templates(template_type or "full", force, verbose)
+        
         if setup_result['errors']:
             console.print("❌ [red]Errors during setup:[/red]")
             for error in setup_result['errors']:
@@ -875,7 +904,7 @@ def init(
             for linked in setup_result['linked']:
                 console.print(f"  • {linked}")
         
-        # 6. Update Claude Code integration if this is a Claude project
+        # 7. Update Claude Code integration if this is a Claude project
         if context['is_claude_code_project']:
             console.print("🤖 [cyan]Updating Claude Code integration...[/cyan]")
             try:
@@ -884,7 +913,7 @@ def init(
             except Exception as e:
                 console.print(f"⚠️  [yellow]Failed to update CLAUDE.md: {e}[/yellow]")
         
-        # 7. Launch web UI if requested
+        # 8. Launch web UI if requested
         if web:
             console.print("🌐 [cyan]Launching web UI...[/cyan]")
             if launch_web_ui():
@@ -894,7 +923,7 @@ def init(
                 instructions = show_setup_instructions()
                 console.print(instructions)
         
-        # 8. Show next steps
+        # 9. Show next steps
         console.print("\n🎉 [bold green]Setup complete![/bold green]")
         console.print("\n💡 [bold blue]Next steps:[/bold blue]")
         console.print("  • Run [cyan]mem8 status[/cyan] to verify your setup")
@@ -908,6 +937,99 @@ def init(
         console.print(f"❌ [bold red]Error during setup: {e}[/bold red]")
         if verbose:
             console.print_exception()
+
+
+def _install_templates(template_type: str, force: bool, verbose: bool) -> None:
+    """Install cookiecutter templates to the workspace."""
+    from cookiecutter.main import cookiecutter
+    from importlib import resources
+    import mem8.templates
+    
+    # Resolve template paths
+    try:
+        template_base = resources.files(mem8.templates)
+    except (ImportError, AttributeError):
+        # Development fallback
+        template_base = Path(__file__).parent.parent
+    
+    # Map template types to directories
+    template_map = {
+        "full": ["claude-dot-md-template", "shared-thoughts-template"],
+        "claude-config": ["claude-dot-md-template"],
+        "thoughts-repo": ["shared-thoughts-template"],
+    }
+    
+    if template_type not in template_map:
+        console.print(f"[red]Invalid template: {template_type}[/red]")
+        return
+    
+    workspace_dir = Path.cwd()
+    
+    # Run cookiecutter for each template
+    for template_name in template_map[template_type]:
+        template_path = template_base / template_name
+        
+        # Check if target already exists
+        target_dir = ".claude" if "claude" in template_name else "thoughts"
+        if (workspace_dir / target_dir).exists() and not force:
+            console.print(f"[yellow]Skipping {template_name} - {target_dir} already exists[/yellow]")
+            continue
+        
+        try:
+            # For Claude templates, ensure .claude directory is the output
+            extra_context = {}
+            if "claude" in template_name:
+                extra_context = {"project_slug": ".claude"}
+            
+            cookiecutter(
+                str(template_path),
+                no_input=True,
+                output_dir=str(workspace_dir),
+                overwrite_if_exists=force,
+                extra_context=extra_context
+            )
+            console.print(f"  ✓ Installed {template_name}")
+        except Exception as e:
+            if verbose:
+                console.print(f"[yellow]Could not install {template_name}: {e}[/yellow]")
+
+
+def _check_conflicts(workspace_dir: Path, templates: list[str]) -> list[str]:
+    """Check for existing files that would be overwritten."""
+    conflicts = []
+    
+    for template in templates:
+        if "claude" in template and (workspace_dir / ".claude").exists():
+            conflicts.append(".claude directory")
+        if "thoughts" in template and (workspace_dir / "thoughts").exists():
+            conflicts.append("thoughts directory")
+    
+    return conflicts
+
+
+def _backup_shared_thoughts(workspace_dir: Path) -> Optional[Path]:
+    """Backup existing thoughts/shared directory."""
+    shared_dir = workspace_dir / "thoughts" / "shared"
+    if shared_dir.exists() and any(shared_dir.iterdir()):
+        backup_dir = workspace_dir / ".mem8_backup" / "thoughts_shared"
+        backup_dir.parent.mkdir(parents=True, exist_ok=True)
+        
+        import shutil
+        shutil.copytree(shared_dir, backup_dir, dirs_exist_ok=True)
+        console.print(f"[yellow]Backed up thoughts/shared to {backup_dir}[/yellow]")
+        return backup_dir
+    
+    return None
+
+
+def _restore_shared_thoughts(workspace_dir: Path, backup_dir: Path) -> None:
+    """Restore backed up thoughts/shared directory."""
+    if backup_dir.exists():
+        import shutil
+        shared_dir = workspace_dir / "thoughts" / "shared"
+        shutil.copytree(backup_dir, shared_dir, dirs_exist_ok=True)
+        console.print("[green]Restored thoughts/shared from backup[/green]")
+        shutil.rmtree(backup_dir.parent)
 
 
 @typer_app.command()

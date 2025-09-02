@@ -20,7 +20,7 @@ async def search_thoughts(
     search_query: SearchQuery,
     db: AsyncSession = Depends(get_db),
 ) -> SearchResponse:
-    """Search thoughts using fulltext or semantic search."""
+    """Search thoughts using fulltext or experimental semantic search."""
     
     start_time = time.time()
     

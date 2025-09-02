@@ -51,7 +51,7 @@ Then wait for the user's input.
 
    These agents will:
    - Find relevant source files, configs, and tests
-   - Identify the specific directories to focus on (e.g., if WUI is mentioned, they'll focus on humanlayer-wui/)
+   - Identify the specific directories to focus on (e.g., if WUI is mentioned, they'll focus on mem8-wui/)
    - Trace data flow and key functions
    - Return detailed explanations with file:line references
 
@@ -265,7 +265,7 @@ After structure approval:
 ### Step 5: Sync and Review
 
 1. **Sync the thoughts directory**:
-   - Run `humanlayer thoughts sync` to sync the newly created plan
+   - Run `mem8 sync` to sync the newly created plan
    - This ensures the plan is properly indexed and available
 
 2. **Present the draft plan location**:
@@ -285,7 +285,7 @@ After structure approval:
    - Adjust technical approach
    - Clarify success criteria (both automated and manual)
    - Add/remove scope items
-   - After making changes, run `humanlayer thoughts sync` again
+   - After making changes, run `mem8 sync` again
 
 4. **Continue refining** until the user is satisfied
 
@@ -308,7 +308,7 @@ After structure approval:
    - Research actual code patterns using parallel sub-tasks
    - Include specific file paths and line numbers
    - Write measurable success criteria with clear automated vs manual distinction
-   - automated steps should use `make` whenever possible - for example `make -C humanlayer-wui check` instead of `cd humanalyer-wui && bun run fmt`
+   - automated steps should use `make` whenever possible - for example `make -C mem8-wui check` instead of `cd mem8-wui && bun run fmt`
 
 4. **Be Practical**:
    - Focus on incremental, testable changes
@@ -395,7 +395,7 @@ When spawning research sub-tasks:
    - What information to extract
    - Expected output format
 4. **Be EXTREMELY specific about directories**:
-   - If the ticket mentions "WUI", specify `humanlayer-wui/` directory
+   - If the ticket mentions "WUI", specify `mem8-wui/` directory
    - If it mentions "daemon", specify `hld/` directory
    - Never use generic terms like "UI" when you mean "WUI"
    - Include the full path context in your prompts

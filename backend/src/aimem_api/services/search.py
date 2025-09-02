@@ -1,4 +1,7 @@
-"""Search service with semantic capabilities."""
+"""Search service with semantic capabilities.
+
+Semantic search support is experimental.
+"""
 
 import uuid
 from typing import List, Optional
@@ -11,7 +14,11 @@ from ..schemas.search import SearchResult
 
 
 class SearchService:
-    """Service for advanced search capabilities."""
+    """Service for advanced search capabilities.
+
+    Semantic search support is **experimental** and falls back to simple
+    text search if embedding models are unavailable.
+    """
     
     def __init__(self):
         self._embeddings_model = None
@@ -26,19 +33,76 @@ class SearchService:
         offset: int = 0,
         db: AsyncSession = None,
     ) -> List[SearchResult]:
-        """Perform semantic search using embeddings."""
-        
-        # For now, fallback to simple text search
-        # TODO: Implement proper semantic search with embeddings
-        return await self._fallback_text_search(
-            query=query,
-            team_id=team_id,
-            tags=tags,
-            path_filter=path_filter,
-            limit=limit,
-            offset=offset,
-            db=db,
+        """Perform semantic search using embeddings.
+
+        If the `sentence-transformers` dependency is not available, this
+        gracefully falls back to basic text search.
+        """
+
+        try:
+            from sentence_transformers import SentenceTransformer
+            import numpy as np
+        except Exception:
+            return await self._fallback_text_search(
+                query=query,
+                team_id=team_id,
+                tags=tags,
+                path_filter=path_filter,
+                limit=limit,
+                offset=offset,
+                db=db,
+            )
+
+        if not self._embeddings_model:
+            self._embeddings_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+        query_embedding = self._embeddings_model.encode(query)
+
+        # Base query to fetch candidate thoughts
+        db_query = db.query(Thought).filter(
+            Thought.is_published == True,
+            Thought.is_archived == False,
         )
+
+        if team_id:
+            db_query = db_query.filter(Thought.team_id == team_id)
+
+        if tags:
+            tag_filters = [Thought.tags.contains([tag]) for tag in tags]
+            db_query = db_query.filter(and_(*tag_filters))
+
+        if path_filter:
+            db_query = db_query.filter(Thought.path.ilike(f"%{path_filter}%"))
+
+        result = await db.execute(db_query)
+        thoughts = result.scalars().all()
+
+        search_results: List[SearchResult] = []
+        for thought in thoughts:
+            content_embedding = self._embeddings_model.encode(thought.content[:2000])
+            similarity = float(
+                np.dot(query_embedding, content_embedding)
+                / (np.linalg.norm(query_embedding) * np.linalg.norm(content_embedding))
+            )
+            excerpt = self._generate_excerpt(thought.content, query)
+            search_results.append(
+                SearchResult(
+                    id=thought.id,
+                    title=thought.title,
+                    content_excerpt=excerpt,
+                    path=thought.path,
+                    score=similarity,
+                    team_id=thought.team_id,
+                    thought_metadata=thought.thought_metadata or {},
+                    tags=thought.tags or [],
+                    created_at=thought.created_at,
+                    updated_at=thought.updated_at,
+                )
+            )
+
+        search_results.sort(key=lambda x: x.score, reverse=True)
+
+        return search_results[offset : offset + limit]
     
     async def _fallback_text_search(
         self,
@@ -177,5 +241,5 @@ class SearchService:
         # Normalize by word count
         if thought.word_count and thought.word_count > 0:
             score = score / (thought.word_count / 100.0)
-        
+
         return score
