@@ -1,286 +1,272 @@
-# mem8 - Memory Management for the Orchestr8 Ecosystem
+# mem8 - Claude Code Workspace Manager
 
-A beta-stage memory management platform for the orchestr8 ecosystem with CLI, API, and web interface for team collaboration with shared thoughts.
+A streamlined CLI tool for managing Claude Code customizations and documentation workflows. Create standardized project templates, manage thoughts/research documents, and enhance your Claude Code development experience.
 
 ## 🎯 Overview
 
-**Current Status: Beta (Phase 3 In Progress)**
+mem8 is designed to work seamlessly with Claude Code, providing:
+- **💻 Rich CLI Interface** - Manage Claude Code customizations and project templates  
+- **📝 Thoughts Management** - Organize research, plans, and documentation in markdown
+- **🎨 File Viewer** - Optional web interface to browse your thoughts directory
+- **🏗️ Template System** - Cookiecutter templates for Claude Code configurations
 
-mem8 is a comprehensive platform providing:
-- **💻 Advanced CLI** - Full workspace management with Windows UTF-8 support and rich UI
-- **🚀 FastAPI Backend** - Robust API with PostgreSQL, authentication, and real-time capabilities
-- **🖥️ Terminal Web UI** - Stunning retro interface with live collaboration features
-- **🎯 Orchestr8 Integration** - Seamless integration with orchestr8 ecosystem and o8 CLI
+## ✨ Core Features
 
-## ✅ Current Implementation Status
-
-### Phase 1: CLI Foundation ✅ COMPLETE
-- **Rich CLI Interface** - Typer framework with comprehensive Windows support and enhanced type safety
-- **Template Management** - 3 cookiecutter templates (claude-config, thoughts-repo, full)
-- **Core Commands** - init, sync, search, status, doctor
-- **Experimental Placeholders** - team, deploy
-- **Data Protection** - Sophisticated preservation of existing workspace data
-- **UTF-8 Excellence** - Perfect emoji support across all Windows terminals
-
-### Phase 2: Backend API ✅ COMPLETE  
-- **FastAPI Application** - Modern async Python with comprehensive endpoints
-- **PostgreSQL Database** - Production-grade with proper models and relationships
-- **GitHub OAuth** - Complete authentication flow with JWT token management
-- **API Security** - CORS, authentication middleware, protected endpoints
-- **Monitoring** - Health checks, system stats, Prometheus metrics
-- **Docker Ready** - Containerized deployment configuration
-
-### Phase 3: Frontend ✅ COMPLETE
-- **Next.js 15** - Modern React with App Router and TypeScript
-- **Terminal Aesthetic** - Exceptional retro computing UI with scanlines and glows
-- **Authentication Flow** - Seamless GitHub OAuth integration
-- **Real-time Framework** - WebSocket integration ready for collaboration (beta)
-- **Responsive Design** - Beautiful interface across all screen sizes
-
-## ✨ Features
-
-### 💻 CLI Features (Fully Working)
+### 💻 CLI Commands
 ```bash
-mem8 init --template full      # Initialize workspace with templates
-mem8 status                    # Check workspace health  
-mem8 sync                      # Bidirectional synchronization
-mem8 search "query"            # Full-text search across thoughts (semantic search experimental)
-mem8 doctor --auto-fix         # Diagnose and repair issues
+mem8 init --template claude-config   # Initialize Claude Code workspace  
+mem8 status                          # Check workspace health
+mem8 search "query"                 # Search across all thoughts
 ```
 
-=======
-*Note: `team` and `deploy` commands are experimental placeholders and not yet functional.*
+### 📁 Template System
+- **claude-dot-md-template** - Generate `.claude/[agents,commands]` configurations
+- **shared-thoughts-template** - Create structured thoughts repositories
+- **Cookiecutter integration** - Flexible, customizable project generation
 
-### 🚀 API Features (Beta)
-
-- **Authentication**: `/api/v1/auth/*` - Complete GitHub OAuth flow
-- **Health Monitoring**: `/api/v1/health` - System health and diagnostics
-- **Thoughts Management**: `/api/v1/thoughts/*` - Full CRUD operations
-- **Team Management**: `/api/v1/teams/*` - Multi-tenant team support
-- **Advanced Search**: `/api/v1/search/` - Full-text search (semantic search experimental)
-- **System Stats**: `/api/v1/system/stats` - Real-time metrics
-- **Documentation**: `/docs` - Interactive OpenAPI documentation
-
-### 🖥️ Web Interface (Stunning Terminal UI)
-- **Terminal Aesthetic** - Authentic retro computing interface
-- **Authentication** - Seamless GitHub login with avatar display
-- **Live Dashboard** - Real-time team status and system monitoring  
-- **Search Interface** - Advanced search with type selection
-- **Responsive Design** - Perfect across desktop and mobile
-
-## 🧪 Current Testing Status
-
-### ✅ Working Without Setup
-- **CLI Commands**: `mem8 status`, `mem8 --help`, `mem8 doctor`
-- **API Health**: `localhost:8000/api/v1/health` returns system status
-- **API Docs**: `localhost:8000/docs` - Interactive OpenAPI documentation  
-- **Frontend UI**: `localhost:20040` - Loads with login screen
-- **System Stats**: `localhost:8000/api/v1/system/stats` - Basic metrics
-
-### 🔐 Requires Authentication  
-- **Thoughts API**: All CRUD operations require GitHub OAuth login
-- **Teams API**: Team management requires authenticated user
-- **Search API**: Advanced search requires user authentication
-- **WebSocket**: Real-time features need authenticated connection (beta)
-
-### 🔧 Setup Required
-- **GitHub OAuth**: Configure OAuth app for authentication  
-- **Database Seed**: No default data - database starts empty
-- **Environment Variables**: GitHub client ID/secret needed for auth flow
+### 🔍 Thoughts Organization
+```
+thoughts/
+├── shared/
+│   ├── research/      # Research documents
+│   ├── plans/         # Implementation plans  
+│   ├── prs/          # PR descriptions
+│   └── decisions/     # Technical decisions
+└── {project}/         # Project-specific thoughts
+```
 
 ## 🚀 Quick Start
 
-### Development Setup
+### 1. Install mem8
 ```bash
-# Clone the repository
+# Install with uv (recommended)
+uv tool install mem8
+
+# Or install from source
 git clone https://github.com/killerapp/mem8.git
 cd mem8
-
-# Start with Docker (recommended)
-docker-compose up -d
-
-# Or see QUICKSTART.md for detailed setup
+uv tool install --editable .
 ```
 
-### Environment Configuration
+### 2. Initialize Your Workspace
 ```bash
-# Backend (.env)
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-SECRET_KEY=your_jwt_secret_key
-DATABASE_URL=postgresql://user:pass@localhost:5433/mem8
+# Create Claude Code configuration
+mem8 init --template claude-config
 
-# Frontend (.env.local)
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_WS_URL=ws://localhost:8000
+# Create thoughts repository
+mem8 init --template thoughts-repo
+
+# Check everything is working
+mem8 status
 ```
 
-### Template Usage
+### 3. Optional: Start File Viewer
 ```bash
-# Install cookiecutter for templates
-uv tool install cookiecutter
+# Install dependencies and start web interface (optional)
+cd frontend && npm install && npm run dev
 
-# Generate Claude configuration
-cookiecutter claude-dot-md-template --config-file example-configs/claude-dot-md/default.yaml
-
-# Generate thoughts repository  
-cookiecutter shared-thoughts-template --config-file example-configs/shared-thoughts/default.yaml
+# Access at http://localhost:3000 to browse thoughts
 ```
 
-## 🏗️ Architecture
+## 📋 Templates
 
-### Tech Stack
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI
-- **Backend**: FastAPI, SQLAlchemy, PostgreSQL, Redis
-- **Authentication**: GitHub OAuth 2.0, JWT tokens
-- **Real-time**: WebSocket connections
-- **Deployment**: Docker, Docker Compose
+### Claude Code Configuration (`claude-config`)
+Generates `.claude/CLAUDE.md` with:
+- Project-specific instructions
+- Custom agents and commands
+- Memory management settings
+- Development workflows
 
-### Project Structure
-```
-mem8/
-├── frontend/                   # Next.js web interface
-│   ├── app/                   # App router pages
-│   │   ├── auth/             # Authentication pages
-│   │   └── page.tsx          # Main terminal interface
-│   ├── components/           # Reusable UI components
-│   ├── hooks/               # React hooks (useAuth, useWebSocket)
-│   └── lib/                 # Utilities (API client, auth manager)
-├── backend/                 # FastAPI backend
-│   └── src/mem8_api/      
-│       ├── routers/         # API routes (auth, thoughts, teams)
-│       ├── models/          # SQLAlchemy models
-│       └── config.py        # Configuration management
-├── claude-dot-md-template/  # Claude Code configuration template
-├── shared-thoughts-template/ # Thoughts repository template
-└── docs/                   # Documentation and screenshots
-```
-
-## 🎨 Terminal Interface
-
-The web interface features a beautiful terminal aesthetic with:
-
-- **Header Bar**: Connection status, user avatar, and logout controls
-- **Sidebar**: Team status, search functionality, and quick actions  
-- **Main Panel**: Command prompt simulation with recent thoughts
-- **Status Bar**: Real-time system information and connection status
-- **Color Scheme**: Classic green-on-black terminal with modern UI elements
-
-### Key UI Elements
-- ✅ **Connected/Disconnected** status indicators
-- 👤 **User avatar** and username display  
-- 🔍 **Search memories** with real-time filtering
-- ⚡ **Quick actions** for new thoughts and sync operations
-- 📊 **System stats** with live memory and thought counters
-- 🖱️ **Interactive buttons** with terminal styling
-
-## 📡 API Endpoints
-
-### Authentication
-- `GET /api/v1/auth/github/url` - Get GitHub OAuth URL
-- `POST /api/v1/auth/github/callback` - Handle OAuth callback
-- `GET /api/v1/auth/me` - Get current user info
-- `POST /api/v1/auth/logout` - Logout user
-
-### Thoughts Management  
-- `GET /api/v1/thoughts` - List thoughts with filtering
-- `POST /api/v1/thoughts` - Create new thought
-- `GET /api/v1/thoughts/{id}` - Get specific thought
-- `PUT /api/v1/thoughts/{id}` - Update thought
-- `DELETE /api/v1/thoughts/{id}` - Delete thought
-
-### Teams & Collaboration
-- `GET /api/v1/teams` - List user teams
-- `GET /api/v1/teams/{id}/stats` - Get team statistics  
-- `POST /api/v1/sync/teams/{id}` - Sync team data
-
-## 🔧 Configuration Examples
-
-### Basic Developer Setup
+**Example Usage:**
 ```bash
-# Generate both templates with defaults
-cookiecutter claude-dot-md-template --config-file example-configs/claude-dot-md/default.yaml
-cookiecutter shared-thoughts-template --config-file example-configs/shared-thoughts/default.yaml
+mem8 init --template claude-config
+# Creates: .claude/CLAUDE.md, commands/, agents/
 ```
 
-### Enterprise Team Setup
+### Thoughts Repository (`thoughts-repo`)  
+Creates structured documentation with:
+- Research document templates
+- Planning frameworks
+- Decision logs
+- Shared memory structure
+
+**Example Usage:**
 ```bash
-# Full-featured configuration with Linear and Ralph workflows
-cookiecutter claude-dot-md-template --config-file example-configs/claude-dot-md/enterprise-full.yaml
-cookiecutter shared-thoughts-template --config-file example-configs/shared-thoughts/team-collaboration.yaml
+mem8 init --template thoughts-repo  
+# Creates: thoughts/shared/, thoughts/research/, etc.
 ```
 
-## 🔄 Workflow Integration
+## 🎛️ Configuration
 
-### Thoughts Directory Structure
-```
-thoughts/
-├── shared/                    # Team-wide documents
-│   ├── plans/                # Implementation plans
-│   ├── research/             # Research documents  
-│   ├── tickets/              # Linear tickets (ENG-XXXX.md)
-│   ├── prs/                  # PR descriptions
-│   └── decisions/            # Technical decisions
-├── {username}/               # Personal thoughts
-│   ├── tickets/              # Personal ticket copies
-│   ├── notes/               # Personal notes
-│   └── archive/             # Archived thoughts
-└── searchable/              # Unified search (auto-generated)
+### Basic Setup
+```bash
+# Initialize in existing project
+cd your-project
+mem8 init --template claude-config
+
+# Customize the generated .claude/CLAUDE.md
+# Add project-specific instructions and workflows
 ```
 
-### Claude Code Integration
-The system integrates seamlessly with Claude Code through:
-- **Agent Definitions** - Pre-configured AI agents for development tasks
-- **Command Workflows** - Automated task execution and planning
-- **Memory Persistence** - Structured knowledge retention across sessions
-- **Context Sharing** - Team-wide context and decision history
+### Advanced Configuration
+```bash
+# Use custom cookiecutter configs
+mem8 init --template claude-config --config-file custom-config.yaml
 
-## 📋 Requirements
+# Link shared thoughts across projects
+mem8 sync --link-shared ~/shared-thoughts
+```
 
-### System Requirements
-- **Node.js 18+** - For frontend development
-- **Python 3.11+** - For backend services
-- **PostgreSQL 13+** - Primary database
-- **Redis 6+** - Session and caching (optional)
-- **Docker** - For containerized deployment (recommended)
+## 💻 Web Interface (Optional)
 
-### Development Tools
-- **uv** - Python package manager (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- **cookiecutter** - Template engine (`uv tool install cookiecutter`)
-- **git** - Version control for sync features
+The included web interface provides a simple file browser for your thoughts:
 
-## 🚧 Roadmap
+### Features
+- Browse research and planning documents
+- Search across all markdown files  
+- View file contents with syntax highlighting
+- Navigate between different thought categories
 
-- [x] ✅ Web terminal interface with authentication
-- [x] ✅ GitHub OAuth integration 
-- [x] ✅ Real-time team collaboration
-- [x] ✅ Docker development environment
-- [ ] 🔄 Claude.md constructs integration (in progress)
-- [ ] 🔄 Advanced search with semantic embeddings
-- [ ] 🔄 Mobile-responsive terminal interface
-- [ ] 🔄 Plugin system for custom integrations
-- [ ] 🔄 Self-hosted deployment guides
-- [ ] 🔄 Integration with more AI assistants
+### Start the Interface
+```bash
+# Install frontend dependencies
+cd frontend
+npm install
+
+# Start development server
+npm run dev
+
+# Access at http://localhost:3000
+```
+
+**Note:** The web interface is a simple file viewer - no authentication or database required.
+
+## 🔧 Project Structure
+
+```
+your-project/
+├── .claude/
+│   ├── CLAUDE.md          # Main Claude Code configuration
+│   ├── commands/          # Custom commands  
+│   └── agents/           # Custom agent definitions
+├── thoughts/
+│   ├── shared/           # Shared documentation
+│   ├── research/         # Research documents
+│   └── plans/           # Implementation plans
+└── mem8-config.yaml     # mem8 workspace settings
+```
+
+## 🛠️ Advanced Usage
+
+### Search Functionality
+```bash
+# Full-text search
+mem8 search "authentication"
+
+# Search in specific directories
+mem8 search "API" --path thoughts/shared/research
+
+# Search with filters
+mem8 search "bug" --tags "urgent" --type "plans"
+```
+
+### Sync and Sharing
+```bash
+# Sync with shared directory
+mem8 sync
+
+# Create symlinks to shared thoughts
+mem8 sync --link ~/team-shared-thoughts
+
+# Check sync status
+mem8 status --verbose
+```
+
+### Custom Templates
+```bash
+# Create new template from existing project
+mem8 template create my-template --from .
+
+# Use custom template
+mem8 init --template ./my-custom-template
+```
+
+## 📚 Integration with Claude Code
+
+### Custom Agents
+Place agent definitions in `.claude/agents/`:
+```markdown
+# .claude/agents/researcher.md
+You are a research assistant focused on technical documentation...
+```
+
+### Custom Commands  
+Add commands in `.claude/commands/`:
+```bash
+# .claude/commands/analyze.sh
+#!/bin/bash
+echo "Analyzing codebase structure..."
+```
+
+### Workspace Memory
+Configure in `.claude/CLAUDE.md`:
+```markdown
+# Project Context
+- Use `thoughts/research/` for background research
+- Store implementation plans in `thoughts/plans/`
+- Document decisions in `thoughts/decisions/`
+```
+
+## 🧰 Requirements
+
+- **Python 3.8+** - For mem8 CLI
+- **uv** - Package manager (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- **Node.js 18+** - For optional web interface
+- **Git** - For sync functionality
+
+## 🔄 Workflow Examples
+
+### Research & Planning
+```bash
+# Start new research
+mem8 init --template thoughts-repo
+cd thoughts/research
+# Create research-topic.md
+
+# Plan implementation  
+cd ../plans
+# Create implementation-plan.md
+
+# Search for related work
+mem8 search "similar feature" --type research
+```
+
+### Claude Code Customization
+```bash
+# Set up Claude Code for new project
+cd my-new-project  
+mem8 init --template claude-config
+
+# Customize .claude/CLAUDE.md with:
+# - Project-specific context
+# - Custom agent definitions  
+# - Development workflows
+
+# Test configuration
+claude-code --help
+```
 
 ## 📝 License
 
-This project is designed for AI-assisted development workflows and knowledge management.
+MIT License - see LICENSE file for details.
 
 ## 🤝 Contributing
 
-Contributions welcome! Areas for improvement:
-1. **Frontend Components** - Enhance the terminal UI experience
-2. **Backend APIs** - Extend functionality and performance  
-3. **Authentication** - Add more OAuth providers
-4. **Templates** - Create new Claude Code configurations
-5. **Documentation** - Improve setup and usage guides
-
-## 📚 Documentation
-
-- [QUICKSTART.md](QUICKSTART.md) - Development environment setup
-- [Example Configurations](example-configs/README.md) - Pre-built configuration examples
-- [Claude Template](claude-dot-md-template/README.md) - Claude Code configuration details
-- [Thoughts Template](shared-thoughts-template/README.md) - Thoughts repository details
+Contributions welcome! Focus areas:
+1. **New Templates** - Create templates for different project types
+2. **CLI Enhancements** - Improve search and sync functionality
+3. **Web Interface** - Enhance the thoughts file viewer
+4. **Documentation** - Improve setup and usage guides
 
 ---
-*Built for teams using AI-assisted development with Claude Code and modern web technologies.*
+*Designed for developers using Claude Code to enhance AI-assisted development workflows.*
