@@ -5,7 +5,7 @@ Modern CLI framework with enhanced type safety and developer experience.
 """
 
 import typer
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Dict, Any
 from enum import Enum
 from pathlib import Path
 
@@ -497,6 +497,98 @@ def complete_thought_queries(incomplete: str):
 # ============================================================================
 
 
+def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
+    """Interactive prompts for init command configuration."""
+    import typer
+    
+    console.print("[bold blue]🎯 Interactive Setup Mode[/bold blue]")
+    console.print(f"Detected: {context['project_type']} project with {len(context['git_repos'])} repositories")
+    
+    # Template selection with smart default
+    if context['is_claude_code_project']:
+        default_template = "claude-config"
+        console.print("[dim]Claude Code project detected - defaulting to claude-config template[/dim]")
+    else:
+        default_template = "full"
+    
+    template_choices = ["full", "claude-config", "thoughts-repo", "none"]
+    console.print(f"Template options: {', '.join(template_choices)}")
+    template = typer.prompt(
+        "Template type", 
+        default=default_template
+    )
+    while template not in template_choices:
+        console.print(f"[red]Invalid choice. Please select from: {', '.join(template_choices)}[/red]")
+        template = typer.prompt("Template type", default=default_template)
+    
+    interactive_config = {"template": template if template != "none" else None}
+    
+    # Only gather template configuration if we're installing templates
+    if template and template != "none":
+        console.print("\n📋 [bold blue]Template Configuration[/bold blue]")
+        
+        # Workflow provider selection
+        workflow_choices = ["github", "linear", "none"]
+        console.print(f"Workflow options: {', '.join(workflow_choices)}")
+        workflow_provider = typer.prompt(
+            "Workflow provider (GitHub is free and open source)",
+            default="github"
+        )
+        while workflow_provider not in workflow_choices:
+            console.print(f"[red]Invalid choice. Please select from: {', '.join(workflow_choices)}[/red]")
+            workflow_provider = typer.prompt("Workflow provider (GitHub is free and open source)", default="github")
+        interactive_config["workflow_provider"] = workflow_provider
+        
+        # Workflow automation level
+        if workflow_provider != "none":
+            automation_choices = ["standard", "advanced", "none"]
+            console.print(f"Automation options: {', '.join(automation_choices)}")
+            workflow_automation = typer.prompt(
+                "Workflow automation level",
+                default="standard"
+            )
+            while workflow_automation not in automation_choices:
+                console.print(f"[red]Invalid choice. Please select from: {', '.join(automation_choices)}[/red]")
+                workflow_automation = typer.prompt("Workflow automation level", default="standard")
+            interactive_config["workflow_automation"] = workflow_automation
+        
+        # GitHub-specific configuration
+        if workflow_provider == "github":
+            github_org = typer.prompt("GitHub organization/username", default="your-org")
+            github_repo = typer.prompt("GitHub repository name", default="your-repo")
+            interactive_config.update({
+                "github_org": github_org,
+                "github_repo": github_repo
+            })
+    
+    # Repository selection
+    if context['git_repos']:
+        console.print(f"\n📁 [green]Found {len(context['git_repos'])} repositories:[/green]")
+        for i, repo in enumerate(context['git_repos'][:5]):  # Show first 5
+            console.print(f"  {i+1}. {repo['name']} ({repo['path']})")
+        
+        if len(context['git_repos']) > 5:
+            console.print(f"  ... and {len(context['git_repos']) - 5} more")
+        
+        include_repos = typer.confirm("Include all found repositories?", default=True)
+        if not include_repos:
+            # For now, keep it simple - all or none
+            interactive_config["repos"] = None
+    
+    # Shared directory with intelligent default
+    default_shared = str(context.get('shared_location', Path.home() / "mem8-shared"))
+    shared_dir = typer.prompt(
+        "Shared directory path",
+        default=default_shared
+    )
+    interactive_config["shared_dir"] = Path(shared_dir)
+    
+    # Web UI launch
+    web = typer.confirm("Launch web UI after setup?", default=True)
+    interactive_config["web"] = web
+    
+    return interactive_config
+
 
 def _execute_action(action: str, results: list, force: bool, verbose: bool):
     """Execute action on found thoughts."""
@@ -809,6 +901,9 @@ def init(
     force: Annotated[bool, typer.Option(
         "--force", help="Skip confirmation prompts and use smart defaults"
     )] = False,
+    interactive: Annotated[bool, typer.Option(
+        "--interactive", "-i", help="Interactive mode with guided prompts for all configuration options"
+    )] = False,
     verbose: Annotated[bool, typer.Option(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
@@ -833,8 +928,21 @@ def init(
             console.print(f"[dim]Detected: {context['project_type']} project, "
                         f"{len(context['git_repos'])} repositories found[/dim]")
         
-        # 2. Generate smart configuration
+        # 2. Interactive mode: gather user preferences
+        interactive_config = {}
+        if interactive:
+            interactive_config = _interactive_prompt_for_init(context)
+            
+            # Override parameters with interactive values where not explicitly set
+            template = template or interactive_config.get('template')
+            shared_dir = shared_dir or interactive_config.get('shared_dir') 
+            web = web or interactive_config.get('web', False)
+            repos = repos or interactive_config.get('repos')
+        
+        # 3. Generate smart configuration with interactive overrides
         config = generate_smart_config(context, repos)
+        if interactive_config:
+            config.update(interactive_config)
         
         # 3. Auto-detect if templates should be installed
         should_install_templates = False
@@ -885,7 +993,7 @@ def init(
         # 6. Install templates if needed
         if should_install_templates:
             console.print("📦 [cyan]Installing templates...[/cyan]")
-            _install_templates(template_type or "full", force, verbose)
+            _install_templates(template_type or "full", force, verbose, interactive_config)
         
         if setup_result['errors']:
             console.print("❌ [red]Errors during setup:[/red]")
@@ -939,7 +1047,7 @@ def init(
             console.print_exception()
 
 
-def _install_templates(template_type: str, force: bool, verbose: bool) -> None:
+def _install_templates(template_type: str, force: bool, verbose: bool, interactive_config: Dict[str, Any] = None) -> None:
     """Install cookiecutter templates to the workspace."""
     from cookiecutter.main import cookiecutter
     from importlib import resources
@@ -976,14 +1084,30 @@ def _install_templates(template_type: str, force: bool, verbose: bool) -> None:
             continue
         
         try:
-            # For Claude templates, ensure .claude directory is the output
+            # Build extra_context from interactive configuration
             extra_context = {}
             if "claude" in template_name:
                 extra_context = {"project_slug": ".claude"}
+                
+                # Apply interactive configuration to claude templates
+                if interactive_config:
+                    if "workflow_provider" in interactive_config:
+                        extra_context["workflow_provider"] = interactive_config["workflow_provider"]
+                    if "github_org" in interactive_config:
+                        extra_context["github_org"] = interactive_config["github_org"]
+                    if "github_repo" in interactive_config:
+                        extra_context["github_repo"] = interactive_config["github_repo"]
+                    if "workflow_automation" in interactive_config:
+                        extra_context["include_workflow_automation"] = interactive_config["workflow_automation"]
+            
+            # Use no_input mode when NOT in interactive mode
+            # When interactive_config is None, we're in regular mode, so no_input=True
+            # When interactive_config is provided, we already have all values, so no_input=True
+            no_input = True
             
             cookiecutter(
                 str(template_path),
-                no_input=True,
+                no_input=no_input,
                 output_dir=str(workspace_dir),
                 overwrite_if_exists=force,
                 extra_context=extra_context
@@ -1155,6 +1279,246 @@ def local(
     
     console.print(f"[bold blue]Starting local server on port {port}...[/bold blue]")
     console.print("[yellow]⚠️  Local server requires backend API (Phase 2)[/yellow]")
+
+
+# ============================================================================
+# Worktree Management Commands
+# ============================================================================
+
+# Create worktree subcommand app
+worktree_app = typer.Typer(name="worktree", help="Git worktree management for development workflows")
+typer_app.add_typer(worktree_app, name="worktree")
+
+@worktree_app.command("create")
+def worktree_create(
+    ticket_id: Annotated[str, typer.Argument(help="Ticket ID (e.g., ENG-1234, GH-123)")],
+    branch_name: Annotated[str, typer.Argument(help="Git branch name")],
+    base_dir: Annotated[Path, typer.Option(
+        "--base-dir", help="Base directory for worktrees"
+    )] = Path.home() / "wt",
+    auto_launch: Annotated[bool, typer.Option(
+        "--launch", help="Auto-launch mem8 dashboard in worktree"
+    )] = True,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Create a git worktree for ticket implementation (replaces hack/create_worktree.sh)."""
+    from .core.worktree import create_worktree
+    
+    set_app_state(verbose=verbose)
+    
+    try:
+        worktree_path = create_worktree(ticket_id, branch_name, base_dir)
+        console.print(f"✅ [green]Created worktree: {worktree_path}[/green]")
+        
+        if auto_launch:
+            launch_cmd = f'mem8 dashboard -w {worktree_path} "/implement_plan and when done, read ./claude/commands/commit.md and create commit, then read ./claude/commands/describe_pr.md and create PR"'
+            console.print(f"🚀 [cyan]Launching: {launch_cmd}[/cyan]")
+            
+            import subprocess
+            subprocess.run(launch_cmd, shell=True)
+            
+    except Exception as e:
+        console.print(f"❌ [bold red]Error creating worktree: {e}[/bold red]")
+        if verbose:
+            console.print_exception()
+
+@worktree_app.command("list")
+def worktree_list(
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """List existing worktrees."""
+    from .core.worktree import list_worktrees
+    from rich.table import Table
+    
+    set_app_state(verbose=verbose)
+    
+    try:
+        worktrees = list_worktrees()
+        
+        if not worktrees:
+            console.print("[yellow]No worktrees found[/yellow]")
+            return
+        
+        table = Table(title=f"Git Worktrees ({len(worktrees)} found)")
+        table.add_column("Path", style="cyan")
+        table.add_column("Branch", style="green")
+        table.add_column("Commit", style="dim", width=12)
+        table.add_column("Status", style="yellow")
+        
+        for wt in worktrees:
+            path = wt.get('path', 'Unknown')
+            branch = wt.get('branch', wt.get('commit', 'Detached'))[:20] if wt.get('branch') else 'detached'
+            commit = wt.get('commit', 'Unknown')[:12]
+            
+            if wt.get('bare'):
+                status = "bare"
+            elif wt.get('detached'):
+                status = "detached"
+            else:
+                status = "active"
+            
+            table.add_row(path, branch, commit, status)
+        
+        console.print(table)
+        
+    except Exception as e:
+        console.print(f"❌ [bold red]Error listing worktrees: {e}[/bold red]")
+        if verbose:
+            console.print_exception()
+
+@worktree_app.command("remove")  
+def worktree_remove(
+    worktree_path: Annotated[Path, typer.Argument(help="Path to worktree to remove")],
+    force: Annotated[bool, typer.Option(
+        "--force", help="Force removal even with uncommitted changes"
+    )] = False,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Remove a worktree."""
+    from .core.worktree import remove_worktree
+    
+    set_app_state(verbose=verbose)
+    
+    if not force:
+        import typer
+        confirm = typer.confirm(f"Remove worktree at {worktree_path}?")
+        if not confirm:
+            console.print("❌ [yellow]Removal cancelled[/yellow]")
+            return
+    
+    try:
+        remove_worktree(worktree_path, force)
+        console.print(f"✅ [green]Removed worktree: {worktree_path}[/green]")
+        
+    except Exception as e:
+        console.print(f"❌ [bold red]Error removing worktree: {e}[/bold red]")
+        if verbose:
+            console.print_exception()
+
+
+# ============================================================================
+# Metadata Management Commands  
+# ============================================================================
+
+# Create metadata subcommand app
+metadata_app = typer.Typer(name="metadata", help="Repository metadata management and research tools")
+typer_app.add_typer(metadata_app, name="metadata")
+
+@metadata_app.command("git")
+def metadata_git(
+    format: Annotated[str, typer.Option(
+        "--format", help="Output format"
+    )] = "yaml",
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Get git repository metadata."""
+    from .core.metadata import get_git_metadata
+    
+    set_app_state(verbose=verbose)
+    
+    try:
+        metadata = get_git_metadata()
+        
+        if format == "yaml":
+            import yaml
+            console.print(yaml.dump(metadata, default_flow_style=False))
+        elif format == "json":
+            import json
+            console.print(json.dumps(metadata, indent=2))
+        else:
+            for key, value in metadata.items():
+                console.print(f"{key}: {value}")
+                
+    except Exception as e:
+        console.print(f"❌ [bold red]Error getting metadata: {e}[/bold red]")
+        if verbose:
+            console.print_exception()
+
+@metadata_app.command("research")
+def metadata_research(
+    topic: Annotated[str, typer.Argument(help="Research topic/question")],
+    output_file: Annotated[Optional[Path], typer.Option(
+        "--output", "-o", help="Output to file"
+    )] = None,
+    format: Annotated[str, typer.Option(
+        "--format", help="Output format: yaml, json, or frontmatter"
+    )] = "frontmatter",
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Generate complete metadata for research documents (replaces hack/spec_metadata.sh)."""
+    from .core.metadata import generate_research_metadata, format_frontmatter
+    
+    set_app_state(verbose=verbose)
+    
+    try:
+        metadata = generate_research_metadata(topic)
+        
+        if format == "frontmatter":
+            output = format_frontmatter(metadata)
+        elif format == "yaml":
+            import yaml
+            output = yaml.dump(metadata, default_flow_style=False)
+        elif format == "json":
+            import json
+            output = json.dumps(metadata, indent=2)
+        else:
+            output = "\n".join(f"{key}: {value}" for key, value in metadata.items())
+        
+        if output_file:
+            output_file.write_text(output, encoding='utf-8')
+            console.print(f"✅ [green]Metadata written to: {output_file}[/green]")
+        else:
+            console.print(output)
+            
+    except Exception as e:
+        console.print(f"❌ [bold red]Error generating metadata: {e}[/bold red]")
+        if verbose:
+            console.print_exception()
+
+@metadata_app.command("project")
+def metadata_project(
+    format: Annotated[str, typer.Option(
+        "--format", help="Output format"
+    )] = "yaml",
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Get project metadata and statistics."""
+    from .core.metadata import generate_project_metadata
+    
+    set_app_state(verbose=verbose)
+    
+    try:
+        metadata = generate_project_metadata()
+        
+        if format == "yaml":
+            import yaml
+            console.print(yaml.dump(metadata, default_flow_style=False))
+        elif format == "json":
+            import json
+            console.print(json.dumps(metadata, indent=2))
+        else:
+            console.print(f"Project Type: {metadata.get('project_type', 'Unknown')}")
+            console.print(f"Repository: {metadata['git_metadata']['repository']}")
+            console.print(f"Branch: {metadata['git_metadata']['branch']}")
+            console.print(f"Commits: {metadata['repository_stats']['total_commits']}")
+            console.print(f"Contributors: {metadata['repository_stats']['contributors']}")
+                
+    except Exception as e:
+        console.print(f"❌ [bold red]Error getting project metadata: {e}[/bold red]")
+        if verbose:
+            console.print_exception()
 
 
 # ============================================================================
