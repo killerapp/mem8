@@ -72,8 +72,8 @@ class TestInitDataPreservation:
         """Test that init command detects existing thoughts/shared directory."""
         result = self.run_mem8(["init", "--template", "thoughts-repo"], expect_success=False)
         
-        assert "Existing workspace components found" in result.stdout
-        assert "thoughts directory" in result.stdout
+        assert "Issues detected:" in result.stdout
+        assert "thoughts/ directory already exists" in result.stdout
         assert "thoughts/shared directory (contains your data!)" in result.stdout
         assert "WARNING: thoughts/shared contains your memory data!" in result.stdout
         assert "--force" in result.stdout
@@ -87,9 +87,8 @@ class TestInitDataPreservation:
         
         result = self.run_mem8(["init", "--template", "claude-config"], expect_success=False)
         
-        assert "Existing workspace components found" in result.stdout
-        assert ".claude directory" in result.stdout
-        assert "CLAUDE.md file" in result.stdout
+        assert "Issues detected:" in result.stdout
+        assert ".claude/ directory already exists" in result.stdout
     
     def test_init_full_template_detection(self):
         """Test detection with full template (both claude and thoughts).""" 
@@ -100,9 +99,9 @@ class TestInitDataPreservation:
         
         result = self.run_mem8(["init", "--template", "full"], expect_success=False)
         
-        assert "Existing workspace components found" in result.stdout
-        assert ".claude directory" in result.stdout
-        assert "thoughts directory" in result.stdout
+        assert "Issues detected:" in result.stdout
+        assert ".claude/ directory already exists" in result.stdout
+        assert "thoughts/ directory already exists" in result.stdout
         assert "thoughts/shared directory (contains your data!)" in result.stdout
         assert "WARNING: thoughts/shared contains your memory data!" in result.stdout
     
@@ -169,7 +168,7 @@ class TestInitDataPreservation:
         
         result = self.run_mem8(["init", "--template", "claude-config"], expect_success=False)
         
-        assert ".claude directory" in result.stdout
+        assert ".claude/ directory already exists" in result.stdout
         assert "thoughts" not in result.stdout  # Should not mention thoughts for claude-config
     
     def test_thoughts_repo_template_only_checks_thoughts(self):
@@ -189,7 +188,7 @@ class TestInitDataPreservation:
             
             result = self.run_mem8(["init", "--template", "thoughts-repo"], expect_success=False)
             
-            assert "thoughts directory" in result.stdout
+            assert "thoughts/ directory already exists" in result.stdout
             assert ".claude" not in result.stdout  # Should not mention .claude for thoughts-repo
             
         finally:
