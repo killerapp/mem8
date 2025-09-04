@@ -66,12 +66,16 @@ Then wait for the user's research query.
    - Answer the user's specific questions with concrete evidence
 
 5. **Gather metadata for the research document:**
-   - Run `mem8 metadata research "[User's Question/Topic]"` to generate all relevant metadata
-   - Filename: `thoughts/shared/research/YYYY-MM-DD_HH-MM-SS_topic.md`
+   - **IMPORTANT**: Use the mem8 CLI to generate proper metadata. DO NOT manually gather git information.
+   - Run the command: `mem8 metadata research "[User's Question/Topic]" --format frontmatter`
+   - This will output YAML frontmatter with all required fields (date, researcher, git_commit, branch, repository, etc.)
+   - Store this output to use in the next step
+   - Filename for the document: `thoughts/shared/research/YYYY-MM-DD_HH-MM-SS_topic.md`
 
 6. **Generate research document:**
-   - Use the metadata gathered in step 4
-   - Structure the document with YAML frontmatter followed by content:
+   - **CRITICAL**: Use the metadata output from `mem8 metadata research` command in step 5
+   - DO NOT manually run git commands or gather metadata yourself
+   - Structure the document with the YAML frontmatter from step 5, followed by content:
      ```markdown
      ---
      date: [Current date and time with timezone in ISO format]
@@ -138,7 +142,7 @@ Then wait for the user's research query.
    - Replace local file references with permalinks in the document
 
 8. **Sync and present findings:**
-   - Run `mem8 sync` to sync the thoughts directory
+   - Run `mem8 sync` to sync the thoughts directory (if configured with git sync)
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
    - Ask if they have follow-up questions or need clarification
@@ -152,6 +156,7 @@ Then wait for the user's research query.
    - Continue updating the document and syncing
 
 ## Important notes:
+- **ALWAYS use `mem8 metadata research` command** - NEVER manually gather git metadata
 - Always use parallel Task agents to maximize efficiency and minimize context usage
 - Always run fresh codebase research - never rely solely on existing research documents
 - The thoughts/ directory provides historical context to supplement live findings
