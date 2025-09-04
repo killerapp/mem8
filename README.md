@@ -68,7 +68,7 @@ cd frontend && npm install && npm run dev
 # Access at http://localhost:22211
 
 # Option B: Full stack with Docker Compose (includes backend)
-docker-compose up -d
+docker-compose --env-file .env.dev up -d
 # Frontend at http://localhost:22211
 # Backend API at http://localhost:8000
 ```
@@ -305,20 +305,20 @@ mem8 serve --host 0.0.0.0 --port 8080 --workers 2
 
 ### Docker Deployment Options
 
-#### Production Stack (docker-compose.yml)
+#### Production Stack (docker-compose.prod.yml)
 ```bash
 # Start full production stack
-docker-compose up -d
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
 
 # View logs
-docker-compose logs -f backend  # API logs
-docker-compose logs -f frontend # Frontend logs
+docker-compose -f docker-compose.prod.yml logs -f backend  # API logs
+docker-compose -f docker-compose.prod.yml logs -f frontend # Frontend logs
 
 # Stop services
-docker-compose down
+docker-compose -f docker-compose.prod.yml down
 
 # Clean up (removes volumes)
-docker-compose down -v
+docker-compose -f docker-compose.prod.yml down -v
 ```
 
 #### Development Stack (with Hot Reloading)

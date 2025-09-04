@@ -43,7 +43,7 @@ services:
       - mem8-network
     restart: unless-stopped
 
-  # Backend API (using mem8 serve)
+  # Backend API (using mem8 serve with hot reload for development)
   backend:
     build:
       context: .
@@ -59,6 +59,10 @@ services:
       - NODE_ENV=${NODE_ENV}
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
+    volumes:
+      - ./backend/src:/app/backend/src:cached
+      - ./mem8:/app/mem8:cached
+    command: ["mem8", "serve", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     depends_on:
       postgres:
         condition: service_healthy
