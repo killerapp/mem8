@@ -1,14 +1,10 @@
-interface ApiResponse<T> {
-  data: T;
-  message?: string;
-}
 
 interface Thought {
   id: string;
   path: string;
   title: string;
   content: string;
-  thought_metadata: Record<string, any>;
+  thought_metadata: Record<string, unknown>;
   team_id: string;
   created_at: string;
   updated_at: string;
@@ -28,7 +24,7 @@ interface Team {
   id: string;
   name: string;
   description?: string;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -63,7 +59,6 @@ const USE_MOCK_DATA = false; // Toggle for development
 // Warn when relying on development defaults
 if (!process.env.NEXT_PUBLIC_API_URL && typeof window !== 'undefined') {
   // Point to the config env var explicitly
-  // eslint-disable-next-line no-console
   console.warn(
     'API base URL missing. Set NEXT_PUBLIC_API_URL to your backend URL.'
   );
@@ -112,7 +107,7 @@ class ApiClient {
     tags?: string[];
     repository?: string;
     limit?: number;
-  }): Promise<any> {
+  }): Promise<unknown> {
     const searchParams = new URLSearchParams();
     if (params?.search) searchParams.append('search', params.search);
     if (params?.tags) params.tags.forEach(tag => searchParams.append('tags', tag));
@@ -216,7 +211,6 @@ class ApiClient {
     } else if (DEFAULT_SEARCH_LIMIT != null && Number.isFinite(DEFAULT_SEARCH_LIMIT)) {
       searchParams.set('limit', String(DEFAULT_SEARCH_LIMIT));
     } else if (typeof window !== 'undefined') {
-      // eslint-disable-next-line no-console
       console.warn(
         'Search limit not provided. Set NEXT_PUBLIC_DEFAULT_SEARCH_LIMIT or pass a limit parameter.'
       );

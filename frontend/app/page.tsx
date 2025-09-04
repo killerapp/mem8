@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>();
-  const [searchType, setSearchType] = useState<'fulltext' | 'semantic'>('fulltext');
+  const [searchType] = useState<'fulltext' | 'semantic'>('fulltext');
   
   // Auth hook
   const { user, isAuthenticated, isLoading: authLoading, logout, getGitHubAuthUrl } = useAuth();
@@ -26,6 +26,10 @@ export default function Home() {
   const { data: filesystemThoughts, isLoading: filesystemLoading } = useFilesystemThoughts({
     limit: 10
   });
+  
+  // Type helper for filesystem thoughts API response
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fsThoughts = filesystemThoughts as any;
   
   const { data: thoughts, isLoading: thoughtsLoading, refetch: refetchThoughts } = useThoughts({
     team_id: selectedTeamId,
@@ -50,7 +54,7 @@ export default function Home() {
   });
   
   // TODO: activeUsers will be implemented when WebSocket user tracking is added
-  const activeUsers: any[] = [];
+  const activeUsers: unknown[] = [];
 
   // Warn when backend/system values are missing so users can configure them
   useEffect(() => {
@@ -61,7 +65,6 @@ export default function Home() {
       if (systemStats.syncStatus == null) missing.push('syncStatus');
       if (systemStats.memoryUsage == null) missing.push('memoryUsage');
       if (missing.length) {
-        // eslint-disable-next-line no-console
         console.warn(
           `System stats missing: ${missing.join(', ')}. Ensure backend /api/v1/system/stats provides these fields.`
         );
@@ -73,7 +76,6 @@ export default function Home() {
     if (teams && teams.length) {
       const missingMemberCount = teams.filter(t => t?.settings?.memberCount == null).length;
       if (missingMemberCount > 0) {
-        // eslint-disable-next-line no-console
         console.warn(
           `${missingMemberCount} team(s) missing settings.memberCount. Set this in team configuration to show accurate member counts.`
         );
@@ -161,8 +163,9 @@ export default function Home() {
     }
     
     // Use filesystem thoughts if available
-    if (filesystemThoughts?.thoughts) {
-      return filesystemThoughts.thoughts.slice(0, 10).map((thought: any) => ({
+    if (fsThoughts?.thoughts) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return fsThoughts.thoughts.slice(0, 10).map((thought: any) => ({
         id: thought.id,
         title: thought.title,
         excerpt: thought.content.substring(0, 150) + '...',
@@ -174,7 +177,7 @@ export default function Home() {
     }
     
     // Fallback to database thoughts
-    return thoughts?.thoughts?.slice(0, 10).map(thought => ({
+    return thoughts?.slice(0, 10).map(thought => ({
       id: thought.id,
       title: thought.title,
       excerpt: thought.content.substring(0, 150) + '...',
@@ -320,7 +323,7 @@ export default function Home() {
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="flex flex-col">
                 <span className="text-lg font-bold terminal-glow text-primary">
-                  {filesystemThoughts?.total ?? systemStats?.totalThoughts ?? '0'}
+                  {fsThoughts?.total ?? systemStats?.totalThoughts ?? '0'}
                 </span>
                 <span className="text-xs text-muted-foreground">Thoughts</span>
               </div>
@@ -368,7 +371,7 @@ export default function Home() {
                       </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {team.memberCount} members • {team.thoughtCount} thoughts
+                      {String(team.memberCount)} members • {String(team.thoughtCount)} thoughts
                     </div>
                   </div>
                 ))
@@ -445,12 +448,12 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <Database className="w-3 h-3" />
-                  {filesystemThoughts?.source === 'local-filesystem' ? 'Local' : 'Database'}
+                  {fsThoughts?.source === 'local-filesystem' ? 'Local' : 'Database'}
                 </span>
-                {filesystemThoughts?.repositories_found && filesystemThoughts.repositories_found.length > 0 && (
+                {fsThoughts?.repositories_found && fsThoughts.repositories_found.length > 0 && (
                   <>
                     <span>•</span>
-                    <span>Repos: {filesystemThoughts.repositories_found.join(', ')}</span>
+                    <span>Repos: {fsThoughts.repositories_found.join(', ')}</span>
                   </>
                 )}
                 {searchQuery && (
@@ -462,7 +465,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
-                  Showing {recentThoughts?.length ?? 0} of {filesystemThoughts?.total ?? systemStats?.totalThoughts ?? 0}
+                  Showing {recentThoughts?.length ?? 0} of {fsThoughts?.total ?? systemStats?.totalThoughts ?? 0}
                 </Badge>
               </div>
             </div>
@@ -474,7 +477,7 @@ export default function Home() {
               <h2 className="text-xl font-semibold mb-4 terminal-glow flex items-center gap-2">
                 <Brain className="w-5 h-5" />
                 {searchQuery ? 'Search Results' : 
-                 filesystemThoughts?.source === 'local-filesystem' ? 'Local Thoughts' : 
+                 fsThoughts?.source === 'local-filesystem' ? 'Local Thoughts' : 
                  'Recent Thoughts'}
               </h2>
               
@@ -482,7 +485,8 @@ export default function Home() {
                 {(thoughtsLoading || filesystemLoading) ? (
                   <div className="text-center text-muted-foreground">Loading thoughts...</div>
                 ) : recentThoughts.length > 0 ? (
-                  recentThoughts.map((thought) => (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  recentThoughts.map((thought: any) => (
                     <div key={thought.id} className="memory-cell p-4 rounded-lg hover:scale-[1.02] transition-all cursor-pointer">
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="font-medium text-base">{thought.title}</h3>
@@ -506,9 +510,10 @@ export default function Home() {
                       
                       {thought.tags && thought.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {thought.tags.map((tag, index) => (
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {thought.tags.map((tag: any, index: number) => (
                             <Badge key={`${tag}-${index}`} variant="outline" className="text-xs">
-                              {tag}
+                              {String(tag)}
                             </Badge>
                           ))}
                         </div>
