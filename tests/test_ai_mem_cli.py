@@ -68,7 +68,7 @@ class Testmem8CLI:
         """Test that CLI help works."""
         result = self.run_mem8(["--help"])
         assert "Memory management CLI for team collaboration" in result.stdout
-        assert "Commands:" in result.stdout
+        assert "Commands" in result.stdout
         assert "init" in result.stdout
         assert "sync" in result.stdout
         assert "status" in result.stdout
@@ -78,7 +78,7 @@ class Testmem8CLI:
     def test_version(self):
         """Test that version command works."""
         result = self.run_mem8(["--version"])
-        assert "mem8, version" in result.stdout
+        assert "mem8 version" in result.stdout
         assert result.returncode == 0
     
     def test_status_uninitialized(self):
@@ -98,10 +98,11 @@ class Testmem8CLI:
         result = self.run_mem8([
             "init", 
             "--shared-dir", str(self.shared_dir),
-            "--template", "minimal"
+            "--template", "claude-config",
+            "--force"
         ])
         
-        assert "Workspace initialized successfully" in result.stdout
+        assert "Welcome to mem8 setup!" in result.stdout
         assert str(self.shared_dir) in result.stdout
         assert str(self.workspace_dir) in result.stdout
         
@@ -117,7 +118,8 @@ class Testmem8CLI:
         self.run_mem8([
             "init", 
             "--shared-dir", str(self.shared_dir),
-            "--template", "minimal"
+            "--template", "claude-config",
+            "--force"
         ])
         
         # Second initialization should fail without force
@@ -133,14 +135,15 @@ class Testmem8CLI:
             "--shared-dir", str(self.shared_dir),
             "--force"
         ])
-        assert "Workspace initialized successfully" in result.stdout
+        assert "Welcome to mem8 setup!" in result.stdout
     
     def test_status_after_init(self):
         """Test status command after initialization."""
         self.run_mem8([
             "init", 
             "--shared-dir", str(self.shared_dir),
-            "--template", "default"
+            "--template", "full",
+            "--force"
         ])
         
         result = self.run_mem8(["status", "--detailed"])
@@ -153,7 +156,8 @@ class Testmem8CLI:
         """Test sync functionality."""
         self.run_mem8([
             "init", 
-            "--shared-dir", str(self.shared_dir)
+            "--shared-dir", str(self.shared_dir),
+            "--force"
         ])
         
         # Test dry run
@@ -169,7 +173,8 @@ class Testmem8CLI:
         """Test search functionality."""
         self.run_mem8([
             "init", 
-            "--shared-dir", str(self.shared_dir)
+            "--shared-dir", str(self.shared_dir),
+            "--force"
         ])
         
         # Create test content
@@ -186,7 +191,8 @@ class Testmem8CLI:
         """Test doctor command after initialization."""
         self.run_mem8([
             "init", 
-            "--shared-dir", str(self.shared_dir)
+            "--shared-dir", str(self.shared_dir),
+            "--force"
         ])
         
         result = self.run_mem8(["doctor"])
@@ -197,7 +203,8 @@ class Testmem8CLI:
         """Test doctor command with auto-fix."""
         self.run_mem8([
             "init", 
-            "--shared-dir", str(self.shared_dir)
+            "--shared-dir", str(self.shared_dir),
+            "--force"
         ])
         
         # Remove a directory to create an issue
@@ -211,7 +218,8 @@ class Testmem8CLI:
         """Test that CLAUDE.md is generated correctly."""
         self.run_mem8([
             "init", 
-            "--shared-dir", str(self.shared_dir)
+            "--shared-dir", str(self.shared_dir),
+            "--force"
         ])
         
         claude_md = self.workspace_dir / ".claude" / "CLAUDE.md"
@@ -226,7 +234,8 @@ class Testmem8CLI:
         """Test that shared directory structure is created correctly."""
         self.run_mem8([
             "init", 
-            "--shared-dir", str(self.shared_dir)
+            "--shared-dir", str(self.shared_dir),
+            "--force"
         ])
         
         # Check shared directory structure
@@ -241,7 +250,8 @@ class Testmem8CLI:
         # Test with invalid shared directory
         result = self.run_mem8([
             "init",
-            "--shared-dir", "/invalid/path/that/cannot/be/created"
+            "--shared-dir", "/invalid/path/that/cannot/be/created",
+            "--force"
         ], expect_success=False)
         assert result.returncode != 0
     

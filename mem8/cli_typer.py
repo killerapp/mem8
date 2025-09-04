@@ -739,7 +739,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
                 console.print("[yellow]💡 Tip: Install 'gh' CLI for auto-detection of GitHub repositories[/yellow]")
                 console.print("")
             
-            github_org = typer.prompt("GitHub organization/username", default=github_org)
+            github_org = typer.prompt("GitHub username (for personal repos, use your username; for org repos, use organization name)", default=github_org)
             github_repo = typer.prompt("GitHub repository name", default=github_repo)
             interactive_config.update({
                 "github_org": github_org,
@@ -1071,6 +1071,43 @@ def find_completed_new(
 # Remaining Commands (Phase 3)
 # ============================================================================
 
+def _validate_init_workspace_location(force: bool) -> Path:
+    """Validate workspace location for init command only."""
+    from .core.utils import get_git_info
+    import typer
+    
+    current_dir = Path.cwd()
+    git_info = get_git_info()
+    
+    # Prefer git repository root when available
+    if git_info['is_git_repo']:
+        repo_root = git_info['repo_root']
+        if repo_root != current_dir:
+            # Notify user we're using git root instead of cwd
+            typer.secho(
+                f"📁 Using git repository root: {repo_root}",
+                fg=typer.colors.BLUE
+            )
+        return repo_root
+    
+    # If not in a git repository, warn user about non-standard location
+    if force:
+        typer.secho(f"🔧 Force mode: Using current directory {current_dir}", fg=typer.colors.CYAN)
+        return current_dir
+    
+    typer.secho("⚠️  Warning: Creating .claude directory outside git repository", fg=typer.colors.YELLOW)
+    typer.secho(f"Current directory: {current_dir}", fg=typer.colors.WHITE)
+    typer.secho("This directory is not part of a git repository.", fg=typer.colors.YELLOW)
+    typer.echo()
+    typer.secho("Consider running this command from a git repository root.", fg=typer.colors.BLUE)
+    typer.echo()
+    
+    if not typer.confirm("Continue with current directory anyway?", default=False):
+        typer.secho("Cancelled. Please run from an appropriate project root.", fg=typer.colors.RED)
+        raise typer.Exit(1)
+    
+    return current_dir
+
 @typer_app.command()
 def init(
     template: Optional[str] = typer.Option(
@@ -1107,6 +1144,9 @@ def init(
     set_app_state(verbose=verbose)
     
     console.print("🚀 [bold blue]Welcome to mem8 setup![/bold blue]")
+    
+    # INIT-SPECIFIC workspace validation - check git repository before setup
+    validated_workspace_dir = _validate_init_workspace_location(force)
     
     try:
         # 1. Auto-detect project context
@@ -1298,6 +1338,7 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
     from cookiecutter.main import cookiecutter
     from importlib import resources
     import mem8.templates
+    from .core.config import Config
     
     # Resolve template paths
     try:
@@ -1317,6 +1358,7 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
         console.print(f"[red]Invalid template: {template_type}[/red]")
         return
     
+    # Use current working directory (validation already done at init start)
     workspace_dir = Path.cwd()
     
     # Run cookiecutter for each template
