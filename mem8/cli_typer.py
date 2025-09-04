@@ -235,12 +235,25 @@ def status(
     try:
         status_info = memory_manager.get_status(detailed=detailed)
         
+        # Check Claude Code integration
+        claude_analysis = _analyze_claude_template(Path.cwd())
+        has_claude = Path('.claude').exists()
+        
         # Basic status table
         from rich.table import Table
         table = Table()
         table.add_column("Component", style="cyan")
         table.add_column("Status", style="green")
-        table.add_column("Path", style="dim")
+        table.add_column("Details", style="dim")
+        
+        # Add Claude Code status first if it exists
+        if has_claude:
+            claude_status = f"✅ Active ({len(claude_analysis['existing_commands'])} cmds, {len(claude_analysis['existing_agents'])} agents)"
+            table.add_row(
+                "🤖 Claude Code",
+                claude_status,
+                ".claude/"
+            )
         
         for component, info in status_info['components'].items():
             status_icon = "✅" if info['exists'] else "❌"
@@ -253,18 +266,33 @@ def status(
         console.print(table)
         
         # Show thought counts if detailed
-        if detailed and 'thought_counts' in status_info:
-            counts = status_info['thought_counts']
-            console.print("\n[bold blue]Thought Statistics:[/bold blue]")
+        if detailed:
+            if 'thought_counts' in status_info:
+                counts = status_info['thought_counts']
+                console.print("\n[bold blue]Thought Statistics:[/bold blue]")
+                
+                count_table = Table()
+                count_table.add_column("Type", style="cyan")
+                count_table.add_column("Count", style="yellow")
+                
+                for thought_type, count in counts.items():
+                    count_table.add_row(thought_type.title(), str(count))
+                
+                console.print(count_table)
             
-            count_table = Table()
-            count_table.add_column("Type", style="cyan")
-            count_table.add_column("Count", style="yellow")
-            
-            for thought_type, count in counts.items():
-                count_table.add_row(thought_type.title(), str(count))
-            
-            console.print(count_table)
+            # Show Claude Code details if present
+            if has_claude and (claude_analysis['existing_commands'] or claude_analysis['existing_agents']):
+                console.print("\n[bold blue]Claude Code Components:[/bold blue]")
+                if claude_analysis['existing_commands']:
+                    cmd_preview = ', '.join(claude_analysis['existing_commands'][:6])
+                    if len(claude_analysis['existing_commands']) > 6:
+                        cmd_preview += f" (+{len(claude_analysis['existing_commands']) - 6} more)"
+                    console.print(f"  📝 Commands: {cmd_preview}")
+                if claude_analysis['existing_agents']:
+                    agent_preview = ', '.join(claude_analysis['existing_agents'][:4])
+                    if len(claude_analysis['existing_agents']) > 4:
+                        agent_preview += f" (+{len(claude_analysis['existing_agents']) - 4} more)"
+                    console.print(f"  🤖 Agents: {agent_preview}")
         
         # Show any issues
         if 'issues' in status_info and status_info['issues']:
@@ -328,20 +356,92 @@ def doctor(
             console.print_exception()
 
 
+
+
 @typer_app.command()
-def dashboard():
-    """Launch mem8 web dashboard."""
-    console.print("🌐 [bold blue]Launching mem8 dashboard...[/bold blue]")
+def serve(
+    host: Annotated[str, typer.Option("--host", help="Host to bind to")] = "0.0.0.0",
+    port: Annotated[int, typer.Option("--port", help="Port to bind to")] = 8000,
+    reload: Annotated[bool, typer.Option("--reload", help="Enable auto-reload for development")] = False,
+    workers: Annotated[int, typer.Option("--workers", help="Number of worker processes")] = 1,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
+):
+    """Start the mem8 API server (FastAPI backend)."""
+    console.print(f"🚀 [bold blue]Starting mem8 API server on {host}:{port}[/bold blue]")
     
-    from .core.smart_setup import launch_web_ui, show_setup_instructions
+    # Check for backend in multiple locations
+    import os
+    backend_locations = [
+        Path(__file__).parent.parent / "backend",  # Development: repo root
+        Path("/app/backend"),  # Docker container
+        Path.cwd() / "backend"  # Current directory
+    ]
     
-    if launch_web_ui():
-        console.print("✅ [green]Dashboard opened in your browser![/green]")
-        console.print("💡 [dim]Use 'mem8 status' to check backend health.[/dim]")
-    else:
-        console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
-        instructions = show_setup_instructions()
-        console.print(instructions)
+    backend_path = None
+    for loc in backend_locations:
+        if loc.exists():
+            backend_path = loc
+            break
+    
+    if not backend_path:
+        console.print("❌ [red]Backend not found. Please ensure backend directory exists.[/red]")
+        console.print("💡 [dim]Run from mem8 repository root or install with backend support.[/dim]")
+        return
+    
+    try:
+        import subprocess
+        import sys
+        
+        # Build uvicorn command
+        cmd = [
+            sys.executable, "-m", "uvicorn",
+            "mem8_api.main:app",
+            "--host", host,
+            "--port", str(port)
+        ]
+        
+        if reload:
+            cmd.append("--reload")
+        
+        if workers > 1 and not reload:
+            cmd.extend(["--workers", str(workers)])
+        
+        if verbose:
+            cmd.append("--log-level=debug")
+        else:
+            cmd.append("--log-level=info")
+        
+        # Change to backend/src directory for proper module resolution
+        backend_src = backend_path / "src"
+        
+        # Set PYTHONPATH to include src directory
+        env = os.environ.copy()
+        if "PYTHONPATH" in env:
+            env["PYTHONPATH"] = f"{backend_src}:{env['PYTHONPATH']}"
+        else:
+            env["PYTHONPATH"] = str(backend_src)
+        
+        console.print(f"📁 [dim]Working directory: {backend_src}[/dim]")
+        if verbose:
+            console.print(f"⚙️  [dim]Command: {' '.join(cmd)}[/dim]")
+            console.print(f"📚 [dim]PYTHONPATH: {env.get('PYTHONPATH')}[/dim]")
+        
+        # Run the server
+        result = subprocess.run(cmd, cwd=str(backend_src), env=env)
+        
+        if result.returncode != 0:
+            console.print("❌ [red]Server exited with error[/red]")
+            sys.exit(result.returncode)
+            
+    except ImportError:
+        console.print("❌ [red]FastAPI dependencies not installed.[/red]")
+        console.print("💡 Install with: [cyan]pip install 'mem8[api]'[/cyan]")
+    except KeyboardInterrupt:
+        console.print("\n👋 [yellow]Server shutdown requested[/yellow]")
+    except Exception as e:
+        console.print(f"❌ [bold red]Error starting server: {e}[/bold red]")
+        if verbose:
+            console.print_exception()
 
 
 @typer_app.command()
@@ -500,21 +600,43 @@ def complete_thought_queries(incomplete: str):
 def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     """Interactive prompts for init command configuration."""
     import typer
+    from .core.config import Config
     
-    console.print("[bold blue]🎯 Interactive Setup Mode[/bold blue]")
-    console.print(f"Detected: {context['project_type']} project with {len(context['git_repos'])} repositories")
+    # Load saved preferences
+    config = Config()
+    defaults = config.get_workflow_defaults()
     
-    # Template selection with smart default
+    # Show project detection info more clearly
     if context['is_claude_code_project']:
-        default_template = "claude-config"
-        console.print("[dim]Claude Code project detected - defaulting to claude-config template[/dim]")
-    else:
-        default_template = "full"
+        console.print("\n🤖 [cyan]Claude Code project detected[/cyan]")
     
+    console.print(f"\nDetected: {context['project_type']} project")
+    
+    # Explain the mem8 workflow philosophy
+    console.print("\n[cyan]📚 About mem8 Development Workflow[/cyan]")
+    console.print("mem8 helps you follow a structured development loop:")
+    console.print("  • [bold green]Research[/bold green]: Understand existing code patterns (/research_codebase)")
+    console.print("  • [bold blue]Plan[/bold blue]: Design your implementation approach (/create_plan)")  
+    console.print("  • [bold yellow]Implement[/bold yellow]: Execute with progress tracking (/implement_plan)")
+    console.print("  • [bold magenta]Commit[/bold magenta]: Create atomic, well-documented changes (/commit)")
+    console.print("")
+    
+    # Template selection with enhanced context
+    default_template = defaults.get('template', 'full')
+    if defaults.get('template') != 'full':
+        console.print(f"[dim]💾 Using saved preference: {default_template}[/dim]")
     template_choices = ["full", "claude-config", "thoughts-repo", "none"]
-    console.print(f"Template options: {', '.join(template_choices)}")
+    
+    console.print("[cyan]📋 Template Selection[/cyan]")
+    console.print("[bold yellow]Template Options:[/bold yellow]")
+    console.print("  • [green]full[/green]: Complete workflow commands + shared knowledge repository")
+    console.print("  • [blue]claude-config[/blue]: Just workflow commands for Claude Code integration")
+    console.print("  • [magenta]thoughts-repo[/magenta]: Just shared knowledge repository structure")
+    console.print("  • [red]none[/red]: Skip template installation")
+    console.print("")
+    
     template = typer.prompt(
-        "Template type", 
+        "[bold]Choose template type[/bold]", 
         default=default_template
     )
     while template not in template_choices:
@@ -525,14 +647,25 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     
     # Only gather template configuration if we're installing templates
     if template and template != "none":
-        console.print("\n📋 [bold blue]Template Configuration[/bold blue]")
+        console.print("\n[cyan]🔧 Workflow Provider Configuration[/cyan]")
+        console.print("Choose how you track and manage development tasks:")
+        console.print("")
+        console.print("[bold yellow]Provider Options:[/bold yellow]")
+        console.print("  • [green]github[/green]: Use GitHub Issues with labels (free, open source)")
+        console.print("    - Creates commands for issue management via 'gh' CLI")
+        console.print("    - Simple workflow: needs-triage → ready-for-plan → ready-for-dev")
+        console.print("  • [blue]linear[/blue]: Use Linear for project management (requires account)")
+        console.print("  • [red]none[/red]: No issue tracking integration")
+        console.print("")
         
         # Workflow provider selection
         workflow_choices = ["github", "linear", "none"]
-        console.print(f"Workflow options: {', '.join(workflow_choices)}")
+        default_workflow = defaults.get('workflow_provider', 'github')
+        if defaults.get('workflow_provider') and defaults.get('workflow_provider') != 'github':
+            console.print(f"[dim]💾 Using saved preference: {default_workflow}[/dim]")
         workflow_provider = typer.prompt(
-            "Workflow provider (GitHub is free and open source)",
-            default="github"
+            "[bold]Choose workflow provider[/bold]",
+            default=default_workflow
         )
         while workflow_provider not in workflow_choices:
             console.print(f"[red]Invalid choice. Please select from: {', '.join(workflow_choices)}[/red]")
@@ -541,39 +674,84 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         
         # Workflow automation level
         if workflow_provider != "none":
-            automation_choices = ["standard", "advanced", "none"]
-            console.print(f"Automation options: {', '.join(automation_choices)}")
+            console.print("[cyan]⚙️  Workflow Automation Level[/cyan]")
+            console.print("Configure workflow helper commands:")
+            console.print("")
+            console.print("[bold yellow]Automation Options:[/bold yellow]")
+            console.print("  • [green]standard[/green]: Include workflow automation commands")
+            console.print("    - Commands for issue management and workflow progression")
+            console.print("    - Integration with mem8 worktree and GitHub workflows")
+            console.print("  • [red]none[/red]: No workflow automation commands")
+            console.print("    - Just core research/plan/implement/commit commands")
+            console.print("")
+            console.print("[dim]Note: 'advanced' level planned for future features[/dim]")
+            console.print("")
+            
+            automation_choices = ["standard", "none"]  # Remove 'advanced' until implemented
+            default_automation = defaults.get('automation_level', 'standard')
+            if defaults.get('automation_level') and defaults.get('automation_level') != 'standard':
+                console.print(f"[dim]💾 Using saved preference: {default_automation}[/dim]")
             workflow_automation = typer.prompt(
-                "Workflow automation level",
-                default="standard"
+                "[bold]Choose automation level[/bold]",
+                default=default_automation
             )
             while workflow_automation not in automation_choices:
                 console.print(f"[red]Invalid choice. Please select from: {', '.join(automation_choices)}[/red]")
-                workflow_automation = typer.prompt("Workflow automation level", default="standard")
+                workflow_automation = typer.prompt("[bold]Choose automation level[/bold]", default="standard")
             interactive_config["workflow_automation"] = workflow_automation
         
         # GitHub-specific configuration
         if workflow_provider == "github":
-            github_org = typer.prompt("GitHub organization/username", default="your-org")
-            github_repo = typer.prompt("GitHub repository name", default="your-repo")
+            console.print("[cyan]🐙 GitHub Repository Configuration[/cyan]")
+            console.print("Configure GitHub integration for issue management and workflows.")
+            console.print("")
+            
+            # Try to auto-detect GitHub repo info using gh CLI, or use saved defaults
+            github_org = defaults.get('github_org') or "your-org"
+            github_repo = defaults.get('github_repo') or "your-repo" 
+            
+            import shutil
+            import subprocess
+            import json
+            
+            if shutil.which("gh"):
+                try:
+                    result = subprocess.run(
+                        ["gh", "repo", "view", "--json", "owner,name"], 
+                        capture_output=True, 
+                        text=True, 
+                        timeout=5
+                    )
+                    if result.returncode == 0:
+                        repo_data = json.loads(result.stdout)
+                        github_org = repo_data["owner"]["login"]
+                        github_repo = repo_data["name"]
+                        console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
+                        console.print("")
+                    else:
+                        console.print("[yellow]⚠️  gh CLI available but no repository detected in current directory[/yellow]")
+                        console.print("")
+                except (subprocess.TimeoutExpired, json.JSONDecodeError, KeyError, FileNotFoundError):
+                    console.print("[yellow]⚠️  Could not auto-detect repository info from gh CLI[/yellow]")
+                    console.print("")
+            else:
+                console.print("[yellow]💡 Tip: Install 'gh' CLI for auto-detection of GitHub repositories[/yellow]")
+                console.print("")
+            
+            github_org = typer.prompt("GitHub organization/username", default=github_org)
+            github_repo = typer.prompt("GitHub repository name", default=github_repo)
             interactive_config.update({
                 "github_org": github_org,
                 "github_repo": github_repo
             })
     
-    # Repository selection
-    if context['git_repos']:
-        console.print(f"\n📁 [green]Found {len(context['git_repos'])} repositories:[/green]")
-        for i, repo in enumerate(context['git_repos'][:5]):  # Show first 5
-            console.print(f"  {i+1}. {repo['name']} ({repo['path']})")
-        
-        if len(context['git_repos']) > 5:
-            console.print(f"  ... and {len(context['git_repos']) - 5} more")
-        
-        include_repos = typer.confirm("Include all found repositories?", default=True)
-        if not include_repos:
-            # For now, keep it simple - all or none
-            interactive_config["repos"] = None
+    # Repository selection - simplified
+    if context.get('repos_from_parent'):
+        console.print(f"\n📁 [green]Found {context['repos_from_parent']} repositories in parent directory[/green]")
+        include_repos = typer.confirm("Include discovered repositories?", default=False)
+        interactive_config["include_repos"] = include_repos
+    else:
+        interactive_config["include_repos"] = False
     
     # Shared directory with intelligent default
     default_shared = str(context.get('shared_location', Path.home() / "mem8-shared"))
@@ -583,9 +761,19 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     )
     interactive_config["shared_dir"] = Path(shared_dir)
     
-    # Web UI launch
-    web = typer.confirm("Launch web UI after setup?", default=True)
-    interactive_config["web"] = web
+    # Remove web UI launch question - per feedback
+    interactive_config["web"] = False
+    
+    # Save workflow preferences for future use
+    if template and template != "none":
+        config.save_workflow_preferences(
+            template=template,
+            workflow_provider=interactive_config.get('workflow_provider', 'github'),
+            automation_level=interactive_config.get('workflow_automation', 'standard'),
+            github_org=interactive_config.get('github_org'),
+            github_repo=interactive_config.get('github_repo')
+        )
+        console.print("\n[dim]💾 Saved preferences for future init commands[/dim]")
     
     return interactive_config
 
@@ -899,7 +1087,7 @@ def init(
         "--web", help="Launch web UI after setup"
     )] = False,
     force: Annotated[bool, typer.Option(
-        "--force", help="Skip confirmation prompts and use smart defaults"
+        "--force", help="Skip all confirmations, overwrite existing directories, use defaults"
     )] = False,
     interactive: Annotated[bool, typer.Option(
         "--interactive", "-i", help="Interactive mode with guided prompts for all configuration options"
@@ -917,11 +1105,12 @@ def init(
     
     set_app_state(verbose=verbose)
     
-    console.print("🚀 [bold blue]Setting up mem8 with intelligent defaults...[/bold blue]")
+    console.print("🚀 [bold blue]Welcome to mem8 setup![/bold blue]")
     
     try:
         # 1. Auto-detect project context
-        console.print("🔍 [dim]Analyzing project context...[/dim]")
+        if verbose:
+            console.print("🔍 [dim]Detecting project configuration...[/dim]")
         context = detect_project_context()
         
         if verbose:
@@ -930,7 +1119,7 @@ def init(
         
         # 2. Interactive mode: gather user preferences
         interactive_config = {}
-        if interactive:
+        if interactive and not force:  # Skip interactive prompts if force flag is used
             interactive_config = _interactive_prompt_for_init(context)
             
             # Override parameters with interactive values where not explicitly set
@@ -938,8 +1127,13 @@ def init(
             shared_dir = shared_dir or interactive_config.get('shared_dir') 
             web = web or interactive_config.get('web', False)
             repos = repos or interactive_config.get('repos')
+        elif force:
+            # With force flag, use sensible defaults
+            template = template or "full"
+            console.print("[dim]Using --force mode with default settings[/dim]")
         
         # 3. Generate smart configuration with interactive overrides
+        context['interactive_config'] = interactive_config
         config = generate_smart_config(context, repos)
         if interactive_config:
             config.update(interactive_config)
@@ -948,16 +1142,20 @@ def init(
         should_install_templates = False
         template_type = template  # Use explicit template if provided
         
-        if template:
+        if template and template != "none":
             # User explicitly requested templates
             should_install_templates = True
-        elif context['is_claude_code_project']:
+        elif template == "none":
+            # User explicitly doesn't want templates
+            should_install_templates = False
+        elif context['is_claude_code_project'] and not template:
             # Auto-detect Claude Code projects need templates
             should_install_templates = True
             template_type = "claude-config"  # Default for Claude projects
         
         # 3. Check for existing setup and conflicts
         existing_thoughts = Path('thoughts').exists()
+        existing_claude = Path('.claude').exists()
         needs_confirmation = False
         issues = []
         
@@ -965,11 +1163,13 @@ def init(
             issues.append("thoughts/ directory already exists")
             needs_confirmation = True
         
-        if config['repositories']:
-            repo_names = [r['name'] for r in config['repositories']]
-            console.print(f"📁 [green]Found repositories: {', '.join(repo_names)}[/green]")
-        else:
-            console.print("📁 [yellow]No repositories found in parent directories[/yellow]")
+        if existing_claude and should_install_templates and "claude" in (template_type or "") and not force:
+            issues.append(".claude/ directory already exists")
+            needs_confirmation = True
+        
+        # Only show repository info in verbose mode or if explicitly requested
+        if verbose and config.get('repositories'):
+            console.print(f"📁 [dim]Including {len(config['repositories'])} repositories[/dim]")
         
         if shared_dir:
             config['shared_location'] = shared_dir
@@ -991,9 +1191,10 @@ def init(
         setup_result = setup_minimal_structure(config)
         
         # 6. Install templates if needed
-        if should_install_templates:
-            console.print("📦 [cyan]Installing templates...[/cyan]")
-            _install_templates(template_type or "full", force, verbose, interactive_config)
+        if should_install_templates and template_type != "none":
+            template_name = template_type or "full"
+            console.print(f"\n📦 [cyan]Installing '{template_name}' template...[/cyan]")
+            _install_templates(template_name, force, verbose, interactive_config)
         
         if setup_result['errors']:
             console.print("❌ [red]Errors during setup:[/red]")
@@ -1003,49 +1204,93 @@ def init(
         
         # Show what was created
         if setup_result['created']:
-            console.print("✅ [green]Created directories:[/green]")
+            console.print("\n✅ [green]Created:[/green]")
             for created in setup_result['created']:
                 console.print(f"  • {created}")
         
         if setup_result['linked']:
-            console.print("🔗 [blue]Created links:[/blue]")
+            console.print("🔗 [blue]Linked:[/blue]")
             for linked in setup_result['linked']:
                 console.print(f"  • {linked}")
         
-        # 7. Update Claude Code integration if this is a Claude project
-        if context['is_claude_code_project']:
-            console.print("🤖 [cyan]Updating Claude Code integration...[/cyan]")
-            try:
-                update_claude_md_integration(config)
-                console.print("✅ [green]Updated .claude/CLAUDE.md with mem8 integration[/green]")
-            except Exception as e:
-                console.print(f"⚠️  [yellow]Failed to update CLAUDE.md: {e}[/yellow]")
+        # Claude.md update removed per feedback - can be handled by frontend if needed
+        # Web UI launch removed per feedback - separate command
         
-        # 8. Launch web UI if requested
-        if web:
-            console.print("🌐 [cyan]Launching web UI...[/cyan]")
-            if launch_web_ui():
-                console.print("✅ [green]Web UI opened in your browser![/green]")
-            else:
-                console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
-                instructions = show_setup_instructions()
-                console.print(instructions)
+        # 8. Create ~/.mem8 shortcut for easy config access
+        from .core.config import Config
+        config_manager = Config()
+        if config_manager.create_home_shortcut():
+            console.print("🔗 [dim]Created ~/.mem8 shortcut for config access[/dim]")
         
         # 9. Show next steps
-        console.print("\n🎉 [bold green]Setup complete![/bold green]")
         console.print("\n💡 [bold blue]Next steps:[/bold blue]")
         console.print("  • Run [cyan]mem8 status[/cyan] to verify your setup")
         console.print("  • Use [cyan]mem8 search \"query\"[/cyan] to find thoughts")
-        if not web:
-            console.print("  • Launch web UI with [cyan]mem8 dashboard[/cyan]")
-        if not context['is_claude_code_project']:
-            console.print("  • For Claude Code integration, add the /setup-memory command")
         
     except Exception as e:
         console.print(f"❌ [bold red]Error during setup: {e}[/bold red]")
         if verbose:
             console.print_exception()
 
+
+def _analyze_claude_template(workspace_dir: Path) -> Dict[str, Any]:
+    """Analyze existing Claude integration and what will be installed."""
+    analysis = {
+        'existing_commands': [],
+        'existing_agents': [],
+        'new_commands': [],
+        'new_agents': [],
+        'conflicts': [],
+        'total_existing': 0,
+        'total_new': 0
+    }
+    
+    # Check existing Claude setup
+    claude_dir = workspace_dir / '.claude'
+    if claude_dir.exists():
+        # Count existing commands
+        commands_dir = claude_dir / 'commands'
+        if commands_dir.exists():
+            analysis['existing_commands'] = [f.stem for f in commands_dir.glob('*.md')]
+            
+        # Count existing agents
+        agents_dir = claude_dir / 'agents'
+        if agents_dir.exists():
+            analysis['existing_agents'] = [f.stem for f in agents_dir.glob('*.md')]
+            
+        analysis['total_existing'] = len(analysis['existing_commands']) + len(analysis['existing_agents'])
+    
+    # List of commands/agents that mem8 templates will install
+    # These are based on the claude-dot-md-template
+    analysis['template_commands'] = [
+        'browse-memories', 'commit', 'create_plan', 'create_worktree', 
+        'debug', 'describe_pr', 'founder_mode', 'github_issues',
+        'implement_plan', 'local_review', 'repo_setup', 'research_codebase',
+        'setup-memory', 'validate_plan', 'workflow_automation'
+    ]
+    
+    analysis['template_agents'] = [
+        'codebase-analyzer', 'codebase-locator', 'codebase-pattern-finder',
+        'github-workflow-agent', 'thoughts-analyzer', 'thoughts-locator', 
+        'web-search-researcher'
+    ]
+    
+    # Determine what's new vs conflicts
+    for cmd in analysis['template_commands']:
+        if cmd in analysis['existing_commands']:
+            analysis['conflicts'].append(f"command: {cmd}")
+        else:
+            analysis['new_commands'].append(cmd)
+            
+    for agent in analysis['template_agents']:
+        if agent in analysis['existing_agents']:
+            analysis['conflicts'].append(f"agent: {agent}")
+        else:
+            analysis['new_agents'].append(agent)
+            
+    analysis['total_new'] = len(analysis['new_commands']) + len(analysis['new_agents'])
+    
+    return analysis
 
 def _install_templates(template_type: str, force: bool, verbose: bool, interactive_config: Dict[str, Any] = None) -> None:
     """Install cookiecutter templates to the workspace."""
@@ -1079,8 +1324,34 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
         
         # Check if target already exists
         target_dir = ".claude" if "claude" in template_name else "thoughts"
-        if (workspace_dir / target_dir).exists() and not force:
-            console.print(f"[yellow]Skipping {template_name} - {target_dir} already exists[/yellow]")
+        
+        # Special handling for Claude templates - analyze what will be installed
+        if "claude" in template_name:
+            analysis = _analyze_claude_template(workspace_dir)
+            
+            if (workspace_dir / target_dir).exists() and not force:
+                console.print(f"\n⚠️  [yellow]Existing Claude Code integration detected:[/yellow]")
+                console.print(f"  • {len(analysis['existing_commands'])} existing commands")
+                console.print(f"  • {len(analysis['existing_agents'])} existing agents")
+                
+                if analysis['conflicts']:
+                    console.print(f"\n🔄 [red]These will be overwritten by mem8:[/red]")
+                    for conflict in analysis['conflicts'][:5]:  # Show first 5
+                        console.print(f"    • {conflict}")
+                    if len(analysis['conflicts']) > 5:
+                        console.print(f"    • ... and {len(analysis['conflicts']) - 5} more")
+                
+                console.print(f"\n🎯 [cyan]mem8 will install:[/cyan]")
+                console.print(f"  • {len(analysis['template_commands'])} commands")
+                console.print(f"  • {len(analysis['template_agents'])} agents")
+                
+                import typer
+                if not typer.confirm("\nProceed? (mem8 will manage Claude Code components from now on)"):
+                    console.print("  ⏭️  Skipping .claude/ installation")
+                    continue
+        elif (workspace_dir / target_dir).exists() and not force:
+            # For non-Claude directories, simple skip
+            console.print(f"  ⏭️  Skipping {target_dir}/ - already exists")
             continue
         
         try:
@@ -1112,7 +1383,29 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                 overwrite_if_exists=force,
                 extra_context=extra_context
             )
-            console.print(f"  ✓ Installed {template_name}")
+            
+            # Show detailed installation report for Claude templates
+            if "claude" in template_name:
+                analysis = _analyze_claude_template(workspace_dir)
+                console.print(f"\n🤖 [bold cyan]Claude Code Integration Complete![/bold cyan]")
+                console.print(f"\n  📝 **{len(analysis['template_commands'])} commands** installed:")
+                cmd_list = ', '.join(analysis['template_commands'][:5])
+                if len(analysis['template_commands']) > 5:
+                    cmd_list += f" (+{len(analysis['template_commands']) - 5} more)"
+                console.print(f"     {cmd_list}")
+                
+                console.print(f"\n  🤖 **{len(analysis['template_agents'])} agents** installed:")
+                agent_list = ', '.join(analysis['template_agents'][:4])
+                if len(analysis['template_agents']) > 4:
+                    agent_list += f" (+{len(analysis['template_agents']) - 4} more)"
+                console.print(f"     {agent_list}")
+                
+                console.print(f"\n  🌐 [dim]mem8 now manages these Claude Code components for:[/dim]")
+                console.print(f"     [dim]• Dynamic agentic workflows & knowledge base[/dim]")
+                console.print(f"     [dim]• Version-controlled outer-loop automation[/dim]")
+                console.print(f"     [dim]• Human-driven subagent orchestration[/dim]")
+            elif "thoughts" in template_name:
+                console.print(f"  ✅ Installed thoughts/ structure")
         except Exception as e:
             if verbose:
                 console.print(f"[yellow]Could not install {template_name}: {e}[/yellow]")
@@ -1297,8 +1590,8 @@ def worktree_create(
         "--base-dir", help="Base directory for worktrees"
     )] = Path.home() / "wt",
     auto_launch: Annotated[bool, typer.Option(
-        "--launch", help="Auto-launch mem8 dashboard in worktree"
-    )] = True,
+        "--launch", help="Auto-launch VS Code in worktree"
+    )] = False,
     verbose: Annotated[bool, typer.Option(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
@@ -1313,11 +1606,15 @@ def worktree_create(
         console.print(f"✅ [green]Created worktree: {worktree_path}[/green]")
         
         if auto_launch:
-            launch_cmd = f'mem8 dashboard -w {worktree_path} "/implement_plan and when done, read ./claude/commands/commit.md and create commit, then read ./claude/commands/describe_pr.md and create PR"'
-            console.print(f"🚀 [cyan]Launching: {launch_cmd}[/cyan]")
-            
+            # Try to open in VS Code
             import subprocess
-            subprocess.run(launch_cmd, shell=True)
+            import shutil
+            
+            if shutil.which("code"):
+                console.print(f"🚀 [cyan]Opening worktree in VS Code[/cyan]")
+                subprocess.run(["code", str(worktree_path)], shell=False)
+            else:
+                console.print(f"💡 [dim]Install VS Code to auto-open worktrees[/dim]")
             
     except Exception as e:
         console.print(f"❌ [bold red]Error creating worktree: {e}[/bold red]")

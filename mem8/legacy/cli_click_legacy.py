@@ -381,18 +381,6 @@ def quick_start(ctx, repos: Optional[str], web: bool):
         sys.exit(1)
 
 
-@cli.command()
-def dashboard():
-    """Launch mem8 web dashboard."""
-    console.print("🌐 [bold blue]Launching mem8 dashboard...[/bold blue]")
-    
-    if launch_web_ui():
-        console.print("✅ [green]Dashboard opened in your browser![/green]")
-        console.print("💡 [dim]Use 'mem8 status' to check backend health.[/dim]")
-    else:
-        console.print("ℹ️  [yellow]Backend not running. Here's how to start it:[/yellow]")
-        instructions = show_setup_instructions()
-        console.print(instructions)
 
 
 @cli.command()

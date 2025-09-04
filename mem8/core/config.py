@@ -39,9 +39,16 @@ class Config:
         """Get default configuration."""
         return {
             'workspace': {
-                'default_template': 'default',
+                'default_template': 'full',
                 'auto_sync': True,
                 'sync_interval': 300,  # 5 minutes
+            },
+            'workflow': {
+                'provider': 'github',
+                'automation_level': 'standard',
+                'github_org': None,
+                'github_repo': None,
+                'auto_detect_repo': True,
             },
             'shared': {
                 'default_location': str(self._get_default_shared_location()),
@@ -153,3 +160,52 @@ class Config:
                 return path.resolve()
             return path
         return None
+    
+    def save_workflow_preferences(self, template: str, workflow_provider: str, 
+                                automation_level: str, github_org: str = None, 
+                                github_repo: str = None) -> None:
+        """Save workflow preferences for future init commands."""
+        self.set('workspace.default_template', template)
+        self.set('workflow.provider', workflow_provider)
+        self.set('workflow.automation_level', automation_level)
+        
+        if github_org:
+            self.set('workflow.github_org', github_org)
+        if github_repo:
+            self.set('workflow.github_repo', github_repo)
+    
+    def get_workflow_defaults(self) -> Dict[str, Any]:
+        """Get saved workflow preferences for use as defaults."""
+        return {
+            'template': self.get('workspace.default_template', 'full'),
+            'workflow_provider': self.get('workflow.provider', 'github'),
+            'automation_level': self.get('workflow.automation_level', 'standard'),
+            'github_org': self.get('workflow.github_org'),
+            'github_repo': self.get('workflow.github_repo'),
+        }
+    
+    def create_home_shortcut(self) -> bool:
+        """Create a ~/.mem8 shortcut to the config directory (like kubectl)."""
+        home_shortcut = Path.home() / ".mem8"
+        
+        try:
+            # Remove existing shortcut if it exists
+            if home_shortcut.exists() or home_shortcut.is_symlink():
+                if home_shortcut.is_dir() and not home_shortcut.is_symlink():
+                    # It's a real directory, don't overwrite
+                    return False
+                home_shortcut.unlink()
+            
+            # Create symlink/junction to config directory
+            if os.name == 'nt':  # Windows - use junction
+                import subprocess
+                result = subprocess.run([
+                    "mklink", "/J", str(home_shortcut), str(self.config_dir)
+                ], shell=True, capture_output=True)
+                return result.returncode == 0
+            else:  # Unix-like - use symlink
+                home_shortcut.symlink_to(self.config_dir)
+                return True
+                
+        except (OSError, PermissionError):
+            return False

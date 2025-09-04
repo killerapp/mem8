@@ -14,9 +14,13 @@ def detect_project_context() -> Dict[str, Any]:
     """Detect project type, git repos, and optimal configuration."""
     git_info = get_git_info()
     
+    # Simplify repository discovery - only count them, don't enumerate all
+    repos = discover_local_repositories()
+    
     context = {
         'is_claude_code_project': Path('.claude').exists(),
-        'git_repos': discover_local_repositories(),
+        'git_repos': repos[:5] if repos else [],  # Limit to first 5 for performance
+        'repos_from_parent': len(repos) if repos else 0,  # Just count for display
         'project_type': infer_project_type(),
         'username': get_git_username(),
         'shared_location': find_optimal_shared_location(),
@@ -28,17 +32,28 @@ def detect_project_context() -> Dict[str, Any]:
 
 
 def discover_local_repositories() -> List[Dict[str, Any]]:
-    """Find all git repositories in parent and sibling directories."""
+    """Find git repositories - optionally in parent directories.
+    
+    Only searches if explicitly requested or if in a standard layout.
+    """
     current_dir = Path.cwd()
     parent_dir = current_dir.parent
     
     repos = []
     
-    # Search current directory
-    repos.extend(find_git_repos(current_dir))
-    
-    # Search sibling directories (orchestr8, agenticinsights, etc.)
-    repos.extend(find_git_repos(parent_dir, max_depth=2))
+    # Only search parent if we're likely in a projects-style layout
+    # Check if parent has multiple directories that look like projects
+    try:
+        sibling_dirs = [d for d in parent_dir.iterdir() if d.is_dir() and not d.name.startswith('.')]
+        # Only search if there are multiple sibling directories (suggesting a projects folder)
+        if len(sibling_dirs) > 3:
+            # Search current directory first
+            repos.extend(find_git_repos(current_dir, max_depth=0))
+            # Then search siblings, but only 1 level deep
+            repos.extend(find_git_repos(parent_dir, max_depth=1))
+    except (PermissionError, OSError):
+        # If we can't read parent, just check current
+        repos.extend(find_git_repos(current_dir, max_depth=0))
     
     return repos
 
@@ -171,26 +186,16 @@ def get_git_username() -> str:
 
 def find_optimal_shared_location() -> Path:
     """Find the optimal shared directory location."""
-    # Use existing utility but with some intelligence
+    # Start with the default from utilities
     shared_dir = get_shared_directory()
     
-    # If we're in a projects directory, try to find a shared location nearby
-    cwd = Path.cwd()
-    if 'projects' in str(cwd).lower():
-        # Look for existing shared directories in the projects area
-        projects_parent = None
-        current = cwd
-        while current != current.parent:
-            if 'projects' in current.name.lower():
-                projects_parent = current.parent
-                break
-            current = current.parent
-        
-        if projects_parent:
-            candidate_shared = projects_parent / 'mem8-shared'
-            if candidate_shared.exists() or can_create_directory(candidate_shared):
-                return candidate_shared
+    # Check if user has a preferred location in environment
+    if os.environ.get('MEM8_SHARED_DIR'):
+        env_shared = Path(os.environ['MEM8_SHARED_DIR'])
+        if env_shared.exists() or can_create_directory(env_shared):
+            return env_shared
     
+    # Otherwise use the default home-based location
     return shared_dir
 
 
@@ -207,12 +212,15 @@ def can_create_directory(path: Path) -> bool:
 
 def generate_smart_config(context: Dict[str, Any], repos_arg: Optional[str] = None) -> Dict[str, Any]:
     """Generate configuration based on detected context."""
-    repos = context['git_repos']
+    repos = context.get('git_repos', [])
     
     # If repos were specified via command line, filter to those
     if repos_arg:
         repo_names = [name.strip() for name in repos_arg.split(',')]
         repos = [repo for repo in repos if repo['name'] in repo_names or repo['path'] in repo_names]
+    # Only include repos if explicitly requested in interactive mode
+    elif context.get('interactive_config', {}).get('include_repos') == False:
+        repos = []
     
     config = {
         'username': context['username'],
