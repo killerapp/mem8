@@ -43,6 +43,11 @@ def main():
     
     # Import and run the Typer-based CLI
     from .cli_typer import typer_app
+    
+    # If no arguments provided, default to 'status' command
+    if len(sys.argv) == 1:
+        sys.argv.append('status')
+    
     typer_app()
 
 

@@ -26,8 +26,9 @@ export function useAuth() {
           user: {
             id: 'local-user',
             username: 'local',
+            full_name: 'Local User',
             email: 'local@mem8.com',
-            avatar_url: null
+            avatar_url: undefined
           },
           isAuthenticated: true,
           isLoading: false,

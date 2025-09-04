@@ -7,7 +7,7 @@ A streamlined CLI tool for managing Claude Code customizations and documentation
 mem8 is designed to work seamlessly with Claude Code, providing:
 - **💻 Rich CLI Interface** - Manage Claude Code customizations and project templates  
 - **📝 Thoughts Management** - Organize research, plans, and documentation in markdown
-- **🎨 File Viewer** - Optional web interface to browse your thoughts directory
+- **🎨 Dashboard** - Optional web interface to browse your workspace and thoughts
 - **🏗️ Template System** - Cookiecutter templates for Claude Code configurations
 
 ## ✨ Core Features
@@ -17,6 +17,7 @@ mem8 is designed to work seamlessly with Claude Code, providing:
 mem8 init --template claude-config   # Initialize Claude Code workspace  
 mem8 status                          # Check workspace health
 mem8 search "query"                 # Search across all thoughts
+mem8 serve                           # Start the API server (port 8000)
 ```
 
 ### 📁 Template System
@@ -60,13 +61,57 @@ mem8 init --template thoughts-repo
 mem8 status
 ```
 
-### 3. Optional: Start File Viewer
+### 3. Optional: View Your Workspace
 ```bash
-# Install dependencies and start web interface (optional)
+# Option A: Quick start with npm (development mode)
 cd frontend && npm install && npm run dev
+# Access at http://localhost:22211
 
-# Access at http://localhost:3000 to browse thoughts
+# Option B: Full stack with Docker Compose (includes backend)
+docker-compose --env-file .env.dev up -d
+# Frontend at http://localhost:22211
+# Backend API at http://localhost:8000
 ```
+
+## 🔄 Development Workflow
+
+mem8 provides a structured inner loop for effective development:
+
+### The Research → Plan → Implement → Commit Cycle
+
+1. **Research** (`/research_codebase`) - Understand existing patterns and architecture
+   - Uses parallel sub-agents for comprehensive codebase analysis
+   - Creates timestamped research documents with metadata
+   - Integrates findings from both code and thoughts repository
+
+2. **Plan** (`/create_plan`) - Design your approach with concrete steps
+   - Structured implementation plans with technical details
+   - Clear requirements analysis and integration points  
+   - Breaks down complex features into actionable tasks
+
+3. **Implement** (`/implement_plan`) - Execute with progress tracking
+   - Follows approved plans while adapting to reality
+   - Updates progress with todo lists and checkboxes
+   - Verification at natural stopping points
+
+4. **Validate** (`/validate_plan`) - Verify implementation completeness
+   - Systematic checking against original plan
+   - Automated verification (build, tests, linting)
+   - Recommendations for missing or incomplete work
+
+5. **Commit** (`/commit`) - Create atomic, well-documented commits
+   - Reviews session changes and creates logical groupings
+   - Focuses on "why" rather than just "what" changed
+   - Maintains clean git history
+
+### Benefits
+- **Thorough Understanding**: Research first reduces bugs and technical debt
+- **Clear Direction**: Plans provide roadmap before coding begins  
+- **Progress Tracking**: Todo lists and validation prevent incomplete work
+- **Quality Commits**: Thoughtful commit messages improve team communication
+
+### Getting Started
+After running `mem8 init`, these commands are available in Claude Code as `/research_codebase`, `/create_plan`, etc. The workflow works best when following the sequence, but individual commands can be used as needed.
 
 ## 📋 Templates
 
@@ -119,7 +164,7 @@ mem8 sync --link-shared ~/shared-thoughts
 
 ## 💻 Web Interface (Optional)
 
-The included web interface provides a simple file browser for your thoughts:
+The mem8 web interface provides a browser-based viewer for your workspace:
 
 ### Features
 - Browse research and planning documents
@@ -127,16 +172,24 @@ The included web interface provides a simple file browser for your thoughts:
 - View file contents with syntax highlighting
 - Navigate between different thought categories
 
-### Start the Interface
+### Setup Options
+
+#### Quick Start (Development)
 ```bash
-# Install frontend dependencies
-cd frontend
-npm install
+# Install dependencies and start the web interface
+cd frontend && npm install && npm run dev
+# Access at http://localhost:22211
+```
 
-# Start development server
-npm run dev
+#### Docker Compose (Full Stack)
+```bash
+# Start all services (frontend, backend, database)
+docker-compose up -d
 
-# Access at http://localhost:3000
+# Services available at:
+# - Frontend: http://localhost:22211
+# - Backend API: http://localhost:8000
+# - PostgreSQL: localhost:5432
 ```
 
 **Note:** The web interface is a simple file viewer - no authentication or database required.
@@ -216,6 +269,73 @@ Configure in `.claude/CLAUDE.md`:
 - Store implementation plans in `thoughts/plans/`
 - Document decisions in `thoughts/decisions/`
 ```
+
+## 🚀 Production Deployment
+
+### Quick Start with Docker
+```bash
+# Build and start all services
+docker-compose up -d
+
+# Test the deployment (Windows PowerShell)
+./test-docker.ps1
+
+# Test the deployment (Linux/Mac)
+./test-docker.sh
+
+# Services will be available at:
+# - Frontend: http://localhost:22211
+# - API: http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+```
+
+### API Server (Standalone)
+The `mem8 serve` command provides a clean, production-ready API server:
+
+```bash
+# Development mode with auto-reload
+mem8 serve --reload
+
+# Production mode with multiple workers
+mem8 serve --workers 4 --port 8000
+
+# With custom host/port
+mem8 serve --host 0.0.0.0 --port 8080 --workers 2
+```
+
+### Docker Deployment Options
+
+#### Production Stack (docker-compose.prod.yml)
+```bash
+# Start full production stack
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+# View logs
+docker-compose -f docker-compose.prod.yml logs -f backend  # API logs
+docker-compose -f docker-compose.prod.yml logs -f frontend # Frontend logs
+
+# Stop services
+docker-compose -f docker-compose.prod.yml down
+
+# Clean up (removes volumes)
+docker-compose -f docker-compose.prod.yml down -v
+```
+
+#### Development Stack (with Hot Reloading)
+```bash
+# Start development environment with hot-reload enabled
+docker-compose --env-file .env.dev up -d --build
+
+# Frontend and backend will auto-reload on code changes
+# View logs: docker-compose --env-file .env.dev logs -f
+```
+
+### Architecture
+The production deployment uses:
+- **mem8 serve**: FastAPI backend with unified CLI entry point
+- **PostgreSQL**: Primary database for storing thoughts and metadata
+- **Redis**: Cache layer and websocket support
+- **Next.js**: Frontend application on port 22211
 
 ## 🧰 Requirements
 

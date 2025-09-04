@@ -23,8 +23,8 @@ cookiecutter claude-dot-md-template
 | `project_slug` | .claude | Output directory name |
 | `include_agents` | true | Include agent definitions |
 | `include_commands` | true | Include command definitions |
-| `include_ralph_commands` | false | Include Ralph workflow commands |
-| `include_linear_integration` | false | Include Linear ticket integration |
+| `workflow_provider` | github | Workflow provider (github, linear, none) |
+| `include_workflow_automation` | standard | Workflow automation level (standard, advanced, none) |
 | `include_web_search` | true | Include web search researcher agent |
 | `default_tools` | Read, Grep, Glob, LS | Default tools for agents |
 | `repository_path` | /shared/ | Path for shared repository data |
@@ -36,23 +36,25 @@ cookiecutter claude-dot-md-template
 ├── agents/
 │   ├── codebase-analyzer.md      # Analyzes implementation details
 │   ├── codebase-locator.md       # Finds files and components
+│   ├── github-workflow-agent.md  # GitHub workflow automation (optional)
 │   └── web-search-researcher.md  # Web research specialist (optional)
 └── commands/
     ├── commit.md                  # Git commit workflow
     ├── create_plan.md            # Implementation planning
-    └── ralph_plan.md             # Ralph ticket workflow (optional)
+    ├── github_issues.md          # GitHub Issues management (optional)
+    └── workflow_automation.md    # Workflow automation (optional)
 ```
 
 ## Customization
 
 ### Command Line Options
 ```bash
-# Disable web search and Ralph commands
+# Configure with Linear workflow provider and no automation
 cookiecutter claude-dot-md-template \
   --no-input \
   --output-dir my-config \
-  -f include_web_search=false \
-  -f include_ralph_commands=false
+  -f workflow_provider=linear \
+  -f include_workflow_automation=none
 ```
 
 ### Post-Generation

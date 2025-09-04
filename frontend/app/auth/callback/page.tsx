@@ -45,7 +45,7 @@ export default function AuthCallbackPage() {
         setStatus('processing') // Show processing state during API call
         
         // Use the auth manager to handle the callback
-        const authResponse = await authManager.handleGitHubCallback(code, state || undefined)
+        await authManager.handleGitHubCallback(code, state || undefined)
         
         setStatus('success')
         

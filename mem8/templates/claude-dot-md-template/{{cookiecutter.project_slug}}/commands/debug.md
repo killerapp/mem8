@@ -32,10 +32,8 @@ I can investigate logs, database state, and recent changes to help identify the 
 
 You have access to these key locations and tools:
 
-**Logs** (automatically created by `make daemon` and `make wui`):
-- MCP logs: `~/.mem8/logs/mcp-claude-approvals-*.log`
-- Combined WUI/Daemon logs: `~/.mem8/logs/wui-${BRANCH_NAME}/codelayer.log`
-- First line shows: `[timestamp] starting [service] in [directory]`
+**Logs**:
+- 
 
 **Database**:
 - Location: `~/.mem8/daemon-{BRANCH_NAME}.db`

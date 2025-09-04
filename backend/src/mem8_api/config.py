@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     
     # CORS settings
     allowed_origins: List[str] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"],
+        default=["http://localhost:22211", "http://127.0.0.1:22211", "http://localhost:3001", "http://127.0.0.1:3001"],
         description="Allowed CORS origins"
     )
     allowed_hosts: List[str] = Field(
@@ -81,7 +81,7 @@ class Settings(BaseSettings):
         description="GitHub OAuth client secret"
     )
     github_redirect_uri: str = Field(
-        default="http://localhost:3000/auth/callback",
+        default="http://localhost:22211/auth/callback",
         description="GitHub OAuth redirect URI"
     )
 

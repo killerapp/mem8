@@ -27,14 +27,14 @@ timeout 60s bash -c 'until curl -f http://localhost:8000/api/v1/health >/dev/nul
 echo "✅ Backend ready"
 
 # Wait for frontend
-timeout 60s bash -c 'until curl -f http://localhost:3000 >/dev/null 2>&1; do sleep 2; done'
+timeout 60s bash -c 'until curl -f http://localhost:22211 >/dev/null 2>&1; do sleep 2; done'
 echo "✅ Frontend ready"
 
 echo ""
 echo "🎉 Deployment complete!"
 echo ""
 echo "🌐 Services available at:"
-echo "  - Frontend: http://localhost:3000"
+echo "  - Frontend: http://localhost:22211"
 echo "  - Backend API: http://localhost:8000"
 echo "  - API Docs: http://localhost:8000/docs"
 echo "  - PostgreSQL: localhost:5432"

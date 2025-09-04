@@ -95,6 +95,7 @@ export function GitHubAuth() {
       <div className="flex items-center justify-between p-4 bg-gray-900 border border-gray-700 rounded">
         <div className="flex items-center space-x-3">
           {user.avatar_url && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img 
               src={user.avatar_url} 
               alt={user.username}

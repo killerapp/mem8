@@ -27,8 +27,7 @@ This project uses mem8 for memory management across repositories.
 - `/setup-memory` - Configure AI memory for this project
 - `/browse-memories` - Search and explore thoughts across repositories
 - `mem8 search "query"` - Full-text search across all memories
-- `mem8 quick-start --web` - Launch visual memory browser
-- `mem8 dashboard` - Open web interface
+- `mem8 init` - Initialize mem8 workspace with templates
 
 ## Shared Thoughts Location
 Shared thoughts: `{config.get('shared_location', 'thoughts/shared/')}`
@@ -40,7 +39,7 @@ Shared thoughts: `{config.get('shared_location', 'thoughts/shared/')}`
 - User notes: `thoughts/{config.get('username', 'user')}/`
 
 ## Quick Start
-Run `mem8 quick-start --web` to set up mem8 and launch the visual interface.
+Run `mem8 init` to set up your mem8 workspace with Claude Code templates.
 """
     return claude_md_content
 

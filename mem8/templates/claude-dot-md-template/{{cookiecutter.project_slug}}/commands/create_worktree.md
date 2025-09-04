@@ -1,6 +1,6 @@
 
 2. set up worktree for implementation:
-2a. read `hack/create_worktree.sh` and create a new worktree with the Linear branch name: `./hack/create_worktree.sh ENG-XXXX BRANCH_NAME`
+2a. create a new worktree using the mem8 CLI: `mem8 worktree create ENG-XXXX BRANCH_NAME`
 
 3. determine required data:
 
