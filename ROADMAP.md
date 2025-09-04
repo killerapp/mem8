@@ -134,12 +134,12 @@ mem8 is a comprehensive AI memory management platform for team collaboration, no
 
 ---
 
-## Phase 4: Orchestr8 Integration (FUTURE)
+## Phase 4: Kubernetes Integration (FUTURE)
 
 **Status**: 🔮 **PLANNED** - Complete Kubernetes deployment
 
 ### Planned Features:
-- Kubernetes-native deployment via orchestr8 platform
+- Kubernetes-native deployment capabilities
 - Helmchart for cloud deployment
 - Service mesh integration (Istio)
 - Monitoring and observability stack

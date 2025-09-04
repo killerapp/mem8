@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-mem8 CLI: Memory management for the orchestr8 ecosystem.
+mem8 CLI: Memory management for team collaboration.
 
 This module provides the main entry point for the mem8 CLI, which has been
 migrated from Click to Typer for enhanced type safety and developer experience.

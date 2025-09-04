@@ -28,7 +28,7 @@ console = Console(
 # Create Typer app
 typer_app = typer.Typer(
     name="mem8",
-    help="Memory management CLI for the orchestr8 ecosystem",
+    help="Memory management CLI for team collaboration",
     add_completion=False,  # We'll manage this ourselves
     rich_markup_mode="rich"
 )
@@ -216,7 +216,7 @@ def main(
         help="Show version and exit"
     )
 ):
-    """Memory management CLI for the orchestr8 ecosystem."""
+    """Memory management CLI for team collaboration."""
     pass
 
 

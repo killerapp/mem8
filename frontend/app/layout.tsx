@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "mem8 | Terminal Memory Interface",
-  description: "Terminal-style memory management for the orchestr8 ecosystem",
+  description: "Terminal-style memory management for team collaboration",
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',

@@ -671,7 +671,7 @@ from .commands.init import create_init_command
 console = get_console()
 typer_app = typer.Typer(
     name="mem8",
-    help="Memory management CLI for the orchestr8 ecosystem",
+    help="Memory management CLI for team collaboration",
     add_completion=False,
     rich_markup_mode="rich"
 )
@@ -690,7 +690,7 @@ def main(
         help="Show version and exit"
     )
 ):
-    """Memory management CLI for the orchestr8 ecosystem."""
+    """Memory management CLI for team collaboration."""
     pass
 
 # Register all commands and subcommand groups

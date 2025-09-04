@@ -67,7 +67,7 @@ class Testmem8CLI:
     def test_cli_help(self):
         """Test that CLI help works."""
         result = self.run_mem8(["--help"])
-        assert "mem8: Memory management CLI for the orchestr8 ecosystem" in result.stdout
+        assert "Memory management CLI for team collaboration" in result.stdout
         assert "Commands:" in result.stdout
         assert "init" in result.stdout
         assert "sync" in result.stdout

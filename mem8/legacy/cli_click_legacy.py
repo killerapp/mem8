@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-mem8 CLI: Memory management for the orchestr8 ecosystem - team collaboration with shared thoughts.
+mem8 CLI: Memory management for team collaboration with shared thoughts.
 """
 
 import os
@@ -88,7 +88,7 @@ console = Console(
 )
 @click.pass_context
 def cli(ctx, verbose: bool, config_dir: Optional[str], install_completion: Optional[str], show_completion: Optional[str]):
-    """mem8: Memory management CLI for the orchestr8 ecosystem."""
+    """mem8: Memory management CLI for team collaboration."""
     setup_logging(verbose)
     
     # Initialize context
@@ -736,7 +736,7 @@ def deploy():
 @click.option("--replicas", default=2, help="Number of replicas")
 @click.pass_context
 def kubernetes(ctx, env: str, domain: str, replicas: int):
-    """Deploy mem8 to Kubernetes via orchestr8."""
+    """Deploy mem8 to Kubernetes."""
     console.print(f"[bold blue]Deploying to {env} environment...[/bold blue]")
     console.print("[yellow]⚠️  Kubernetes deployment requires Phase 4 implementation[/yellow]")
     console.print("Available after backend API and frontend are implemented.")

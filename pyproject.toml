@@ -1,16 +1,16 @@
 [project]
 name = "mem8"
 version = "2.3.0"
-description = "Memory management CLI for the orchestr8 ecosystem - team collaboration with shared thoughts"
+description = "Memory management CLI for team collaboration with shared thoughts"
 readme = "README.md"
 authors = [
-    {name = "Orchestr8 Team", email = "dev@orchestr8.dev"},
+    {name = "killerapp", email = "vaskin@gmail.com"},
 ]
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -18,7 +18,7 @@ classifiers = [
     "Topic :: Documentation",
     "Topic :: Text Processing",
 ]
-keywords = ["orchestr8", "memory", "collaboration", "thoughts", "knowledge-management", "o8"]
+keywords = ["memory", "collaboration", "thoughts", "knowledge-management", "claude-code", "ai-memory"]
 requires-python = ">=3.11"
 dependencies = [
     "click>=8.1.0",
