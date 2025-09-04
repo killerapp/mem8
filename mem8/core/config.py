@@ -5,10 +5,6 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 import yaml
 from platformdirs import user_config_dir, user_data_dir
-import contextvars
-
-# Context variable for force mode (used by CLI to bypass workspace validation)
-_force_context = contextvars.ContextVar('force_mode', default=False)
 
 
 class Config:
@@ -140,55 +136,8 @@ class Config:
     
     @property
     def workspace_dir(self) -> Path:
-        """Get current workspace directory with project root validation."""
-        return self._get_validated_workspace_dir()
-
-    def _get_validated_workspace_dir(self) -> Path:
-        """Get workspace directory with git repository root preference and validation."""
-        from .utils import get_git_info
-        import typer
-        
-        current_dir = Path.cwd()
-        git_info = get_git_info()
-        
-        # Prefer git repository root when available
-        if git_info['is_git_repo']:
-            repo_root = git_info['repo_root']
-            if repo_root != current_dir:
-                # Notify user we're using git root instead of cwd
-                typer.secho(
-                    f"📁 Using git repository root: {repo_root}",
-                    fg=typer.colors.BLUE
-                )
-            return repo_root
-        
-        # If not in a git repository, warn user about non-standard location
-        return self._prompt_for_workspace_confirmation(current_dir)
-
-    def _prompt_for_workspace_confirmation(self, current_dir: Path) -> Path:
-        """Warn user and get confirmation for workspace location."""
-        import typer
-        
-        # Skip prompts in force mode
-        try:
-            if _force_context.get():
-                typer.secho(f"🔧 Force mode: Using current directory {current_dir}", fg=typer.colors.CYAN)
-                return current_dir
-        except LookupError:
-            pass  # Context var not set, proceed with normal validation
-        
-        typer.secho("⚠️  Warning: Creating .claude directory outside git repository", fg=typer.colors.YELLOW)
-        typer.secho(f"Current directory: {current_dir}", fg=typer.colors.WHITE)
-        typer.secho("This directory is not part of a git repository.", fg=typer.colors.YELLOW)
-        typer.echo()
-        typer.secho("Consider running this command from a git repository root.", fg=typer.colors.BLUE)
-        typer.echo()
-        
-        if not typer.confirm("Continue with current directory anyway?", default=False):
-            typer.secho("Cancelled. Please run from an appropriate project root.", fg=typer.colors.RED)
-            raise typer.Exit(1)
-        
-        return current_dir
+        """Get current workspace directory."""
+        return Path.cwd()
     
     @property
     def claude_dir(self) -> Path:

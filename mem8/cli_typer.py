@@ -1071,6 +1071,43 @@ def find_completed_new(
 # Remaining Commands (Phase 3)
 # ============================================================================
 
+def _validate_init_workspace_location(force: bool) -> Path:
+    """Validate workspace location for init command only."""
+    from .core.utils import get_git_info
+    import typer
+    
+    current_dir = Path.cwd()
+    git_info = get_git_info()
+    
+    # Prefer git repository root when available
+    if git_info['is_git_repo']:
+        repo_root = git_info['repo_root']
+        if repo_root != current_dir:
+            # Notify user we're using git root instead of cwd
+            typer.secho(
+                f"📁 Using git repository root: {repo_root}",
+                fg=typer.colors.BLUE
+            )
+        return repo_root
+    
+    # If not in a git repository, warn user about non-standard location
+    if force:
+        typer.secho(f"🔧 Force mode: Using current directory {current_dir}", fg=typer.colors.CYAN)
+        return current_dir
+    
+    typer.secho("⚠️  Warning: Creating .claude directory outside git repository", fg=typer.colors.YELLOW)
+    typer.secho(f"Current directory: {current_dir}", fg=typer.colors.WHITE)
+    typer.secho("This directory is not part of a git repository.", fg=typer.colors.YELLOW)
+    typer.echo()
+    typer.secho("Consider running this command from a git repository root.", fg=typer.colors.BLUE)
+    typer.echo()
+    
+    if not typer.confirm("Continue with current directory anyway?", default=False):
+        typer.secho("Cancelled. Please run from an appropriate project root.", fg=typer.colors.RED)
+        raise typer.Exit(1)
+    
+    return current_dir
+
 @typer_app.command()
 def init(
     template: Optional[str] = typer.Option(
@@ -1103,19 +1140,13 @@ def init(
         launch_web_ui, show_setup_instructions
     )
     from .claude_integration import update_claude_md_integration
-    from .core.config import _force_context
     
     set_app_state(verbose=verbose)
     
-    # Set force mode context for workspace validation
-    _force_context.set(force)
-    
     console.print("🚀 [bold blue]Welcome to mem8 setup![/bold blue]")
     
-    # EARLY workspace validation - check git repository before any other processing
-    from .core.config import Config
-    config = Config()
-    validated_workspace_dir = config.workspace_dir  # This triggers validation immediately
+    # INIT-SPECIFIC workspace validation - check git repository before setup
+    validated_workspace_dir = _validate_init_workspace_location(force)
     
     try:
         # 1. Auto-detect project context
