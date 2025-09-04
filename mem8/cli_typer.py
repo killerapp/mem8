@@ -1103,8 +1103,12 @@ def init(
         launch_web_ui, show_setup_instructions
     )
     from .claude_integration import update_claude_md_integration
+    from .core.config import _force_context
     
     set_app_state(verbose=verbose)
+    
+    # Set force mode context for workspace validation
+    _force_context.set(force)
     
     console.print("🚀 [bold blue]Welcome to mem8 setup![/bold blue]")
     
@@ -1298,6 +1302,7 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
     from cookiecutter.main import cookiecutter
     from importlib import resources
     import mem8.templates
+    from .core.config import Config
     
     # Resolve template paths
     try:
@@ -1317,7 +1322,9 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
         console.print(f"[red]Invalid template: {template_type}[/red]")
         return
     
-    workspace_dir = Path.cwd()
+    # Use validated workspace directory detection
+    config = Config()
+    workspace_dir = config.workspace_dir
     
     # Run cookiecutter for each template
     for template_name in template_map[template_type]:
