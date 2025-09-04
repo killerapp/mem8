@@ -10,6 +10,8 @@ import { useHealth, useThoughts, useFilesystemThoughts, useTeams, useSystemStats
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { detectContentType, parseYamlMetadata } from '@/lib/content-types';
+import { MetadataPanel } from '@/components/MetadataPanel';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -165,27 +167,44 @@ export default function Home() {
     // Use filesystem thoughts if available
     if (fsThoughts?.thoughts) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return fsThoughts.thoughts.slice(0, 10).map((thought: any) => ({
+      return fsThoughts.thoughts.slice(0, 10).map((thought: any) => {
+        const contentType = detectContentType(thought.tags || []);
+        const metadata = parseYamlMetadata(thought.content);
+        
+        return {
+          id: thought.id,
+          title: thought.title,
+          excerpt: thought.content.substring(0, 150) + '...',
+          path: thought.path,
+          team: thought.repository || 'Local',
+          lastModified: new Date(thought.updated_at).toLocaleString(),
+          tags: thought.tags || [],
+          contentType,
+          metadata,
+          fullContent: thought.content
+        };
+      });
+    }
+    
+    // Fallback to database thoughts
+    return thoughts?.slice(0, 10).map(thought => {
+      const tags = Array.isArray(thought.thought_metadata?.tags) ? thought.thought_metadata.tags : [];
+      const contentType = detectContentType(tags);
+      const metadata = parseYamlMetadata(thought.content);
+      
+      return {
         id: thought.id,
         title: thought.title,
         excerpt: thought.content.substring(0, 150) + '...',
         path: thought.path,
-        team: thought.repository || 'Local',
+        team: currentTeam?.name || 'Unknown Team',
         lastModified: new Date(thought.updated_at).toLocaleString(),
-        tags: thought.tags || []
-      }));
-    }
-    
-    // Fallback to database thoughts
-    return thoughts?.slice(0, 10).map(thought => ({
-      id: thought.id,
-      title: thought.title,
-      excerpt: thought.content.substring(0, 150) + '...',
-      path: thought.path,
-      team: currentTeam?.name || 'Unknown Team',
-      lastModified: new Date(thought.updated_at).toLocaleString(),
-      tags: thought.thought_metadata.tags || []
-    })) || [];
+        tags,
+        contentType,
+        metadata,
+        fullContent: thought.content
+      };
+    }) || [];
   })();
   
   // Transform teams data for team status display
@@ -486,10 +505,20 @@ export default function Home() {
                   <div className="text-center text-muted-foreground">Loading thoughts...</div>
                 ) : recentThoughts.length > 0 ? (
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  recentThoughts.map((thought: any) => (
-                    <div key={thought.id} className="memory-cell p-4 rounded-lg hover:scale-[1.02] transition-all cursor-pointer">
+                  recentThoughts.map((thought: any, index: number) => (
+                    <div key={`${thought.id}-${index}`} className="memory-cell p-4 rounded-lg hover:scale-[1.02] transition-all cursor-pointer">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-base">{thought.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-base">{thought.title}</h3>
+                          {thought.contentType !== 'thought' && (
+                            <Badge 
+                              variant={thought.contentType === 'research' ? 'active' : 'syncing'} 
+                              className="text-xs"
+                            >
+                              {thought.contentType === 'research' ? 'Research' : 'Plan'}
+                            </Badge>
+                          )}
+                        </div>
                         <Badge variant="terminal" className="text-xs shrink-0">
                           {thought.team}
                         </Badge>
@@ -517,6 +546,14 @@ export default function Home() {
                             </Badge>
                           ))}
                         </div>
+                      )}
+                      
+                      {/* Add metadata panel for research/plans */}
+                      {thought.contentType !== 'thought' && thought.metadata && (
+                        <MetadataPanel 
+                          metadata={thought.metadata} 
+                          type={thought.contentType} 
+                        />
                       )}
                     </div>
                   ))
