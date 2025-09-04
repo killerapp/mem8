@@ -417,7 +417,8 @@ def serve(
         # Set PYTHONPATH to include src directory
         env = os.environ.copy()
         if "PYTHONPATH" in env:
-            env["PYTHONPATH"] = f"{backend_src}:{env['PYTHONPATH']}"
+            # Use os.pathsep for cross-platform compatibility (: on Unix, ; on Windows)
+            env["PYTHONPATH"] = f"{backend_src}{os.pathsep}{env['PYTHONPATH']}"
         else:
             env["PYTHONPATH"] = str(backend_src)
         

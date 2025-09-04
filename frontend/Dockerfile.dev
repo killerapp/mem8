@@ -1,8 +1,8 @@
 # Development Dockerfile for mem8 frontend with hot reloading
 FROM node:18-alpine
 
-# Install dependencies
-RUN apk add --no-cache libc6-compat
+# Install dependencies and curl for healthcheck
+RUN apk add --no-cache libc6-compat curl
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Health check for development
 HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:22211 || exit 1
+    CMD curl -f http://localhost:22211/health || exit 1
 
 # Start development server
 CMD ["npm", "run", "dev"]
