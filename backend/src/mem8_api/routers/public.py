@@ -26,7 +26,20 @@ async def list_local_thoughts(
     
     from pathlib import Path
     current_dir = Path.cwd()
-    parent_dir = current_dir.parent if current_dir.name == "backend" else current_dir
+    
+    # Use the same path detection logic as get_filesystem_thoughts
+    if current_dir.name == "backend":
+        parent_dir = current_dir.parent
+    elif current_dir.name == "src":  # Docker: running from /app/backend/src
+        # In Docker, check if thoughts are mounted at /app/thoughts
+        docker_thoughts = Path("/app/thoughts")
+        if docker_thoughts.exists():
+            parent_dir = Path("/app")
+        else:
+            # Fallback to going up two levels: /app/backend/src -> /app
+            parent_dir = current_dir.parent.parent
+    else:
+        parent_dir = current_dir
     
     return {
         "thoughts": thoughts,

@@ -62,6 +62,7 @@ services:
     volumes:
       - ./backend/src:/app/backend/src:cached
       - ./mem8:/app/mem8:cached
+      - ./thoughts:/app/thoughts:cached
     command: ["mem8", "serve", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     depends_on:
       postgres:

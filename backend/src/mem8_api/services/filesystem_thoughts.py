@@ -156,6 +156,14 @@ def get_filesystem_thoughts(
         base_dir = Path.cwd()
         if base_dir.name == "backend":
             base_dir = base_dir.parent
+        elif base_dir.name == "src":  # Docker: running from /app/backend/src
+            # In Docker, check if thoughts are mounted at /app/thoughts
+            docker_thoughts = Path("/app/thoughts")
+            if docker_thoughts.exists():
+                base_dir = Path("/app")
+            else:
+                # Fallback to going up two levels: /app/backend/src -> /app
+                base_dir = base_dir.parent.parent
     
     # Discover all thoughts
     thoughts = discover_worktree_thoughts(base_dir)
