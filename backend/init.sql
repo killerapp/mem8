@@ -8,9 +8,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Note: This runs after the database is already created by Docker
 -- but ensures we have proper permissions and extensions
 
--- Grant necessary permissions
-GRANT ALL PRIVILEGES ON DATABASE mem8 TO mem8_user;
-GRANT ALL PRIVILEGES ON DATABASE mem8_dev TO dev_user;
+-- Grant necessary permissions to the created database
+GRANT ALL PRIVILEGES ON DATABASE mem8_dev TO mem8_user;
 
 -- Set timezone
 SET timezone = 'UTC';
