@@ -739,7 +739,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
                 console.print("[yellow]💡 Tip: Install 'gh' CLI for auto-detection of GitHub repositories[/yellow]")
                 console.print("")
             
-            github_org = typer.prompt("GitHub organization/username", default=github_org)
+            github_org = typer.prompt("GitHub username (for personal repos, use your username; for org repos, use organization name)", default=github_org)
             github_repo = typer.prompt("GitHub repository name", default=github_repo)
             interactive_config.update({
                 "github_org": github_org,
@@ -1112,6 +1112,11 @@ def init(
     
     console.print("🚀 [bold blue]Welcome to mem8 setup![/bold blue]")
     
+    # EARLY workspace validation - check git repository before any other processing
+    from .core.config import Config
+    config = Config()
+    validated_workspace_dir = config.workspace_dir  # This triggers validation immediately
+    
     try:
         # 1. Auto-detect project context
         if verbose:
@@ -1322,9 +1327,8 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
         console.print(f"[red]Invalid template: {template_type}[/red]")
         return
     
-    # Use validated workspace directory detection
-    config = Config()
-    workspace_dir = config.workspace_dir
+    # Use current working directory (validation already done at init start)
+    workspace_dir = Path.cwd()
     
     # Run cookiecutter for each template
     for template_name in template_map[template_type]:
