@@ -36,6 +36,14 @@ export function useThought(id: string) {
   });
 }
 
+export function useFilesystemThought(id: string) {
+  return useQuery({
+    queryKey: ['filesystem-thoughts', id],
+    queryFn: () => apiClient.getFilesystemThought(id),
+    enabled: !!id,
+  });
+}
+
 export function useCreateThought() {
   const queryClient = useQueryClient();
   

@@ -119,6 +119,11 @@ class ApiClient {
     return this.request(`/api/v1/public/thoughts/local${query ? `?${query}` : ''}`);
   }
 
+  async getFilesystemThought(id: string): Promise<Thought> {
+    // Use public endpoint that doesn't require auth
+    return this.request(`/api/v1/public/thoughts/local/${id}`);
+  }
+
   // Thoughts API
   async getThoughts(params?: {
     team_id?: string;
