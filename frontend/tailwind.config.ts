@@ -61,7 +61,7 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)'
       },
       fontFamily: {
-        mono: ['var(--font-mono)', 'Consolas', 'Monaco', 'monospace']
+        mono: ['var(--font-mono)', 'JetBrains Mono', 'Consolas', 'Monaco', 'monospace']
       },
       animation: {
         'grid-fade': 'grid-fade 4s ease-in-out infinite',

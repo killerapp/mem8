@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Geist_Mono } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 import { AuthGuard } from "@/components/AuthGuard";
 
-const geistMono = Geist_Mono({
+const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "mem8 | Terminal Memory Interface",
-  description: "Terminal-style memory management for team collaboration",
+  title: "AgenticInsights | AI-Powered Knowledge Management",
+  description: "Next-generation AI knowledge management and insights platform",
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
@@ -26,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistMono.variable} bg-grid bg-scanlines`}
+        className={`${jetbrainsMono.variable} bg-grid bg-scanlines`}
       >
         <Providers>
           <AuthGuard>
