@@ -189,3 +189,16 @@ def get_filesystem_thoughts(
         ]
     
     return thoughts[:limit]
+
+
+def get_filesystem_thought_by_id(thought_id: str, base_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Get a specific filesystem thought by its hash ID."""
+    
+    # Get all thoughts and find the one with matching ID
+    thoughts = get_filesystem_thoughts(base_path=base_path, limit=1000)  # Use higher limit to ensure we find it
+    
+    for thought in thoughts:
+        if thought["id"] == thought_id:
+            return thought
+    
+    return None
