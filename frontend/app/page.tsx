@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UserDropdown } from '@/components/UserDropdown';
@@ -17,6 +18,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>();
   const [searchType] = useState<'fulltext' | 'semantic'>('fulltext');
+  
+  // Router hook
+  const router = useRouter();
   
   // Auth hook
   const { user, isAuthenticated, isLoading: authLoading, logout, getGitHubAuthUrl } = useAuth();
@@ -140,7 +144,7 @@ export default function Home() {
 
   const handleLocalMode = () => {
     // Set a local storage flag to indicate we're using local mode
-    localStorage.setItem('mem8-local-mode', 'true');
+    localStorage.setItem('agenticinsights-local-mode', 'true');
     // Refresh to re-evaluate authentication state
     window.location.reload();
   };
@@ -230,7 +234,7 @@ export default function Home() {
       <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center">
         <div className="max-w-md w-full text-center space-y-4">
           <div className="text-2xl font-bold">
-            &gt; mem8 TERMINAL
+            &gt; AgenticInsights TERMINAL
           </div>
           
           <div className="space-y-4">
@@ -269,13 +273,13 @@ export default function Home() {
         <div className="flex items-center gap-2">
           <Image 
             src="/logo_mark.png" 
-            alt="mem8" 
+            alt="AgenticInsights" 
             width={16} 
             height={16} 
             className="opacity-70"
           />
           <span className="text-xs text-muted-foreground font-mono">
-            mem8 Terminal v1.2.0
+            AgenticInsights v1.2.0
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -451,7 +455,7 @@ export default function Home() {
           <div className="border-b border-border bg-muted/50">
             <div className="p-4 pb-2">
               <div className="terminal-text text-sm">
-                <span className="text-primary">{user?.username || 'user'}@mem8</span>
+                <span className="text-primary">{user?.username || 'user'}@agenticinsights</span>
                 <span className="text-muted-foreground">:</span>
                 <span className="text-accent">~/memories{searchQuery ? '/search' : ''}</span>
                 <span className="text-primary">$</span>
@@ -506,7 +510,11 @@ export default function Home() {
                 ) : recentThoughts.length > 0 ? (
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   recentThoughts.map((thought: any, index: number) => (
-                    <div key={`${thought.id}-${index}`} className="memory-cell p-4 rounded-lg hover:scale-[1.02] transition-all cursor-pointer">
+                    <div 
+                      key={`${thought.id}-${index}`} 
+                      className="memory-cell p-4 rounded-lg hover:scale-[1.02] transition-all cursor-pointer"
+                      onClick={() => router.push(`/thought/${thought.id}/edit`)}
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium text-base">{thought.title}</h3>
