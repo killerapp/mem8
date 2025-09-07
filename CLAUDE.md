@@ -1,1 +1,2 @@
 - Use conventional commits as this project uses github actions that auto-pubish .github\workflows\release.yml
+- there's already a copy setup with @DOCKER.md that should be hot reloading and browsable to test

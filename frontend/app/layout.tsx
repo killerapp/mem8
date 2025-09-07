@@ -3,6 +3,7 @@ import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 import { AuthGuard } from "@/components/AuthGuard";
+import { getAppName, getVersion } from "@/lib/version";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
@@ -11,8 +12,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AgenticInsights | AI-Powered Knowledge Management",
-  description: "Next-generation AI knowledge management and insights platform",
+  title: `${getAppName()} | Terminal IDE for Thoughts & Knowledge`,
+  description: "A terminal-style IDE for managing thoughts, research, and plans with YAML frontmatter",
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
