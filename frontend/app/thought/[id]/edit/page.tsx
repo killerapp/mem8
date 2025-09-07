@@ -3,14 +3,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useFilesystemThought, useUpdateThought } from '@/hooks/useApi'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { MagicCard } from '@/components/ui/magic-card'
+import { Dock, DockItem } from '@/components/ui/dock'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Save, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Save, AlertCircle, Eye, FileText, Code, Settings } from 'lucide-react'
 import { YamlEditor } from '@/components/editor/YamlEditor'
 import { ContentEditor } from '@/components/editor/ContentEditor'
 import { MarkdownRenderer } from '@/components/editor/MarkdownRenderer'
 import { parseContent, combineContent, validateYaml } from '@/lib/yaml-utils'
+
+type ViewMode = 'preview' | 'content' | 'frontmatter' | 'settings'
 
 export default function EditThoughtPage() {
   const params = useParams()
@@ -24,6 +27,7 @@ export default function EditThoughtPage() {
   const [content, setContent] = useState('')
   const [hasChanges, setHasChanges] = useState(false)
   const [yamlError, setYamlError] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>('preview')
   
   // Initialize content when thought loads
   useEffect(() => {
@@ -103,7 +107,7 @@ export default function EditThoughtPage() {
               Back
             </Button>
             <h1 className="text-xl font-bold terminal-glow text-primary font-mono">
-              {thought.title} • [EDITOR]
+              {thought.title}
             </h1>
             {hasChanges && <Badge variant="syncing">Unsaved</Badge>}
           </div>
@@ -129,48 +133,131 @@ export default function EditThoughtPage() {
           </div>
         )}
 
-        {/* Editor */}
-        <div className="memory-cell rounded-lg p-6 flex-1 flex flex-col min-h-0">
-          <Tabs defaultValue="frontmatter" className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 mb-4 shrink-0">
-              <TabsTrigger value="frontmatter">
-                YAML Frontmatter
-                {yamlError && <AlertCircle className="w-3 h-3 ml-2 text-destructive" />}
-              </TabsTrigger>
-              <TabsTrigger value="content">Markdown Content</TabsTrigger>
-              <TabsTrigger value="preview">Preview</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="frontmatter" className="flex-1 min-h-0">
-              <YamlEditor
-                value={frontmatter}
-                onChange={handleFrontmatterChange}
-                height="100%"
-              />
-            </TabsContent>
-            
-            <TabsContent value="content" className="flex-1 min-h-0">
-              <ContentEditor
-                value={content}
-                onChange={handleContentChange}
-                height="100%"
-              />
-            </TabsContent>
-            
-            <TabsContent value="preview" className="flex-1 min-h-0">
-              <div className="h-full border border-primary/20 rounded-lg bg-card overflow-hidden">
-                <div className="h-full overflow-auto p-6">
+        {/* Editor Container */}
+        <div className="flex-1 flex flex-col min-h-0 relative">
+          {/* Magic Card Content */}
+          <MagicCard className="flex-1 border-primary/30 bg-card/50 backdrop-blur-sm">
+            <div className="h-full p-6 flex flex-col">
+              {viewMode === 'preview' && (
+                <div className="h-full overflow-auto">
                   {content ? (
                     <MarkdownRenderer content={content} />
                   ) : (
-                    <div className="text-muted-foreground font-mono text-sm italic">
+                    <div className="text-muted-foreground font-mono text-sm italic flex items-center justify-center h-full">
                       No markdown content to preview
                     </div>
                   )}
                 </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+              )}
+
+              {viewMode === 'content' && (
+                <div className="h-full">
+                  <ContentEditor
+                    value={content}
+                    onChange={handleContentChange}
+                    height="100%"
+                  />
+                </div>
+              )}
+
+              {viewMode === 'frontmatter' && (
+                <div className="h-full">
+                  <YamlEditor
+                    value={frontmatter}
+                    onChange={handleFrontmatterChange}
+                    height="100%"
+                  />
+                </div>
+              )}
+
+              {viewMode === 'settings' && (
+                <div className="h-full overflow-auto">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 terminal-glow">Document Settings</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm font-mono">
+                        <div>
+                          <span className="text-muted-foreground">Title:</span>
+                          <div className="text-primary">{thought?.title}</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">ID:</span>
+                          <div className="text-primary">{thoughtId}</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Words:</span>
+                          <div className="text-primary">{content.split(/\s+/).length}</div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Characters:</span>
+                          <div className="text-primary">{content.length}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {yamlError && (
+                      <div>
+                        <h4 className="text-md font-semibold mb-2 text-destructive">YAML Issues</h4>
+                        <div className="bg-destructive/10 p-3 rounded border border-destructive/20">
+                          <div className="text-destructive text-sm font-mono">{yamlError}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </MagicCard>
+
+          {/* Floating Dock Navigation */}
+          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+            <Dock>
+              <DockItem 
+                isActive={viewMode === 'preview'} 
+                onClick={() => setViewMode('preview')}
+                className="group relative"
+              >
+                <Eye className="w-5 h-5" />
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-card border border-primary/20 px-2 py-1 rounded text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                  Preview
+                </div>
+              </DockItem>
+              
+              <DockItem 
+                isActive={viewMode === 'content'} 
+                onClick={() => setViewMode('content')}
+                className="group relative"
+              >
+                <FileText className="w-5 h-5" />
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-card border border-primary/20 px-2 py-1 rounded text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                  Content
+                </div>
+              </DockItem>
+              
+              <DockItem 
+                isActive={viewMode === 'frontmatter'} 
+                onClick={() => setViewMode('frontmatter')}
+                className="group relative"
+              >
+                <Code className="w-5 h-5" />
+                {yamlError && <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />}
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-card border border-primary/20 px-2 py-1 rounded text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                  YAML
+                </div>
+              </DockItem>
+              
+              <DockItem 
+                isActive={viewMode === 'settings'} 
+                onClick={() => setViewMode('settings')}
+                className="group relative"
+              >
+                <Settings className="w-5 h-5" />
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-card border border-primary/20 px-2 py-1 rounded text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                  Settings
+                </div>
+              </DockItem>
+            </Dock>
+          </div>
         </div>
       </div>
     </div>
