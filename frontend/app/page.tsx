@@ -146,7 +146,7 @@ export default function Home() {
 
   const handleLocalMode = () => {
     // Set a local storage flag to indicate we're using local mode
-    localStorage.setItem('agenticinsights-local-mode', 'true');
+    localStorage.setItem('mem8-local-mode', 'true');
     // Refresh to re-evaluate authentication state
     window.location.reload();
   };

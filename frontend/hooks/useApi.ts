@@ -69,6 +69,19 @@ export function useUpdateThought() {
   });
 }
 
+export function useUpdateFilesystemThought() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, content }: { id: string; content: string }) => 
+      apiClient.updateFilesystemThought(id, content),
+    onSuccess: (updatedThought) => {
+      queryClient.invalidateQueries({ queryKey: ['filesystem-thoughts'] });
+      queryClient.setQueryData(['filesystem-thoughts', updatedThought.id], updatedThought);
+    },
+  });
+}
+
 export function useDeleteThought() {
   const queryClient = useQueryClient();
   

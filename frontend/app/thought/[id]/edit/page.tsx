@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useFilesystemThought, useUpdateThought } from '@/hooks/useApi'
+import { useFilesystemThought, useUpdateThought, useUpdateFilesystemThought } from '@/hooks/useApi'
 import { MagicCard } from '@/components/ui/magic-card'
 import { Dock, DockItem } from '@/components/ui/dock'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,7 @@ export default function EditThoughtPage() {
   
   const { data: thought, isLoading, error } = useFilesystemThought(thoughtId)
   const updateThought = useUpdateThought()
+  const updateFilesystemThought = useUpdateFilesystemThought()
   
   const [frontmatter, setFrontmatter] = useState('')
   const [content, setContent] = useState('')
@@ -57,10 +58,22 @@ export default function EditThoughtPage() {
     
     try {
       const combinedContent = combineContent(frontmatter, content)
-      await updateThought.mutateAsync({
-        id: thought.id,
-        thought: { content: combinedContent }
-      })
+      
+      // Check if this is a filesystem thought (has file_path property)
+      if ('file_path' in thought) {
+        // Use filesystem update for local thoughts
+        await updateFilesystemThought.mutateAsync({
+          id: thought.id,
+          content: combinedContent
+        })
+      } else {
+        // Use database update for database thoughts
+        await updateThought.mutateAsync({
+          id: thought.id,
+          thought: { content: combinedContent }
+        })
+      }
+      
       setHasChanges(false)
     } catch (error) {
       console.error('Failed to save thought:', error)

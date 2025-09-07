@@ -202,3 +202,29 @@ def get_filesystem_thought_by_id(thought_id: str, base_path: Optional[str] = Non
             return thought
     
     return None
+
+
+def update_filesystem_thought(thought_id: str, content: str, base_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Update a filesystem thought by writing the new content to disk."""
+    
+    # First, find the thought to get its file path
+    thought = get_filesystem_thought_by_id(thought_id, base_path)
+    if not thought:
+        return None
+    
+    # Get the file path
+    file_path = Path(thought.get("file_path"))
+    if not file_path.exists():
+        return None
+    
+    try:
+        # Write the new content to the file
+        file_path.write_text(content, encoding='utf-8')
+        
+        # Re-read the thought to get updated metadata
+        updated_thought = get_filesystem_thought_by_id(thought_id, base_path)
+        return updated_thought
+        
+    except Exception as e:
+        print(f"Error updating thought {thought_id}: {e}")
+        return None
