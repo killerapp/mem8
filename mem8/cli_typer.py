@@ -15,7 +15,7 @@ from . import __version__
 from .core.config import Config
 from .core.memory import MemoryManager
 from .core.sync import SyncManager
-from .core.utils import setup_logging
+from .core.utils import setup_logging, detect_gh_active_login
 from .core.intelligent_query import IntelligentQueryEngine
 from .core.thought_actions import ThoughtActionEngine
 
@@ -602,6 +602,8 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     """Interactive prompts for init command configuration."""
     import typer
     from .core.config import Config
+    from .core.smart_setup import get_git_username
+    from .core.utils import detect_gh_active_login
     
     # Load saved preferences
     config = Config()
@@ -645,6 +647,17 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         template = typer.prompt("Template type", default=default_template)
     
     interactive_config = {"template": template if template != "none" else None}
+
+    # Username selection (prefer GitHub CLI login if available)
+    detected_gh = detect_gh_active_login("github.com")
+    default_username = detected_gh or get_git_username() or "user"
+    if detected_gh:
+        console.print(f"[dim]Detected GitHub login via gh: [green]{detected_gh}[/green][/dim]")
+    interactive_username = typer.prompt(
+        "[bold]Choose username for local thoughts[/bold]",
+        default=default_username,
+    )
+    interactive_config["username"] = interactive_username
     
     # Only gather template configuration if we're installing templates
     if template and template != "none":
@@ -754,13 +767,20 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     else:
         interactive_config["include_repos"] = False
     
-    # Shared directory with intelligent default
-    default_shared = str(context.get('shared_location', Path.home() / "mem8-shared"))
-    shared_dir = typer.prompt(
-        "Shared directory path",
-        default=default_shared
+    # Shared enablement (default: disabled)
+    console.print("\n[cyan]Shared/Team Thoughts[/cyan]")
+    enable_shared = typer.confirm(
+        "Enable shared/team thoughts now? (creates link to a shared location)",
+        default=False,
     )
-    interactive_config["shared_dir"] = Path(shared_dir)
+    interactive_config["shared_enabled"] = enable_shared
+    if enable_shared:
+        default_shared = str(context.get('shared_location', Path.home() / "mem8-shared"))
+        shared_dir = typer.prompt(
+            "Shared directory path",
+            default=default_shared
+        )
+        interactive_config["shared_dir"] = Path(shared_dir)
     
     # Remove web UI launch question - per feedback
     interactive_config["web"] = False
@@ -1413,6 +1433,10 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                         extra_context["github_repo"] = interactive_config["github_repo"]
                     if "workflow_automation" in interactive_config:
                         extra_context["include_workflow_automation"] = interactive_config["workflow_automation"]
+                    if "username" in interactive_config:
+                        extra_context["username"] = interactive_config["username"]
+                    if "shared_enabled" in interactive_config:
+                        extra_context["shared_enabled"] = interactive_config["shared_enabled"]
             
             # Use no_input mode when NOT in interactive mode
             # When interactive_config is None, we're in regular mode, so no_input=True
@@ -1867,3 +1891,19 @@ def metadata_project(
 
 # Enable Typer's built-in completion
 typer_app.add_completion = True
+# Lightweight GitHub CLI helpers
+gh_app = typer.Typer(name="gh", help="GitHub CLI integration helpers")
+typer_app.add_typer(gh_app, name="gh")
+
+
+@gh_app.command("whoami")
+def gh_whoami(
+    host: Annotated[str, typer.Option("--host", help="GitHub host",)] = "github.com",
+):
+    """Show active GitHub CLI login (via `gh auth status`)."""
+    set_app_state()
+    user = detect_gh_active_login(host)
+    if user:
+        console.print(f"Logged in to {host} as [bold]{user}[/bold]")
+    else:
+        console.print("[yellow]gh not detected or no active login for this host[/yellow]")

@@ -11,9 +11,17 @@ class Config:
     """mem8 configuration manager."""
     
     def __init__(self, config_dir: Optional[str] = None):
-        """Initialize configuration manager."""
-        self.config_dir = Path(config_dir) if config_dir else Path(user_config_dir("mem8"))
-        self.data_dir = Path(user_data_dir("mem8"))
+        """Initialize configuration manager.
+
+        Honors environment overrides for testability and isolation:
+        - MEM8_CONFIG_DIR: overrides platformdirs' config directory
+        - MEM8_DATA_DIR: overrides platformdirs' data directory
+        """
+        env_config_dir = os.environ.get("MEM8_CONFIG_DIR")
+        env_data_dir = os.environ.get("MEM8_DATA_DIR")
+
+        self.config_dir = Path(config_dir or env_config_dir or user_config_dir("mem8"))
+        self.data_dir = Path(env_data_dir or user_data_dir("mem8"))
         self.config_file = self.config_dir / "config.yaml"
         
         # Ensure directories exist
@@ -42,6 +50,9 @@ class Config:
                 'default_template': 'full',
                 'auto_sync': True,
                 'sync_interval': 300,  # 5 minutes
+            },
+            'discovery': {
+                'cross_repo': False,  # default to single-repo discovery
             },
             'workflow': {
                 'provider': 'github',
@@ -186,6 +197,10 @@ class Config:
     
     def create_home_shortcut(self) -> bool:
         """Create a ~/.mem8 shortcut to the config directory (like kubectl)."""
+        # Allow disabling from environment to avoid side-effects during tests
+        if os.environ.get("MEM8_DISABLE_HOME_SHORTCUT") == "1":
+            return False
+
         home_shortcut = Path.home() / ".mem8"
         
         try:

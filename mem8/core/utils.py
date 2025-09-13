@@ -6,6 +6,8 @@ import platform
 import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict, Any
+import shutil
+import re
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -295,3 +297,35 @@ def get_template_path(template_name: str) -> Path:
         return dev_path
     
     raise FileNotFoundError(f"Template not found: {template_name}")
+
+
+def detect_gh_active_login(hostname: str = "github.com") -> Optional[str]:
+    """Detect active GitHub CLI login for a host using `gh auth status`.
+
+    Returns the detected username or None if unavailable.
+    Does not require network; relies on local gh auth configuration.
+    """
+    if not shutil.which("gh"):
+        return None
+    try:
+        # Limit to specific hostname for determinism
+        result = subprocess.run(
+            ["gh", "auth", "status", "--hostname", hostname],
+            capture_output=True,
+            text=True,
+            timeout=3,
+            check=False,
+        )
+        out = (result.stdout or "") + "\n" + (result.stderr or "")
+        # Common formats:
+        # "Logged in to github.com as <login> ..."
+        m = re.search(r"Logged in to\s+%s\s+as\s+([A-Za-z0-9-_.]+)" % re.escape(hostname), out)
+        if m:
+            return m.group(1)
+        # "Logged in to github.com account '<login>' ..."
+        m = re.search(r"Logged in to\s+%s\s+account\s+'([^']+)'" % re.escape(hostname), out)
+        if m:
+            return m.group(1)
+        return None
+    except Exception:
+        return None
