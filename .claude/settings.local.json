@@ -127,7 +127,8 @@
       "Bash(gh run list:*)",
       "mcp__browser__browser_press_key",
       "Bash(uv sync:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(docker-compose:*)"
     ],
     "deny": [],
     "ask": []

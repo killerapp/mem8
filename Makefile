@@ -1,5 +1,6 @@
 # mem8 Development Makefile
-.PHONY: help test test-ui test-dashboard test-watch install-dev lint format clean
+.PHONY: help test test-ui test-dashboard test-watch install-dev lint format clean \
+	backend-install-dev backend-dev frontend-install frontend-dev compose-up compose-down compose-logs
 
 help:  ## Show this help message
 	@echo "mem8 Development Commands:"
@@ -46,3 +47,28 @@ install-local:  ## Install mem8 locally in editable mode
 
 release:  ## Create a new release (semantic-release)
 	uv run semantic-release publish
+
+# ---------------------------------------------------------------------------
+# Convenience targets for local development
+# ---------------------------------------------------------------------------
+
+backend-install-dev:  ## Install backend development dependencies
+	cd backend && uv sync --extra dev
+
+backend-dev:  ## Start FastAPI dev server on :8000
+	cd backend && uv run uvicorn mem8_api.main:app --reload --host 127.0.0.1 --port 8000
+
+frontend-install:  ## Install frontend dependencies
+	cd frontend && npm install
+
+frontend-dev:  ## Start Next.js dev server on :22211
+	cd frontend && npm run dev
+
+compose-up:  ## Start full stack (postgres, redis, backend, frontend)
+	docker-compose --env-file .env.dev up
+
+compose-down:  ## Stop stack and remove containers
+	docker-compose --env-file .env.dev down
+
+compose-logs:  ## Tail docker compose logs
+	docker-compose logs -f

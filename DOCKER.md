@@ -18,7 +18,7 @@ docker-compose --env-file .env.dev down
 ```
 
 **Development features:**
-- ✅ Frontend hot reloading with volume mounts
+- ✅ Frontend hot reloading with volume mounts and polling for Windows
 - ✅ Development Dockerfile.dev with npm dev server
 - ✅ PostgreSQL on port 5433 (external) to avoid local conflicts
 - ✅ Debug logging enabled
@@ -75,7 +75,7 @@ docker-compose -f docker-compose.prod.yml down
 1. **No CUDA Dependencies**: Removed sentence-transformers to avoid 3GB+ ML stack
 2. **Port 22211**: Updated from 3000 to avoid conflicts
 3. **Database Flexibility**: Uses text search fallback instead of embeddings
-4. **Hot Reloading**: Development setup supports live frontend editing
+4. **Hot Reloading**: Development setup supports live frontend editing with file polling for Windows Docker
 5. **Health Checks**: All services have proper health monitoring
 6. **Environment Separation**: Clear dev/prod configuration split
 

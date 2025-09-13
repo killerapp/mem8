@@ -1,9 +1,9 @@
 """Public API endpoints that don't require authentication."""
 
 from typing import List, Optional
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 
-from ..services.filesystem_thoughts import get_filesystem_thoughts
+from ..services.filesystem_thoughts import get_filesystem_thoughts, get_filesystem_thought_by_id, update_filesystem_thought
 
 router = APIRouter()
 
@@ -54,3 +54,31 @@ async def list_local_thoughts(
             "hot_reload_test": "working_after_restart"
         }
     }
+
+
+@router.get("/thoughts/local/{thought_id}")
+async def get_local_thought(thought_id: str):
+    """Get a specific thought directly from local filesystem by its hash ID."""
+    
+    thought = get_filesystem_thought_by_id(thought_id)
+    if not thought:
+        raise HTTPException(status_code=404, detail=f"Thought with ID {thought_id} not found")
+    
+    return thought
+
+
+@router.put("/thoughts/local/{thought_id}")
+async def update_local_thought(thought_id: str, request: dict):
+    """Update a specific thought on the local filesystem."""
+    
+    # Extract content from request
+    content = request.get("content")
+    if not content:
+        raise HTTPException(status_code=400, detail="Content is required")
+    
+    # Update the thought
+    updated_thought = update_filesystem_thought(thought_id, content)
+    if not updated_thought:
+        raise HTTPException(status_code=404, detail=f"Thought with ID {thought_id} not found or could not be updated")
+    
+    return updated_thought
