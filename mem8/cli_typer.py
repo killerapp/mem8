@@ -15,7 +15,7 @@ from . import __version__
 from .core.config import Config
 from .core.memory import MemoryManager
 from .core.sync import SyncManager
-from .core.utils import setup_logging
+from .core.utils import setup_logging, detect_gh_active_login
 from .core.intelligent_query import IntelligentQueryEngine
 from .core.thought_actions import ThoughtActionEngine
 
@@ -602,6 +602,8 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     """Interactive prompts for init command configuration."""
     import typer
     from .core.config import Config
+    from .core.smart_setup import get_git_username
+    from .integrations.github import get_consistent_github_context
     
     # Load saved preferences
     config = Config()
@@ -637,7 +639,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     console.print("")
     
     template = typer.prompt(
-        "[bold]Choose template type[/bold]", 
+        "Choose template type",
         default=default_template
     )
     while template not in template_choices:
@@ -645,6 +647,19 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         template = typer.prompt("Template type", default=default_template)
     
     interactive_config = {"template": template if template != "none" else None}
+
+    # Get consistent GitHub context
+    gh_context = get_consistent_github_context(prefer_authenticated_user=True)
+
+    # Username selection (prefer GitHub CLI login if available)
+    default_username = gh_context["username"] or get_git_username() or "user"
+    if gh_context["username"]:
+        console.print(f"[dim]Detected GitHub login via gh: [green]{gh_context['username']}[/green][/dim]")
+    interactive_username = typer.prompt(
+        "Choose username for local thoughts",
+        default=default_username,
+    )
+    interactive_config["username"] = interactive_username
     
     # Only gather template configuration if we're installing templates
     if template and template != "none":
@@ -665,7 +680,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         if defaults.get('workflow_provider') and defaults.get('workflow_provider') != 'github':
             console.print(f"[dim]💾 Using saved preference: {default_workflow}[/dim]")
         workflow_provider = typer.prompt(
-            "[bold]Choose workflow provider[/bold]",
+            "Choose workflow provider",
             default=default_workflow
         )
         while workflow_provider not in workflow_choices:
@@ -693,12 +708,12 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
             if defaults.get('automation_level') and defaults.get('automation_level') != 'standard':
                 console.print(f"[dim]💾 Using saved preference: {default_automation}[/dim]")
             workflow_automation = typer.prompt(
-                "[bold]Choose automation level[/bold]",
+                "Choose automation level",
                 default=default_automation
             )
             while workflow_automation not in automation_choices:
                 console.print(f"[red]Invalid choice. Please select from: {', '.join(automation_choices)}[/red]")
-                workflow_automation = typer.prompt("[bold]Choose automation level[/bold]", default="standard")
+                workflow_automation = typer.prompt("Choose automation level", default="standard")
             interactive_config["workflow_automation"] = workflow_automation
         
         # GitHub-specific configuration
@@ -707,34 +722,24 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
             console.print("Configure GitHub integration for issue management and workflows.")
             console.print("")
             
-            # Try to auto-detect GitHub repo info using gh CLI, or use saved defaults
-            github_org = defaults.get('github_org') or "your-org"
-            github_repo = defaults.get('github_repo') or "your-repo" 
-            
-            import shutil
-            import subprocess
-            import json
-            
-            if shutil.which("gh"):
-                try:
-                    result = subprocess.run(
-                        ["gh", "repo", "view", "--json", "owner,name"], 
-                        capture_output=True, 
-                        text=True, 
-                        timeout=5
-                    )
-                    if result.returncode == 0:
-                        repo_data = json.loads(result.stdout)
-                        github_org = repo_data["owner"]["login"]
-                        github_repo = repo_data["name"]
+            # Use consistent GitHub context for defaults
+            github_org = defaults.get('github_org') or gh_context.get("org") or "your-org"
+            github_repo = defaults.get('github_repo') or gh_context.get("repo") or "your-repo"
+
+            if gh_context.get("org") and gh_context.get("repo"):
+                # Show what was detected and from where
+                if gh_context["auth_user"] and gh_context["repo_owner"]:
+                    if gh_context["auth_user"] == gh_context["repo_owner"]:
                         console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
-                        console.print("")
                     else:
-                        console.print("[yellow]⚠️  gh CLI available but no repository detected in current directory[/yellow]")
-                        console.print("")
-                except (subprocess.TimeoutExpired, json.JSONDecodeError, KeyError, FileNotFoundError):
-                    console.print("[yellow]⚠️  Could not auto-detect repository info from gh CLI[/yellow]")
-                    console.print("")
+                        console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
+                        console.print(f"[dim]  (Authenticated as: {gh_context['auth_user']}, Repo owner: {gh_context['repo_owner']})[/dim]")
+                else:
+                    console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
+                console.print("")
+            elif gh_context.get("username"):
+                console.print("[yellow]⚠️  gh CLI available but no repository detected in current directory[/yellow]")
+                console.print("")
             else:
                 console.print("[yellow]💡 Tip: Install 'gh' CLI for auto-detection of GitHub repositories[/yellow]")
                 console.print("")
@@ -754,13 +759,20 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     else:
         interactive_config["include_repos"] = False
     
-    # Shared directory with intelligent default
-    default_shared = str(context.get('shared_location', Path.home() / "mem8-shared"))
-    shared_dir = typer.prompt(
-        "Shared directory path",
-        default=default_shared
+    # Shared enablement (default: disabled)
+    console.print("\n[cyan]Shared/Team Thoughts[/cyan]")
+    enable_shared = typer.confirm(
+        "Enable shared/team thoughts now? (creates link to a shared location)",
+        default=False,
     )
-    interactive_config["shared_dir"] = Path(shared_dir)
+    interactive_config["shared_enabled"] = enable_shared
+    if enable_shared:
+        default_shared = str(context.get('shared_location', Path.home() / "mem8-shared"))
+        shared_dir = typer.prompt(
+            "Shared directory path",
+            default=default_shared
+        )
+        interactive_config["shared_dir"] = Path(shared_dir)
     
     # Remove web UI launch question - per feedback
     interactive_config["web"] = False
@@ -1214,6 +1226,7 @@ def init(
         
         if shared_dir:
             config['shared_location'] = shared_dir
+            config['shared_enabled'] = True  # Enable shared when --shared-dir is provided
         
         # 4. Handle confirmations if needed
         if needs_confirmation and not force:
@@ -1413,6 +1426,10 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                         extra_context["github_repo"] = interactive_config["github_repo"]
                     if "workflow_automation" in interactive_config:
                         extra_context["include_workflow_automation"] = interactive_config["workflow_automation"]
+                    if "username" in interactive_config:
+                        extra_context["username"] = interactive_config["username"]
+                    if "shared_enabled" in interactive_config:
+                        extra_context["shared_enabled"] = interactive_config["shared_enabled"]
             
             # Use no_input mode when NOT in interactive mode
             # When interactive_config is None, we're in regular mode, so no_input=True
@@ -1867,3 +1884,30 @@ def metadata_project(
 
 # Enable Typer's built-in completion
 typer_app.add_completion = True
+# Lightweight GitHub CLI helpers
+gh_app = typer.Typer(name="gh", help="GitHub CLI integration helpers")
+typer_app.add_typer(gh_app, name="gh")
+
+
+@gh_app.command("whoami")
+def gh_whoami(
+    host: Annotated[str, typer.Option("--host", help="GitHub host",)] = "github.com",
+):
+    """Show active GitHub CLI login and current repository context."""
+    set_app_state()
+    from .integrations.github import get_consistent_github_context
+
+    gh_context = get_consistent_github_context()
+
+    if gh_context["username"]:
+        console.print(f"Logged in to {host} as [bold]{gh_context['username']}[/bold]")
+
+        if gh_context["org"] and gh_context["repo"]:
+            console.print(f"Current repository: [bold]{gh_context['org']}/{gh_context['repo']}[/bold]")
+
+            if gh_context["auth_user"] != gh_context["repo_owner"]:
+                console.print(f"[dim]Note: You're authenticated as {gh_context['auth_user']} but this repo is owned by {gh_context['repo_owner']}[/dim]")
+        else:
+            console.print("[dim]No repository detected in current directory[/dim]")
+    else:
+        console.print("[yellow]gh not detected or no active login for this host[/yellow]")

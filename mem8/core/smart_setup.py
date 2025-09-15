@@ -7,7 +7,14 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 import requests
 
-from .utils import get_git_info, get_shared_directory, create_symlink, ensure_directory_exists
+from .utils import (
+    get_git_info,
+    get_shared_directory,
+    create_symlink,
+    create_symlink_with_info,
+    ensure_directory_exists,
+    detect_gh_active_login,
+)
 
 
 def detect_project_context() -> Dict[str, Any]:
@@ -170,7 +177,25 @@ def infer_project_type() -> str:
 
 
 def get_git_username() -> str:
-    """Get git username from config."""
+    """Determine a sensible username for mem8.
+
+    Preference order:
+    1) MEM8_USERNAME env
+    2) gh CLI active login (github.com)
+    3) git config user.name
+    4) OS user (USER/USERNAME)
+    """
+    # 1) explicit env override
+    env_name = os.environ.get('MEM8_USERNAME')
+    if env_name:
+        return env_name
+
+    # 2) gh CLI active login
+    gh_login = detect_gh_active_login('github.com')
+    if gh_login:
+        return gh_login
+
+    # 3) git config user.name
     try:
         result = subprocess.run(
             ['git', 'config', 'user.name'],
@@ -178,10 +203,14 @@ def get_git_username() -> str:
             text=True,
             check=True
         )
-        return result.stdout.strip()
+        name = result.stdout.strip()
+        if name:
+            return name
     except (subprocess.CalledProcessError, FileNotFoundError):
-        # Fallback to system username
-        return os.environ.get('USER', os.environ.get('USERNAME', 'user'))
+        pass
+
+    # 4) OS user
+    return os.environ.get('USER', os.environ.get('USERNAME', 'user'))
 
 
 def find_optimal_shared_location() -> Path:
@@ -224,7 +253,9 @@ def generate_smart_config(context: Dict[str, Any], repos_arg: Optional[str] = No
     
     config = {
         'username': context['username'],
+        # Do not enable shared by default; path is available but unused unless enabled
         'shared_location': context['shared_location'],
+        'shared_enabled': False,
         'project_type': context['project_type'],
         'is_claude_project': context['is_claude_code_project'],
         'repositories': repos,
@@ -246,21 +277,54 @@ def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
         results['errors'].append(f"Failed to create {thoughts_dir}")
         return results
     
-    # Create shared symlink or junction
-    shared_dir = thoughts_dir / 'shared'
-    if not shared_dir.exists():
-        shared_location = Path(config['shared_location'])
-        
-        # Ensure shared location exists
-        if ensure_directory_exists(shared_location):
-            results['created'].append(str(shared_location))
-        
-        # Create the link
-        if create_shared_link(shared_dir, shared_location):
-            results['linked'].append(f"{shared_dir} -> {shared_location}")
-        else:
-            results['errors'].append(f"Failed to create symlink {shared_dir} -> {shared_location}")
-    
+    # Shared integration is optional and disabled by default.
+    # Only set up shared when explicitly enabled and a shared_location provided.
+    if config.get('shared_enabled') and config.get('shared_location'):
+        shared_dir_link = thoughts_dir / 'shared'
+        if not shared_dir_link.exists():
+            base = Path(config['shared_location'])
+
+            # Validate write permissions before attempting setup
+            try:
+                test_file = base / '.mem8_test'
+                test_file.parent.mkdir(parents=True, exist_ok=True)
+                test_file.touch()
+                test_file.unlink()
+            except (OSError, PermissionError) as e:
+                results['errors'].append(f"Cannot write to shared location {base}: {e}")
+                return results
+
+            # Create shared base structure at <shared_location>/thoughts
+            shared_thoughts_root = base / 'thoughts'
+            if ensure_directory_exists(shared_thoughts_root):
+                results['created'].append(str(shared_thoughts_root))
+            # Standard directories under shared root (aligned with MemoryManager)
+            for rel in [
+                'shared/decisions', 'shared/plans', 'shared/research', 'shared/tickets', 'shared/prs',
+                'global/shared', 'searchable',
+            ]:
+                ensure_directory_exists(shared_thoughts_root / rel)
+            # Create README if missing
+            readme = shared_thoughts_root / 'README.md'
+            if not readme.exists():
+                readme.write_text(
+                    "# Shared AI Memory\n\nThis directory contains shared thoughts and memory for the team.\n",
+                    encoding='utf-8'
+                )
+            # Link local thoughts/shared -> <shared_location>/thoughts
+            success, link_type = create_shared_link(shared_dir_link, shared_thoughts_root)
+            if success:
+                link_type_desc = {
+                    "junction": "Windows junction",
+                    "symlink": "symbolic link",
+                    "directory": "directory (fallback)"
+                }.get(link_type, link_type)
+                results['linked'].append(f"{shared_dir_link} -> {shared_thoughts_root} ({link_type_desc})")
+            else:
+                results['errors'].append(
+                    f"Failed to create link {shared_dir_link} -> {shared_thoughts_root}"
+                )
+
     # Create user directory
     user_dir = thoughts_dir / config['username']
     if ensure_directory_exists(user_dir):
@@ -280,17 +344,22 @@ def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
     return results
 
 
-def create_shared_link(link_path: Path, target_path: Path) -> bool:
-    """Create shared directory link with fallback options."""
-    # Try symlink first
-    if create_symlink(target_path, link_path):
-        return True
-    
+def create_shared_link(link_path: Path, target_path: Path) -> tuple[bool, str]:
+    """Create shared directory link with fallback options.
+
+    Returns:
+        (success, link_type) where link_type describes what was created
+    """
+    # Try symlink/junction first
+    success, link_type = create_symlink_with_info(target_path, link_path)
+    if success:
+        return True, link_type
+
     # If symlink fails, create the directory locally as fallback
     if ensure_directory_exists(link_path):
-        return True
-    
-    return False
+        return True, "directory"
+
+    return False, "failed"
 
 
 def launch_web_ui() -> bool:

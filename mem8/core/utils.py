@@ -6,6 +6,8 @@ import platform
 import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict, Any
+import shutil
+import re
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -229,21 +231,54 @@ def create_symlink(target: Path, link_path: Path) -> bool:
                 link_path.unlink()
             else:
                 return False
-        
+
         # On Windows, try junction for directories
         if platform.system().lower() == 'windows' and target.is_dir():
             try:
-                subprocess.run(['mklink', '/J', str(link_path), str(target)], 
+                subprocess.run(['mklink', '/J', str(link_path), str(target)],
                               shell=True, check=True)
                 return True
             except subprocess.CalledProcessError:
                 pass
-        
+
         # Standard symlink
         os.symlink(target, link_path)
         return True
     except (OSError, NotImplementedError):
         return False
+
+
+def create_symlink_with_info(target: Path, link_path: Path) -> tuple[bool, str]:
+    """Create a symlink with cross-platform support and return info about what was created.
+
+    Returns:
+        (success, link_type) where link_type is one of:
+        - "junction" (Windows directory junction)
+        - "symlink" (Unix symlink or Windows symlink)
+        - "directory" (fallback regular directory)
+        - "failed" (could not create any type)
+    """
+    try:
+        if link_path.exists():
+            if link_path.is_symlink():
+                link_path.unlink()
+            else:
+                return False, "failed"
+
+        # On Windows, try junction for directories
+        if platform.system().lower() == 'windows' and target.is_dir():
+            try:
+                subprocess.run(['mklink', '/J', str(link_path), str(target)],
+                              shell=True, check=True, capture_output=True)
+                return True, "junction"
+            except subprocess.CalledProcessError:
+                pass
+
+        # Standard symlink
+        os.symlink(target, link_path)
+        return True, "symlink"
+    except (OSError, NotImplementedError):
+        return False, "failed"
 
 
 def ensure_directory_exists(path: Path) -> bool:
@@ -295,3 +330,35 @@ def get_template_path(template_name: str) -> Path:
         return dev_path
     
     raise FileNotFoundError(f"Template not found: {template_name}")
+
+
+def detect_gh_active_login(hostname: str = "github.com") -> Optional[str]:
+    """Detect active GitHub CLI login for a host using `gh auth status`.
+
+    Returns the detected username or None if unavailable.
+    Does not require network; relies on local gh auth configuration.
+    """
+    if not shutil.which("gh"):
+        return None
+    try:
+        # Limit to specific hostname for determinism
+        result = subprocess.run(
+            ["gh", "auth", "status", "--hostname", hostname],
+            capture_output=True,
+            text=True,
+            timeout=3,
+            check=False,
+        )
+        out = (result.stdout or "") + "\n" + (result.stderr or "")
+        # Common formats:
+        # "Logged in to github.com as <login> ..."
+        m = re.search(r"Logged in to\s+%s\s+as\s+([A-Za-z0-9-_.]+)" % re.escape(hostname), out)
+        if m:
+            return m.group(1)
+        # "Logged in to github.com account '<login>' ..."
+        m = re.search(r"Logged in to\s+%s\s+account\s+'([^']+)'" % re.escape(hostname), out)
+        if m:
+            return m.group(1)
+        return None
+    except Exception:
+        return None

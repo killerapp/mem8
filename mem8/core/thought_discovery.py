@@ -79,6 +79,10 @@ class ThoughtDiscoveryService:
     
     def _discover_repositories(self) -> List[Path]:
         """Discover repositories that might contain thoughts."""
+        # Respect configuration: default to single-repo only
+        if not self.config.get('discovery.cross_repo', False):
+            return []
+
         repos = []
         
         # Check configured shared directory
