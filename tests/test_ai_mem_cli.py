@@ -267,7 +267,7 @@ class Testmem8CLI:
         
         # Test that init detects and warns about existing data
         result = self.run_mem8([
-            "init", "--template", "thoughts-repo"
+            "init", "--template", "thoughts-repo", "--non-interactive"
         ], expect_success=False)
         
         # Should warn about existing data
