@@ -603,7 +603,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     import typer
     from .core.config import Config
     from .core.smart_setup import get_git_username
-    from .core.utils import detect_gh_active_login
+    from .integrations.github import get_consistent_github_context
     
     # Load saved preferences
     config = Config()
@@ -648,11 +648,13 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     
     interactive_config = {"template": template if template != "none" else None}
 
+    # Get consistent GitHub context
+    gh_context = get_consistent_github_context(prefer_authenticated_user=True)
+
     # Username selection (prefer GitHub CLI login if available)
-    detected_gh = detect_gh_active_login("github.com")
-    default_username = detected_gh or get_git_username() or "user"
-    if detected_gh:
-        console.print(f"[dim]Detected GitHub login via gh: [green]{detected_gh}[/green][/dim]")
+    default_username = gh_context["username"] or get_git_username() or "user"
+    if gh_context["username"]:
+        console.print(f"[dim]Detected GitHub login via gh: [green]{gh_context['username']}[/green][/dim]")
     interactive_username = typer.prompt(
         "Choose username for local thoughts",
         default=default_username,
@@ -720,34 +722,24 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
             console.print("Configure GitHub integration for issue management and workflows.")
             console.print("")
             
-            # Try to auto-detect GitHub repo info using gh CLI, or use saved defaults
-            github_org = defaults.get('github_org') or "your-org"
-            github_repo = defaults.get('github_repo') or "your-repo" 
-            
-            import shutil
-            import subprocess
-            import json
-            
-            if shutil.which("gh"):
-                try:
-                    result = subprocess.run(
-                        ["gh", "repo", "view", "--json", "owner,name"], 
-                        capture_output=True, 
-                        text=True, 
-                        timeout=5
-                    )
-                    if result.returncode == 0:
-                        repo_data = json.loads(result.stdout)
-                        github_org = repo_data["owner"]["login"]
-                        github_repo = repo_data["name"]
+            # Use consistent GitHub context for defaults
+            github_org = defaults.get('github_org') or gh_context.get("org") or "your-org"
+            github_repo = defaults.get('github_repo') or gh_context.get("repo") or "your-repo"
+
+            if gh_context.get("org") and gh_context.get("repo"):
+                # Show what was detected and from where
+                if gh_context["auth_user"] and gh_context["repo_owner"]:
+                    if gh_context["auth_user"] == gh_context["repo_owner"]:
                         console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
-                        console.print("")
                     else:
-                        console.print("[yellow]⚠️  gh CLI available but no repository detected in current directory[/yellow]")
-                        console.print("")
-                except (subprocess.TimeoutExpired, json.JSONDecodeError, KeyError, FileNotFoundError):
-                    console.print("[yellow]⚠️  Could not auto-detect repository info from gh CLI[/yellow]")
-                    console.print("")
+                        console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
+                        console.print(f"[dim]  (Authenticated as: {gh_context['auth_user']}, Repo owner: {gh_context['repo_owner']})[/dim]")
+                else:
+                    console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
+                console.print("")
+            elif gh_context.get("username"):
+                console.print("[yellow]⚠️  gh CLI available but no repository detected in current directory[/yellow]")
+                console.print("")
             else:
                 console.print("[yellow]💡 Tip: Install 'gh' CLI for auto-detection of GitHub repositories[/yellow]")
                 console.print("")
@@ -1900,10 +1892,21 @@ typer_app.add_typer(gh_app, name="gh")
 def gh_whoami(
     host: Annotated[str, typer.Option("--host", help="GitHub host",)] = "github.com",
 ):
-    """Show active GitHub CLI login (via `gh auth status`)."""
+    """Show active GitHub CLI login and current repository context."""
     set_app_state()
-    user = detect_gh_active_login(host)
-    if user:
-        console.print(f"Logged in to {host} as [bold]{user}[/bold]")
+    from .integrations.github import get_consistent_github_context
+
+    gh_context = get_consistent_github_context()
+
+    if gh_context["username"]:
+        console.print(f"Logged in to {host} as [bold]{gh_context['username']}[/bold]")
+
+        if gh_context["org"] and gh_context["repo"]:
+            console.print(f"Current repository: [bold]{gh_context['org']}/{gh_context['repo']}[/bold]")
+
+            if gh_context["auth_user"] != gh_context["repo_owner"]:
+                console.print(f"[dim]Note: You're authenticated as {gh_context['auth_user']} but this repo is owned by {gh_context['repo_owner']}[/dim]")
+        else:
+            console.print("[dim]No repository detected in current directory[/dim]")
     else:
         console.print("[yellow]gh not detected or no active login for this host[/yellow]")
