@@ -1226,6 +1226,7 @@ def init(
         
         if shared_dir:
             config['shared_location'] = shared_dir
+            config['shared_enabled'] = True  # Enable shared when --shared-dir is provided
         
         # 4. Handle confirmations if needed
         if needs_confirmation and not force:
