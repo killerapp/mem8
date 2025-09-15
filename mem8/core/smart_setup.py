@@ -282,6 +282,17 @@ def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
         shared_dir_link = thoughts_dir / 'shared'
         if not shared_dir_link.exists():
             base = Path(config['shared_location'])
+
+            # Validate write permissions before attempting setup
+            try:
+                test_file = base / '.mem8_test'
+                test_file.parent.mkdir(parents=True, exist_ok=True)
+                test_file.touch()
+                test_file.unlink()
+            except (OSError, PermissionError) as e:
+                results['errors'].append(f"Cannot write to shared location {base}: {e}")
+                return results
+
             # Create shared base structure at <shared_location>/thoughts
             shared_thoughts_root = base / 'thoughts'
             if ensure_directory_exists(shared_thoughts_root):

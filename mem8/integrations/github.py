@@ -43,7 +43,14 @@ def get_token(host: str = "github.com") -> Optional[str]:
             token = (result.stdout or "").strip()
             if token:
                 return token
+        except subprocess.TimeoutExpired:
+            # Silent fail, move to env fallback
+            pass
+        except subprocess.CalledProcessError:
+            # gh command failed, move to env fallback
+            pass
         except Exception:
+            # Any other error, move to env fallback
             pass
     # Fallback to env
     return os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
