@@ -615,15 +615,73 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     
     console.print(f"\nDetected: {context['project_type']} project")
     
-    # Explain the mem8 workflow philosophy
-    console.print("\n[cyan]📚 About mem8 Development Workflow[/cyan]")
-    console.print("mem8 helps you follow a structured development loop:")
-    console.print("  • [bold green]Research[/bold green]: Understand existing code patterns (/research_codebase)")
-    console.print("  • [bold blue]Plan[/bold blue]: Design your implementation approach (/create_plan)")  
-    console.print("  • [bold yellow]Implement[/bold yellow]: Execute with progress tracking (/implement_plan)")
-    console.print("  • [bold magenta]Commit[/bold magenta]: Create atomic, well-documented changes (/commit)")
+    # Get consistent GitHub context early
+    gh_context = get_consistent_github_context(prefer_authenticated_user=True)
+
+    # Start with workflow provider since most users want GitHub integration
+    console.print("\n[cyan]🔧 Workflow Provider Configuration[/cyan]")
+    console.print("Choose how you track and manage development tasks:")
     console.print("")
-    
+    console.print("[bold yellow]Provider Options:[/bold yellow]")
+    console.print("  • [green]github[/green]: Use GitHub Issues with labels (free, recommended)")
+    console.print("    - Creates commands for issue management via 'gh' CLI")
+    console.print("    - Simple workflow: needs-triage → ready-for-plan → ready-for-dev")
+    console.print("  • [red]none[/red]: No issue tracking integration")
+    console.print("")
+
+    # Workflow provider selection - simplified to just GitHub or none
+    workflow_choices = ["github", "none"]
+    default_workflow = 'github'  # Always default to GitHub since it's most common
+    saved_preference = defaults.get('workflow_provider')
+    if saved_preference and saved_preference in workflow_choices and saved_preference != 'github':
+        console.print(f"[dim]💾 Using saved preference: {saved_preference}[/dim]")
+        default_workflow = saved_preference
+
+    workflow_provider = typer.prompt(
+        "Choose workflow provider",
+        default=default_workflow
+    )
+    while workflow_provider not in workflow_choices:
+        console.print(f"[red]Invalid choice. Please select: github or none[/red]")
+        workflow_provider = typer.prompt("Workflow provider", default="github")
+
+    interactive_config = {"workflow_provider": workflow_provider}
+
+    # GitHub-specific configuration (do this early if GitHub is selected)
+    if workflow_provider == "github":
+        console.print("[cyan]🐙 GitHub Repository Configuration[/cyan]")
+        console.print("Configure GitHub integration for issue management and workflows.")
+        console.print("")
+
+        # Use consistent GitHub context for defaults (prefer active account over saved preferences)
+        github_org = gh_context.get("org") or gh_context.get("username") or defaults.get('github_org') or "your-org"
+        github_repo = gh_context.get("repo") or defaults.get('github_repo') or "your-repo"
+
+        if gh_context.get("org") and gh_context.get("repo"):
+            # Show what was detected and from where
+            if gh_context["auth_user"] and gh_context["repo_owner"]:
+                if gh_context["auth_user"] == gh_context["repo_owner"]:
+                    console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
+                else:
+                    console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
+                    console.print(f"[dim]  (Authenticated as: {gh_context['auth_user']}, Repo owner: {gh_context['repo_owner']})[/dim]")
+            else:
+                console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
+            console.print("")
+        elif gh_context.get("username"):
+            console.print("[yellow]⚠️  No GitHub repository linked to current directory[/yellow]")
+            console.print("[dim]    (Local git repo exists but not pushed to GitHub yet)[/dim]")
+            console.print("")
+        else:
+            console.print("")
+
+        github_org = typer.prompt("GitHub username (for personal repos, use your username; for org repos, use organization name)", default=github_org)
+        github_repo = typer.prompt("GitHub repository name", default=github_repo)
+        interactive_config.update({
+            "github_org": github_org,
+            "github_repo": github_repo
+        })
+
     # Template selection with enhanced context
     default_template = defaults.get('template', 'full')
     if defaults.get('template') != 'full':
@@ -645,11 +703,8 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     while template not in template_choices:
         console.print(f"[red]Invalid choice. Please select from: {', '.join(template_choices)}[/red]")
         template = typer.prompt("Template type", default=default_template)
-    
-    interactive_config = {"template": template if template != "none" else None}
 
-    # Get consistent GitHub context
-    gh_context = get_consistent_github_context(prefer_authenticated_user=True)
+    interactive_config["template"] = template if template != "none" else None
 
     # Username selection (prefer GitHub CLI login if available)
     default_username = gh_context["username"] or get_git_username() or "user"
@@ -660,96 +715,32 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         default=default_username,
     )
     interactive_config["username"] = interactive_username
-    
-    # Only gather template configuration if we're installing templates
-    if template and template != "none":
-        console.print("\n[cyan]🔧 Workflow Provider Configuration[/cyan]")
-        console.print("Choose how you track and manage development tasks:")
-        console.print("")
-        console.print("[bold yellow]Provider Options:[/bold yellow]")
-        console.print("  • [green]github[/green]: Use GitHub Issues with labels (free, open source)")
-        console.print("    - Creates commands for issue management via 'gh' CLI")
-        console.print("    - Simple workflow: needs-triage → ready-for-plan → ready-for-dev")
-        console.print("  • [blue]linear[/blue]: Use Linear for project management (requires account)")
-        console.print("  • [red]none[/red]: No issue tracking integration")
-        console.print("")
-        
-        # Workflow provider selection
-        workflow_choices = ["github", "linear", "none"]
-        default_workflow = defaults.get('workflow_provider', 'github')
-        if defaults.get('workflow_provider') and defaults.get('workflow_provider') != 'github':
-            console.print(f"[dim]💾 Using saved preference: {default_workflow}[/dim]")
-        workflow_provider = typer.prompt(
-            "Choose workflow provider",
-            default=default_workflow
-        )
-        while workflow_provider not in workflow_choices:
-            console.print(f"[red]Invalid choice. Please select from: {', '.join(workflow_choices)}[/red]")
-            workflow_provider = typer.prompt("Workflow provider (GitHub is free and open source)", default="github")
-        interactive_config["workflow_provider"] = workflow_provider
-        
-        # Workflow automation level
-        if workflow_provider != "none":
-            console.print("[cyan]⚙️  Workflow Automation Level[/cyan]")
-            console.print("Configure workflow helper commands:")
-            console.print("")
-            console.print("[bold yellow]Automation Options:[/bold yellow]")
-            console.print("  • [green]standard[/green]: Include workflow automation commands")
-            console.print("    - Commands for issue management and workflow progression")
-            console.print("    - Integration with mem8 worktree and GitHub workflows")
-            console.print("  • [red]none[/red]: No workflow automation commands")
-            console.print("    - Just core research/plan/implement/commit commands")
-            console.print("")
-            console.print("[dim]Note: 'advanced' level planned for future features[/dim]")
-            console.print("")
-            
-            automation_choices = ["standard", "none"]  # Remove 'advanced' until implemented
-            default_automation = defaults.get('automation_level', 'standard')
-            if defaults.get('automation_level') and defaults.get('automation_level') != 'standard':
-                console.print(f"[dim]💾 Using saved preference: {default_automation}[/dim]")
-            workflow_automation = typer.prompt(
-                "Choose automation level",
-                default=default_automation
-            )
-            while workflow_automation not in automation_choices:
-                console.print(f"[red]Invalid choice. Please select from: {', '.join(automation_choices)}[/red]")
-                workflow_automation = typer.prompt("Choose automation level", default="standard")
-            interactive_config["workflow_automation"] = workflow_automation
-        
-        # GitHub-specific configuration
-        if workflow_provider == "github":
-            console.print("[cyan]🐙 GitHub Repository Configuration[/cyan]")
-            console.print("Configure GitHub integration for issue management and workflows.")
-            console.print("")
-            
-            # Use consistent GitHub context for defaults
-            github_org = defaults.get('github_org') or gh_context.get("org") or "your-org"
-            github_repo = defaults.get('github_repo') or gh_context.get("repo") or "your-repo"
 
-            if gh_context.get("org") and gh_context.get("repo"):
-                # Show what was detected and from where
-                if gh_context["auth_user"] and gh_context["repo_owner"]:
-                    if gh_context["auth_user"] == gh_context["repo_owner"]:
-                        console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
-                    else:
-                        console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
-                        console.print(f"[dim]  (Authenticated as: {gh_context['auth_user']}, Repo owner: {gh_context['repo_owner']})[/dim]")
-                else:
-                    console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
-                console.print("")
-            elif gh_context.get("username"):
-                console.print("[yellow]⚠️  gh CLI available but no repository detected in current directory[/yellow]")
-                console.print("")
-            else:
-                console.print("[yellow]💡 Tip: Install 'gh' CLI for auto-detection of GitHub repositories[/yellow]")
-                console.print("")
-            
-            github_org = typer.prompt("GitHub username (for personal repos, use your username; for org repos, use organization name)", default=github_org)
-            github_repo = typer.prompt("GitHub repository name", default=github_repo)
-            interactive_config.update({
-                "github_org": github_org,
-                "github_repo": github_repo
-            })
+    # Workflow automation level (only if we have a workflow provider and templates)
+    if workflow_provider != "none" and template and template != "none":
+        console.print("[cyan]⚙️  Workflow Automation Level[/cyan]")
+        console.print("Configure workflow helper commands:")
+        console.print("")
+        console.print("[bold yellow]Automation Options:[/bold yellow]")
+        console.print("  • [green]standard[/green]: Include workflow automation commands")
+        console.print("    - Commands for issue management and workflow progression")
+        console.print("    - Integration with mem8 worktree and GitHub workflows")
+        console.print("  • [red]none[/red]: No workflow automation commands")
+        console.print("    - Just core research/plan/implement/commit commands")
+        console.print("")
+
+        automation_choices = ["standard", "none"]  # Remove 'advanced' until implemented
+        default_automation = defaults.get('automation_level', 'standard')
+        if defaults.get('automation_level') and defaults.get('automation_level') != 'standard':
+            console.print(f"[dim]💾 Using saved preference: {default_automation}[/dim]")
+        workflow_automation = typer.prompt(
+            "Choose automation level",
+            default=default_automation
+        )
+        while workflow_automation not in automation_choices:
+            console.print(f"[red]Invalid choice. Please select from: {', '.join(automation_choices)}[/red]")
+            workflow_automation = typer.prompt("Choose automation level", default="standard")
+        interactive_config["workflow_automation"] = workflow_automation
     
     # Repository selection - simplified
     if context.get('repos_from_parent'):
@@ -1083,7 +1074,7 @@ def find_completed_new(
 # Remaining Commands (Phase 3)
 # ============================================================================
 
-def _validate_init_workspace_location(force: bool) -> Path:
+def _validate_init_workspace_location(force: bool, non_interactive: bool = False) -> Path:
     """Validate workspace location for init command only."""
     from .core.utils import get_git_info
     import typer
@@ -1106,18 +1097,22 @@ def _validate_init_workspace_location(force: bool) -> Path:
     if force:
         typer.secho(f"🔧 Force mode: Using current directory {current_dir}", fg=typer.colors.CYAN)
         return current_dir
-    
+
+    if non_interactive:
+        typer.secho(f"⚠️  Non-interactive mode: Using current directory {current_dir} (not a git repository)", fg=typer.colors.YELLOW)
+        return current_dir
+
     typer.secho("⚠️  Warning: Creating .claude directory outside git repository", fg=typer.colors.YELLOW)
     typer.secho(f"Current directory: {current_dir}", fg=typer.colors.WHITE)
     typer.secho("This directory is not part of a git repository.", fg=typer.colors.YELLOW)
     typer.echo()
     typer.secho("Consider running this command from a git repository root.", fg=typer.colors.BLUE)
     typer.echo()
-    
+
     if not typer.confirm("Continue with current directory anyway?", default=False):
         typer.secho("Cancelled. Please run from an appropriate project root.", fg=typer.colors.RED)
         raise typer.Exit(1)
-    
+
     return current_dir
 
 @typer_app.command()
@@ -1139,14 +1134,14 @@ def init(
     force: Annotated[bool, typer.Option(
         "--force", help="Skip all confirmations, overwrite existing directories, use defaults"
     )] = False,
-    interactive: Annotated[bool, typer.Option(
-        "--interactive", "-i", help="Interactive mode with guided prompts for all configuration options"
+    non_interactive: Annotated[bool, typer.Option(
+        "--non-interactive", help="Non-interactive mode, use auto-detected defaults without prompts"
     )] = False,
     verbose: Annotated[bool, typer.Option(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
 ):
-    """Initialize mem8 workspace with intelligent defaults and guided setup."""
+    """Initialize mem8 workspace with interactive guided setup (default) or auto-detected defaults."""
     from .core.smart_setup import (
         detect_project_context, generate_smart_config, setup_minimal_structure,
         launch_web_ui, show_setup_instructions
@@ -1158,7 +1153,7 @@ def init(
     console.print("🚀 [bold blue]Welcome to mem8 setup![/bold blue]")
     
     # INIT-SPECIFIC workspace validation - check git repository before setup
-    validated_workspace_dir = _validate_init_workspace_location(force)
+    validated_workspace_dir = _validate_init_workspace_location(force, non_interactive)
     
     try:
         # 1. Auto-detect project context
@@ -1170,20 +1165,24 @@ def init(
             console.print(f"[dim]Detected: {context['project_type']} project, "
                         f"{len(context['git_repos'])} repositories found[/dim]")
         
-        # 2. Interactive mode: gather user preferences
+        # 2. Interactive mode: gather user preferences (default behavior)
         interactive_config = {}
-        if interactive and not force:  # Skip interactive prompts if force flag is used
+        if not non_interactive and not force:  # Interactive is now the default
             interactive_config = _interactive_prompt_for_init(context)
-            
+
             # Override parameters with interactive values where not explicitly set
             template = template or interactive_config.get('template')
-            shared_dir = shared_dir or interactive_config.get('shared_dir') 
+            shared_dir = shared_dir or interactive_config.get('shared_dir')
             web = web or interactive_config.get('web', False)
             repos = repos or interactive_config.get('repos')
         elif force:
             # With force flag, use sensible defaults
             template = template or "full"
             console.print("[dim]Using --force mode with default settings[/dim]")
+        elif non_interactive:
+            # Non-interactive mode: use auto-detected defaults
+            template = template or "full"
+            console.print("[dim]Using non-interactive mode with auto-detected defaults[/dim]")
         
         # 3. Generate smart configuration with interactive overrides
         context['interactive_config'] = interactive_config
@@ -1233,7 +1232,12 @@ def init(
             console.print("\n⚠️  [yellow]Issues detected:[/yellow]")
             for issue in issues:
                 console.print(f"  • {issue}")
-            
+
+            if non_interactive:
+                console.print("❌ [red]Cannot proceed in non-interactive mode with existing data[/red]")
+                console.print("💡 [dim]Use --force to proceed anyway, or run from a clean directory[/dim]")
+                return
+
             import typer
             proceed = typer.confirm("Continue with setup?")
             if not proceed:

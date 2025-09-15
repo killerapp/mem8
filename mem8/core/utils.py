@@ -341,24 +341,40 @@ def detect_gh_active_login(hostname: str = "github.com") -> Optional[str]:
     if not shutil.which("gh"):
         return None
     try:
-        # Limit to specific hostname for determinism
+        # Use gh auth status without hostname to get all accounts and find the active one
         result = subprocess.run(
-            ["gh", "auth", "status", "--hostname", hostname],
+            ["gh", "auth", "status"],
             capture_output=True,
             text=True,
             timeout=3,
             check=False,
         )
         out = (result.stdout or "") + "\n" + (result.stderr or "")
-        # Common formats:
-        # "Logged in to github.com as <login> ..."
-        m = re.search(r"Logged in to\s+%s\s+as\s+([A-Za-z0-9-_.]+)" % re.escape(hostname), out)
-        if m:
-            return m.group(1)
-        # "Logged in to github.com account '<login>' ..."
-        m = re.search(r"Logged in to\s+%s\s+account\s+'([^']+)'" % re.escape(hostname), out)
-        if m:
-            return m.group(1)
+
+        # Parse the new format that shows multiple accounts:
+        # ✓ Logged in to github.com account killerapp (keyring)
+        # - Active account: true
+        # ✓ Logged in to github.com account vaskin-blip (keyring)
+        # - Active account: false
+
+        lines = out.split('\n')
+        current_account = None
+
+        for i, line in enumerate(lines):
+            # Look for login line for the specified hostname
+            login_match = re.search(r"Logged in to\s+" + re.escape(hostname) + r"\s+account\s+([A-Za-z0-9-_.]+)", line)
+            if login_match:
+                current_account = login_match.group(1)
+                # Check the next few lines for "Active account: true"
+                for j in range(i + 1, min(i + 5, len(lines))):
+                    if "Active account: true" in lines[j]:
+                        return current_account
+
+            # Also try legacy formats as fallback
+            legacy_match = re.search(r"Logged in to\s+" + re.escape(hostname) + r"\s+as\s+([A-Za-z0-9-_.]+)", line)
+            if legacy_match:
+                return legacy_match.group(1)
+
         return None
     except Exception:
         return None

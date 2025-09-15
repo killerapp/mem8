@@ -70,7 +70,7 @@ class TestInitDataPreservation:
     
     def test_init_detects_existing_thoughts_shared(self):
         """Test that init command detects existing thoughts/shared directory."""
-        result = self.run_mem8(["init", "--template", "thoughts-repo"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "thoughts-repo", "--non-interactive"], expect_success=False)
         
         assert "Issues detected:" in result.stdout
         assert "thoughts/ directory already exists" in result.stdout
@@ -85,7 +85,7 @@ class TestInitDataPreservation:
         claude_dir.mkdir()
         (claude_dir / "CLAUDE.md").write_text("# Existing Claude Config")
         
-        result = self.run_mem8(["init", "--template", "claude-config"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "claude-config", "--non-interactive"], expect_success=False)
         
         assert "Issues detected:" in result.stdout
         assert ".claude/ directory already exists" in result.stdout
@@ -97,7 +97,7 @@ class TestInitDataPreservation:
         claude_dir.mkdir()
         (claude_dir / "CLAUDE.md").write_text("# Existing Config")
         
-        result = self.run_mem8(["init", "--template", "full"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "full", "--non-interactive"], expect_success=False)
         
         assert "Issues detected:" in result.stdout
         assert ".claude/ directory already exists" in result.stdout
@@ -139,7 +139,7 @@ class TestInitDataPreservation:
         os.chdir(clean_dir)
         
         # This should not show any warnings
-        result = self.run_mem8(["init", "--template", "thoughts-repo"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "thoughts-repo", "--non-interactive"], expect_success=False)
         
         # Should fail due to cookiecutter prompts, but no warnings about existing files
         assert "Existing workspace components found" not in result.stdout
@@ -149,7 +149,7 @@ class TestInitDataPreservation:
     
     def test_force_flag_suggestions(self):
         """Test that helpful suggestions are provided."""
-        result = self.run_mem8(["init", "--template", "full"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "full", "--non-interactive"], expect_success=False)
         
         assert "Options:" in result.stdout
         assert "--force to overwrite" in result.stdout
@@ -166,7 +166,7 @@ class TestInitDataPreservation:
         # Remove the thoughts directory we created in setup
         shutil.rmtree(self.thoughts_dir)
         
-        result = self.run_mem8(["init", "--template", "claude-config"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "claude-config", "--non-interactive"], expect_success=False)
         
         assert ".claude/ directory already exists" in result.stdout
         assert "thoughts" not in result.stdout  # Should not mention thoughts for claude-config
@@ -186,7 +186,7 @@ class TestInitDataPreservation:
             shared_dir.mkdir(parents=True)
             (shared_dir / "test.md").write_text("test data")
             
-            result = self.run_mem8(["init", "--template", "thoughts-repo"], expect_success=False)
+            result = self.run_mem8(["init", "--template", "thoughts-repo", "--non-interactive"], expect_success=False)
             
             assert "thoughts/ directory already exists" in result.stdout
             assert ".claude" not in result.stdout  # Should not mention .claude for thoughts-repo
@@ -278,7 +278,7 @@ This represents months of important work that must never be lost!
         # Test 1: Show warning without --force
         print("\\n🔍 Test 1: Running init without --force (should warn and abort)")
         result = subprocess.run(
-            ["mem8", "init", "--template", "thoughts-repo"],
+            ["mem8", "init", "--template", "thoughts-repo", "--non-interactive"],
             capture_output=True, text=True
         )
         print("Result:")
