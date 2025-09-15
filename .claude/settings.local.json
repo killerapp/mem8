@@ -128,7 +128,8 @@
       "mcp__browser__browser_press_key",
       "Bash(uv sync:*)",
       "Bash(git mv:*)",
-      "Bash(docker-compose:*)"
+      "Bash(docker-compose:*)",
+      "Bash(uv add:*)"
     ],
     "deny": [],
     "ask": []
