@@ -639,7 +639,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     console.print("")
     
     template = typer.prompt(
-        "[bold]Choose template type[/bold]", 
+        "Choose template type",
         default=default_template
     )
     while template not in template_choices:
@@ -654,7 +654,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     if detected_gh:
         console.print(f"[dim]Detected GitHub login via gh: [green]{detected_gh}[/green][/dim]")
     interactive_username = typer.prompt(
-        "[bold]Choose username for local thoughts[/bold]",
+        "Choose username for local thoughts",
         default=default_username,
     )
     interactive_config["username"] = interactive_username
@@ -678,7 +678,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         if defaults.get('workflow_provider') and defaults.get('workflow_provider') != 'github':
             console.print(f"[dim]💾 Using saved preference: {default_workflow}[/dim]")
         workflow_provider = typer.prompt(
-            "[bold]Choose workflow provider[/bold]",
+            "Choose workflow provider",
             default=default_workflow
         )
         while workflow_provider not in workflow_choices:
@@ -706,12 +706,12 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
             if defaults.get('automation_level') and defaults.get('automation_level') != 'standard':
                 console.print(f"[dim]💾 Using saved preference: {default_automation}[/dim]")
             workflow_automation = typer.prompt(
-                "[bold]Choose automation level[/bold]",
+                "Choose automation level",
                 default=default_automation
             )
             while workflow_automation not in automation_choices:
                 console.print(f"[red]Invalid choice. Please select from: {', '.join(automation_choices)}[/red]")
-                workflow_automation = typer.prompt("[bold]Choose automation level[/bold]", default="standard")
+                workflow_automation = typer.prompt("Choose automation level", default="standard")
             interactive_config["workflow_automation"] = workflow_automation
         
         # GitHub-specific configuration
