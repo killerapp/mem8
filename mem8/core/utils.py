@@ -231,21 +231,54 @@ def create_symlink(target: Path, link_path: Path) -> bool:
                 link_path.unlink()
             else:
                 return False
-        
+
         # On Windows, try junction for directories
         if platform.system().lower() == 'windows' and target.is_dir():
             try:
-                subprocess.run(['mklink', '/J', str(link_path), str(target)], 
+                subprocess.run(['mklink', '/J', str(link_path), str(target)],
                               shell=True, check=True)
                 return True
             except subprocess.CalledProcessError:
                 pass
-        
+
         # Standard symlink
         os.symlink(target, link_path)
         return True
     except (OSError, NotImplementedError):
         return False
+
+
+def create_symlink_with_info(target: Path, link_path: Path) -> tuple[bool, str]:
+    """Create a symlink with cross-platform support and return info about what was created.
+
+    Returns:
+        (success, link_type) where link_type is one of:
+        - "junction" (Windows directory junction)
+        - "symlink" (Unix symlink or Windows symlink)
+        - "directory" (fallback regular directory)
+        - "failed" (could not create any type)
+    """
+    try:
+        if link_path.exists():
+            if link_path.is_symlink():
+                link_path.unlink()
+            else:
+                return False, "failed"
+
+        # On Windows, try junction for directories
+        if platform.system().lower() == 'windows' and target.is_dir():
+            try:
+                subprocess.run(['mklink', '/J', str(link_path), str(target)],
+                              shell=True, check=True, capture_output=True)
+                return True, "junction"
+            except subprocess.CalledProcessError:
+                pass
+
+        # Standard symlink
+        os.symlink(target, link_path)
+        return True, "symlink"
+    except (OSError, NotImplementedError):
+        return False, "failed"
 
 
 def ensure_directory_exists(path: Path) -> bool:

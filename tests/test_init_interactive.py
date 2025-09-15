@@ -101,3 +101,13 @@ def test_init_with_shared_enabled(tmp_path):
     # Verify subdirectories were created
     assert (shared_path / "thoughts" / "shared" / "decisions").exists()
     assert (shared_path / "thoughts" / "shared" / "plans").exists()
+
+    # Check that output includes link type information
+    output = result.stdout + result.stderr
+    # Should mention junction on Windows or symlink on Unix
+    import platform
+    if platform.system().lower() == 'windows':
+        # Could be junction or fallback directory
+        assert any(term in output.lower() for term in ['junction', 'directory', 'fallback'])
+    else:
+        assert 'symbolic link' in output.lower() or 'symlink' in output.lower()

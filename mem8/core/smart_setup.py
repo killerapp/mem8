@@ -11,6 +11,7 @@ from .utils import (
     get_git_info,
     get_shared_directory,
     create_symlink,
+    create_symlink_with_info,
     ensure_directory_exists,
     detect_gh_active_login,
 )
@@ -311,11 +312,17 @@ def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
                     encoding='utf-8'
                 )
             # Link local thoughts/shared -> <shared_location>/thoughts
-            if create_shared_link(shared_dir_link, shared_thoughts_root):
-                results['linked'].append(f"{shared_dir_link} -> {shared_thoughts_root}")
+            success, link_type = create_shared_link(shared_dir_link, shared_thoughts_root)
+            if success:
+                link_type_desc = {
+                    "junction": "Windows junction",
+                    "symlink": "symbolic link",
+                    "directory": "directory (fallback)"
+                }.get(link_type, link_type)
+                results['linked'].append(f"{shared_dir_link} -> {shared_thoughts_root} ({link_type_desc})")
             else:
                 results['errors'].append(
-                    f"Failed to create symlink {shared_dir_link} -> {shared_thoughts_root}"
+                    f"Failed to create link {shared_dir_link} -> {shared_thoughts_root}"
                 )
 
     # Create user directory
@@ -337,17 +344,22 @@ def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
     return results
 
 
-def create_shared_link(link_path: Path, target_path: Path) -> bool:
-    """Create shared directory link with fallback options."""
-    # Try symlink first
-    if create_symlink(target_path, link_path):
-        return True
-    
+def create_shared_link(link_path: Path, target_path: Path) -> tuple[bool, str]:
+    """Create shared directory link with fallback options.
+
+    Returns:
+        (success, link_type) where link_type describes what was created
+    """
+    # Try symlink/junction first
+    success, link_type = create_symlink_with_info(target_path, link_path)
+    if success:
+        return True, link_type
+
     # If symlink fails, create the directory locally as fallback
     if ensure_directory_exists(link_path):
-        return True
-    
-    return False
+        return True, "directory"
+
+    return False, "failed"
 
 
 def launch_web_ui() -> bool:
