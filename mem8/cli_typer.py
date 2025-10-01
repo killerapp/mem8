@@ -1805,7 +1805,7 @@ def metadata_git(
 
 @metadata_app.command("research")
 def metadata_research(
-    topic: Annotated[str, typer.Argument(help="Research topic/question")],
+    topic: Annotated[Optional[str], typer.Argument(help="Research topic/question")] = None,
     output_file: Annotated[Optional[Path], typer.Option(
         "--output", "-o", help="Output to file"
     )] = None,
@@ -1817,6 +1817,9 @@ def metadata_research(
     )] = False
 ):
     """Generate complete metadata for research documents (replaces hack/spec_metadata.sh)."""
+    # Use default topic if none provided
+    if not topic:
+        topic = "research"
     from .core.metadata import generate_research_metadata, format_frontmatter
     
     set_app_state(verbose=verbose)

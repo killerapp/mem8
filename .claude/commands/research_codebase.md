@@ -67,8 +67,13 @@ Then wait for the user's research query.
 
 5. **Gather metadata for the research document:**
    - **IMPORTANT**: Use the mem8 CLI to generate proper metadata. DO NOT manually gather git information.
-   - Run the command: `mem8 metadata research "[User's Question/Topic]" --format frontmatter`
+   - Run the command with the user's actual research question/topic:
+     ```bash
+     mem8 metadata research "the user's actual question here" --format frontmatter
+     ```
+   - **Example**: If user asks "How does auth work?", run: `mem8 metadata research "How does auth work?" --format frontmatter`
    - This will output YAML frontmatter with all required fields (date, researcher, git_commit, branch, repository, etc.)
+   - **Note**: The topic argument is optional and defaults to "research" if omitted, but it's better to use the actual user question
    - Store this output to use in the next step
    - Filename for the document: `thoughts/shared/research/YYYY-MM-DD_HH-MM-SS_topic.md`
 
@@ -142,7 +147,7 @@ Then wait for the user's research query.
    - Replace local file references with permalinks in the document
 
 8. **Sync and present findings:**
-   - Run `mem8 sync` to sync the thoughts directory
+   - Run `mem8 sync` to sync the thoughts directory (if configured with git sync)
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
    - Ask if they have follow-up questions or need clarification
