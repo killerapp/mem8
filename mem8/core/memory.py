@@ -454,51 +454,92 @@ Use `mem8 search` to find relevant content across all memories.
         """Search files in a directory."""
         results = []
         query_lower = query.lower()
-        
+
         for file_path in directory.rglob("*.md"):
             if file_path.is_file():
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
                         content_lower = content.lower()
-                        
+
                         if query_lower in content_lower:
                             # Simple scoring based on frequency and position
                             score = content_lower.count(query_lower)
                             if content_lower.startswith(query_lower):
                                 score += 5
-                            
+
                             # Get title from first line or filename
-                            lines = content.strip().split('\\n')
+                            lines = content.strip().split('\n')
                             title = lines[0].strip('# ') if lines and lines[0].startswith('#') else file_path.stem
-                            
+
+                            # Extract context snippet around first match
+                            snippet = self._extract_context_snippet(content, query, lines_before=2, lines_after=2)
+
                             results.append({
                                 'type': content_type,
                                 'title': title,
                                 'path': str(file_path),
                                 'score': score,
+                                'snippet': snippet,
+                                'match_count': score,
                             })
                 except (IOError, UnicodeDecodeError):
                     continue
-        
+
         return results
     
+    def _extract_context_snippet(self, content: str, query: str, lines_before: int = 2, lines_after: int = 2, max_line_length: int = 100) -> str:
+        """Extract context snippet around the first match of query."""
+        lines = content.split('\n')
+        query_lower = query.lower()
+
+        # Find first line with match
+        match_line_idx = None
+        for idx, line in enumerate(lines):
+            if query_lower in line.lower():
+                match_line_idx = idx
+                break
+
+        if match_line_idx is None:
+            return ""
+
+        # Get context lines
+        start_idx = max(0, match_line_idx - lines_before)
+        end_idx = min(len(lines), match_line_idx + lines_after + 1)
+
+        context_lines = []
+        for idx in range(start_idx, end_idx):
+            line = lines[idx].strip()
+            # Truncate long lines
+            if len(line) > max_line_length:
+                line = line[:max_line_length] + "..."
+            # Highlight match line
+            if idx == match_line_idx:
+                context_lines.append(f"→ {line}")
+            else:
+                context_lines.append(f"  {line}")
+
+        return "\n".join(context_lines)
+
     def _search_file(self, file_path: Path, query: str, content_type: str) -> List[Dict[str, Any]]:
         """Search a single file."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                
+
             if query.lower() in content.lower():
+                snippet = self._extract_context_snippet(content, query, lines_before=2, lines_after=2)
                 return [{
                     'type': content_type,
                     'title': f"Memory: {file_path.name}",
                     'path': file_path,
                     'score': content.lower().count(query.lower()),
+                    'snippet': snippet,
+                    'match_count': content.lower().count(query.lower()),
                 }]
         except (IOError, UnicodeDecodeError):
             pass
-        
+
         return []
     
     def _semantic_search_directory(self, directory: Path, query: str, content_type: str) -> List[Dict[str, Any]]:

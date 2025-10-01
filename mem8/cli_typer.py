@@ -505,36 +505,44 @@ def search(
         )
         
         if results['matches']:
-            table = Table(title=f"Search Results ({len(results['matches'])} found)")
-            table.add_column("Type", style="cyan", width=10)
-            table.add_column("Title", style="green")
-            table.add_column("Path", style="dim")
-            table.add_column("Score", justify="right", style="yellow", width=8)
-            
-            for match in results['matches']:
-                # Format score
-                score_str = f"{match.get('score', 0.0):.2f}" if 'score' in match else "N/A"
-                
-                # Get title from match
+            # Display results with snippets
+            console.print(f"\n[bold cyan]Search Results[/bold cyan] [dim]({len(results['matches'])} found)[/dim]\n")
+
+            for idx, match in enumerate(results['matches'], 1):
+                # Header with match number and title
                 title = match.get('title', match.get('name', 'Untitled'))
+                match_count = match.get('match_count', 0)
+                score = match.get('score', 0)
+
+                console.print(f"[bold]{idx}. {title}[/bold]")
+
+                # Path and metadata
                 path_display = str(match.get('path', ''))
-                
-                # Truncate long paths
-                if len(path_display) > 50:
-                    path_display = "..." + path_display[-47:]
-                
-                table.add_row(
-                    match.get('type', 'Unknown'),
-                    title,
-                    path_display,
-                    score_str
-                )
-            
-            console.print(table)
-            
+                if len(path_display) > 80:
+                    path_display = "..." + path_display[-77:]
+
+                console.print(f"   [dim]Path:[/dim] {path_display}")
+                console.print(f"   [dim]Type:[/dim] {match.get('type', 'unknown')}  [dim]Matches:[/dim] {match_count}  [dim]Score:[/dim] {score:.1f}")
+
+                # Snippet if available
+                if 'snippet' in match and match['snippet']:
+                    console.print(f"   [dim]Context:[/dim]")
+                    # Indent snippet lines
+                    snippet_lines = match['snippet'].split('\n')
+                    for line in snippet_lines:
+                        if line.startswith('→'):
+                            # Highlight the match line
+                            console.print(f"   [yellow]{line}[/yellow]")
+                        else:
+                            console.print(f"   [dim]{line}[/dim]")
+
+                # Separator between results
+                if idx < len(results['matches']):
+                    console.print()
+
             # Show summary
-            console.print(f"\\n💡 [dim]Found {len(results['matches'])} matches. Use --limit to see more results.[/dim]")
-            if web:
+            console.print(f"\n💡 [dim]Found {len(results['matches'])} of {results['total_found']} total matches. Use --limit to adjust results shown.[/dim]")
+            if not web:
                 console.print("💡 [dim]Add --web to open results in web UI for better browsing.[/dim]")
                 
         else:
