@@ -683,17 +683,27 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         })
 
     # Template selection with enhanced context
-    default_template = defaults.get('template', 'full')
-    if defaults.get('template') != 'full':
-        console.print(f"[dim]💾 Using saved preference: {default_template}[/dim]")
+    # Smart default: if thoughts/ already exists, default to claude-config instead of full
+    existing_thoughts = Path('thoughts').exists()
+    if existing_thoughts and not defaults.get('template'):
+        default_template = 'claude-config'
+        console.print("[cyan]💡 Detected existing thoughts/ - defaulting to 'claude-config'[/cyan]")
+    else:
+        default_template = defaults.get('template', 'full')
+        if defaults.get('template') != 'full':
+            console.print(f"[dim]💾 Using saved preference: {default_template}[/dim]")
+
     template_choices = ["full", "claude-config", "thoughts-repo", "none"]
-    
+
     console.print("[cyan]📋 Template Selection[/cyan]")
     console.print("[bold yellow]Template Options:[/bold yellow]")
     console.print("  • [green]full[/green]: Complete workflow commands + shared knowledge repository")
     console.print("  • [blue]claude-config[/blue]: Just workflow commands for Claude Code integration")
     console.print("  • [magenta]thoughts-repo[/magenta]: Just shared knowledge repository structure")
     console.print("  • [red]none[/red]: Skip template installation")
+
+    if existing_thoughts:
+        console.print("\n[dim]Note: thoughts/ already exists, so 'full' will skip thoughts setup[/dim]")
     console.print("")
     
     template = typer.prompt(
@@ -752,10 +762,21 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     
     # Shared enablement (default: disabled)
     console.print("\n[cyan]Shared/Team Thoughts[/cyan]")
-    enable_shared = typer.confirm(
-        "Enable shared/team thoughts now? (creates link to a shared location)",
-        default=False,
-    )
+    console.print("Shared thoughts enable team collaboration via a centralized knowledge repository.")
+    console.print("This creates a symbolic link from thoughts/shared/ to a shared location.")
+    console.print("")
+
+    # Check if thoughts/shared already exists
+    existing_shared = (Path.cwd() / "thoughts" / "shared").exists()
+    if existing_shared:
+        console.print("[yellow]⚠️  thoughts/shared already exists - will be skipped[/yellow]")
+        enable_shared = False
+    else:
+        enable_shared = typer.confirm(
+            "Enable shared/team thoughts now?",
+            default=False,
+        )
+
     interactive_config["shared_enabled"] = enable_shared
     if enable_shared:
         default_shared = str(context.get('shared_location', Path.home() / "mem8-shared"))
@@ -1229,17 +1250,22 @@ def init(
         
         # 4. Handle confirmations if needed
         if needs_confirmation and not force:
-            console.print("\n⚠️  [yellow]Issues detected:[/yellow]")
+            console.print("\n⚠️  [yellow]Existing directories detected:[/yellow]")
             for issue in issues:
                 console.print(f"  • {issue}")
 
+            console.print("\n💡 [cyan]What will happen:[/cyan]")
+            console.print("  • Existing directories will be [bold]preserved (not overwritten)[/bold]")
+            console.print("  • Only missing components will be created")
+            console.print("  • Use [dim]--force[/dim] to overwrite existing directories")
+
             if non_interactive:
-                console.print("❌ [red]Cannot proceed in non-interactive mode with existing data[/red]")
+                console.print("\n❌ [red]Cannot proceed in non-interactive mode with existing data[/red]")
                 console.print("💡 [dim]Use --force to proceed anyway, or run from a clean directory[/dim]")
                 return
 
             import typer
-            proceed = typer.confirm("Continue with setup?")
+            proceed = typer.confirm("\nContinue with setup (will skip existing directories)?")
             if not proceed:
                 console.print("❌ [yellow]Setup cancelled[/yellow]")
                 return
