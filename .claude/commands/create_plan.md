@@ -38,7 +38,7 @@ Brief description of what will be implemented
 - Requirement 3
 
 ## Technical Approach
-High-level description of the solution
+Hi#level description of the solution
 
 ## Implementation Steps
 

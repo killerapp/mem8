@@ -94,7 +94,7 @@ These will be used throughout the generated templates for consistent GitHub inte
 
 ### Link with mem8 commands:
 The repository setup enables:
-- `mem8 worktree create` to work with GitHub issue numbers (GH-123)
+- `mem8 worktree create` to work with GitHub issue numbers (123)
 - `mem8 metadata research` to include GitHub repository context
 - GitHub workflow commands to operate on your specific repository
 

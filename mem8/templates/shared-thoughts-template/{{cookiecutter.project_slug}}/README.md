@@ -9,7 +9,7 @@ thoughts/
 ├── shared/                    # Team-wide documents
 │   ├── plans/                # Implementation plans
 │   ├── research/             # Research documents  
-│   ├── tickets/              # Linear tickets (ENG-XXXX.md)
+│   ├── tickets/              # GitHub issues (123.md)
 │   ├── prs/                  # PR descriptions
 │   └── decisions/            # Technical decisions
 ├── {{cookiecutter.username}}/                  # Personal thoughts
@@ -42,8 +42,8 @@ thoughts/shared/plans/fix-authentication-flow.md
 
 **Ticket References:**
 ```bash
-# Linear ticket format
-thoughts/shared/tickets/ENG-1234.md
+# GitHub issue format
+thoughts/shared/tickets/123.md
 ```
 
 ### Syncing Changes
@@ -70,15 +70,14 @@ git push origin main
 
 This thoughts directory integrates with:
 - Claude Code `.claude` configurations
-- Linear ticket management
-- GitHub PR workflows
+- GitHub issue tracking and PR workflows
 - Cross-project knowledge sharing
 
 ## File Naming Conventions
 
 - **Research**: `YYYY-MM-DD_HH-MM-SS_topic.md`
 - **Plans**: `descriptive-name.md`
-- **Tickets**: `ENG-XXXX.md` (Linear format)
+- **Tickets**: `123.md` (GitHub issue format)
 - **PRs**: `{number}_description.md`
 - **Notes**: Free-form naming
 

@@ -67,8 +67,8 @@ gh pr view PR_NUMBER
 ## Integration with mem8 Commands
 
 **Coordinate with mem8 CLI:**
-- Use `mem8 worktree create GH-123 branch-name` for GitHub issue worktrees
-- Use `mem8 metadata research "Issue GH-123"` for research documentation
+- Use `mem8 worktree create 123 branch-name` for GitHub issue worktrees
+- Use `mem8 metadata research "Issue 123"` for research documentation
 - Update thoughts documents with GitHub issue URLs and references
 
 ## Workflow Philosophy

@@ -1,6 +1,6 @@
 
 2. set up worktree for implementation:
-2a. create a new worktree using the mem8 CLI: `mem8 worktree create ENG-XXXX BRANCH_NAME`
+2a. create a new worktree using the mem8 CLI: `mem8 worktree create 123 BRANCH_NAME`
 
 3. determine required data:
 
@@ -20,18 +20,18 @@ command to run
 ```
 based on the input, I plan to create a worktree with the following details:
 
-worktree path: ~/wt/mem8/ENG-XXXX
+worktree path: ~/wt/mem8/123
 branch name: BRANCH_NAME
 path to plan file: $FILEPATH
 launch prompt:
 
-    /implement_plan at $FILEPATH and when you are done implementing and all tests pass, read ./claude/commands/commit.md and create a commit, then read ./claude/commands/describe_pr.md and create a PR, then add a comment to the Linear ticket with the PR link
+    /implement_plan at $FILEPATH and when you are done implementing and all tests pass, read ./claude/commands/commit.md and create a commit, then read ./claude/commands/describe_pr.md and create a PR, then add a comment to the GitHub issue with the PR link
 
 command to run:
 
-    mem8 dashboard -w ~/wt/mem8/ENG-XXXX "/implement_plan at $FILEPATH and when you are done implementing and all tests pass, read ./claude/commands/commit.md and create a commit, then read ./claude/commands/describe_pr.md and create a PR, then add a comment to the Linear ticket with the PR link"
+    mem8 dashboard -w ~/wt/mem8/123 "/implement_plan at $FILEPATH and when you are done implementing and all tests pass, read ./claude/commands/commit.md and create a commit, then read ./claude/commands/describe_pr.md and create a PR, then add a comment to the GitHub issue with the PR link"
 ```
 
 incorporate any user feedback then:
 
-4. launch implementation session: `mem8 dashboard -w ~/wt/mem8/ENG-XXXX "/implement_plan at $FILEPATH and when you are done implementing and all tests pass, read ./claude/commands/commit.md and create a commit, then read ./claude/commands/describe_pr.md and create a PR, then add a comment to the Linear ticket with the PR link"`
+4. launch implementation session: `mem8 dashboard -w ~/wt/mem8/123 "/implement_plan at $FILEPATH and when you are done implementing and all tests pass, read ./claude/commands/commit.md and create a commit, then read ./claude/commands/describe_pr.md and create a PR, then add a comment to the GitHub issue with the PR link"`
