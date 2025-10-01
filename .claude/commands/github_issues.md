@@ -73,12 +73,12 @@ gh issue comment ISSUE_NUMBER --body "Comment text"
 gh issue close ISSUE_NUMBER
 ```
 
-## GitHub vs Linear Differences
+## GitHub Issues Philosophy
 
-GitHub Issues are simpler than Linear:
-- Use **labels** instead of complex status progression
-- Use **milestones** for project organization instead of built-in projects
-- Use **assignees** for responsibility instead of complex team management
-- Focus on **simplicity** over complex workflow automation
+GitHub Issues focus on simplicity:
+- Use **labels** for status and categorization
+- Use **milestones** for project organization
+- Use **assignees** for responsibility
+- Focus on **transparency** and ease of use
 
 This makes GitHub Issues more accessible and easier to use for most teams.

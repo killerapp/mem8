@@ -1,10 +1,10 @@
 # Workflow Automation - GitHub Issues
 
-Simplified workflow automation for GitHub Issues using gh CLI, replacing complex Linear workflow automation.
+Workflow automation for GitHub Issues using gh CLI.
 
 ## Overview
 
-This command provides GitHub Issues workflow automation that's much simpler than Linear's complex state machine. GitHub Issues focus on labels and simplicity, making them more accessible for most teams.
+This command provides GitHub Issues workflow automation using labels and the gh CLI. GitHub Issues focus on simplicity and flexibility, making them accessible for most teams.
 
 ## Basic Workflow Commands
 
@@ -76,12 +76,12 @@ gh issue create \
 ISSUE_NUM=$(gh issue list --label "in-development" --assignee @me --json number --jq '.[0].number')
 
 # Create worktree using mem8
-mem8 worktree create GH-$ISSUE_NUM feature-branch-name
+mem8 worktree create #$ISSUE_NUM feature-branch-name
 ```
 
 **Generate research metadata:**
 ```bash
-mem8 metadata research "Issue GH-123: Feature X research"
+mem8 metadata research "Issue 123: Feature X research"
 ```
 
 ## Simple Automation Examples
@@ -103,14 +103,14 @@ echo "=== Issues ready for review ==="
 gh issue list --label "ready-for-review"
 ```
 
-## Philosophy: Simple > Complex
+## Philosophy
 
-Unlike Linear's complex automation and state machines, GitHub Issues workflow automation focuses on:
+GitHub Issues workflow automation focuses on:
 
-- **Label-based states** instead of complex status progression
-- **Simple CLI commands** instead of API complexity  
+- **Label-based states** for clear status progression
+- **Simple CLI commands** via gh CLI
 - **Transparency** - everyone can see and understand labels
 - **Flexibility** - teams can adapt labels to their needs
 - **Low barrier to entry** - no special training needed
 
-This approach is more sustainable and accessible for most development teams.
+This approach is sustainable and accessible for most development teams.

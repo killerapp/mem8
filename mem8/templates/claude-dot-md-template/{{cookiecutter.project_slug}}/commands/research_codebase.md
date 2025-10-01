@@ -43,9 +43,9 @@ Then wait for the user's research query.
    - Use the **web-search-researcher** agent for external documentation and resources
    - IF you use web-research agents, instruct them to return LINKS with their findings, and please INCLUDE those links in your final report
 
-   **For Linear tickets (if relevant):**
-   - Use the **linear-ticket-reader** agent to get full details of a specific ticket
-   - Use the **linear-searcher** agent to find related tickets or historical context
+   **For GitHub issues (if relevant):**
+   - Use `gh issue view {number}` to get full details of a specific issue
+   - Use `gh issue list --search "query"` to find related issues or historical context
 
    The key is to use these agents intelligently:
    - Start with locator agents to find what exists
@@ -67,8 +67,13 @@ Then wait for the user's research query.
 
 5. **Gather metadata for the research document:**
    - **IMPORTANT**: Use the mem8 CLI to generate proper metadata. DO NOT manually gather git information.
-   - Run the command: `mem8 metadata research "[User's Question/Topic]" --format frontmatter`
+   - Run the command with the user's actual research question/topic:
+     ```bash
+     mem8 metadata research "the user's actual question here" --format frontmatter
+     ```
+   - **Example**: If user asks "How does auth work?", run: `mem8 metadata research "How does auth work?" --format frontmatter`
    - This will output YAML frontmatter with all required fields (date, researcher, git_commit, branch, repository, etc.)
+   - **Note**: The topic argument is optional and defaults to "research" if omitted, but it's better to use the actual user question
    - Store this output to use in the next step
    - Filename for the document: `thoughts/shared/research/YYYY-MM-DD_HH-MM-SS_topic.md`
 
@@ -102,7 +107,7 @@ Then wait for the user's research query.
      [Original user query]
 
      ## Summary
-     [High-level findings answering the user's question]
+     [Hi#level findings answering the user's question]
 
      ## Detailed Findings
 

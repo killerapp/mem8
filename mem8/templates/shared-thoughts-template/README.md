@@ -30,7 +30,7 @@ thoughts/
 ├── shared/                    # Team-wide documents
 │   ├── plans/                # Implementation plans
 │   ├── research/             # Research documents  
-│   ├── tickets/              # Linear tickets (ENG-XXXX.md)
+│   ├── tickets/              # GitHub issues (123.md)
 │   ├── prs/                  # PR descriptions
 │   └── decisions/            # Technical decisions
 ├── {username}/               # Personal thoughts (configurable)
@@ -101,7 +101,7 @@ All scripts:
 
 - **Research**: `YYYY-MM-DD_HH-MM-SS_topic.md`
 - **Plans**: `descriptive-name.md`
-- **Tickets**: `ENG-XXXX.md` (Linear format)
+- **Tickets**: `123.md` (GitHub issue format)
 - **PRs**: `{number}_description.md`
 
 ## Searchable Directory
