@@ -129,7 +129,11 @@
       "Bash(uv sync:*)",
       "Bash(git mv:*)",
       "Bash(docker-compose:*)",
-      "Bash(uv add:*)"
+      "Bash(gh pr list:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh issue view:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []

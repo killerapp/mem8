@@ -2,32 +2,74 @@
 
 This project provides both development and production Docker configurations.
 
-## Development (with Hot Reloading)
+## Development Workflows
 
-For contributing developers who need hot reloading:
+### Option 1: Full Stack Development (Recommended for Backend/Teams Work)
+
+For developers working on backend API, teams, or full-stack features:
 
 ```bash
-# Start development environment
+# Start all services with Docker
 docker-compose --env-file .env.dev up -d --build
 
 # View logs
 docker-compose --env-file .env.dev logs -f
 
-# Stop development environment  
+# Stop development environment
 docker-compose --env-file .env.dev down
 ```
 
-**Development features:**
-- ✅ Frontend hot reloading with volume mounts and polling for Windows
-- ✅ Development Dockerfile.dev with npm dev server
-- ✅ PostgreSQL on port 5433 (external) to avoid local conflicts
-- ✅ Debug logging enabled
+**What runs in Docker:**
+- ✅ **Backend API** - FastAPI server with hot reload
+- ✅ **PostgreSQL** - Database on port 5433 (external)
+- ✅ **Frontend** - Next.js with hot reload (optional - see Option 2)
 - ✅ All source code mounted for live editing
 
 **Accessible at:**
 - Frontend: http://localhost:22211
 - Backend API: http://localhost:8000
 - Backend Health: http://localhost:8000/api/v1/health
+- API Docs: http://localhost:8000/docs
+
+### Option 2: Hybrid Development (Backend in Docker, Frontend Native)
+
+For frontend-focused developers who prefer native npm workflow:
+
+```bash
+# 1. Start backend services only (backend + database)
+docker-compose --env-file .env.dev up -d backend db
+
+# 2. Run frontend natively with npm
+cd frontend
+npm install
+npm run dev
+```
+
+**Why this approach:**
+- ✅ Faster frontend refresh (no Docker overhead)
+- ✅ Native Node.js tooling and debugging
+- ✅ Backend still containerized with proper database
+- ✅ Best of both worlds for full-stack development
+
+**Accessible at:**
+- Frontend: http://localhost:22211 (native npm)
+- Backend API: http://localhost:8000 (Docker)
+
+### Option 3: CLI-Only Development
+
+For developers working on CLI commands without needing the web interface:
+
+```bash
+# Install mem8 CLI with all dependencies
+uv tool install --editable .[server]
+
+# Use CLI commands directly
+mem8 status
+mem8 search "query"
+mem8 find plans
+```
+
+**Note:** Team and backend-dependent features require the API server (use Option 1 or 2).
 
 ## Production Deployment
 

@@ -61,17 +61,28 @@ mem8 init --template thoughts-repo
 mem8 status
 ```
 
-### 3. Optional: View Your Workspace
+### 3. Optional: Start the Web Interface
+
+**For CLI-only usage, skip this step.** The web interface is optional and provides a browser-based viewer.
+
 ```bash
-# Option A: Quick start with npm (development mode)
+# Option A: Frontend only (simple file viewer)
 cd frontend && npm install && npm run dev
 # Access at http://localhost:22211
 
-# Option B: Full stack with Docker Compose (includes backend)
+# Option B: Full stack with backend (for teams/auth features)
 docker-compose --env-file .env.dev up -d
 # Frontend at http://localhost:22211
 # Backend API at http://localhost:8000
+# API Docs at http://localhost:8000/docs
+
+# Option C: Hybrid (backend in Docker, frontend native)
+docker-compose --env-file .env.dev up -d backend db
+cd frontend && npm install && npm run dev
+# Best for frontend development
 ```
+
+**Note:** The `mem8 serve` command requires Docker for the database. See [DOCKER.md](DOCKER.md) for details.
 
 ## 🔄 Development Workflow
 
@@ -200,7 +211,7 @@ docker-compose up -d
 your-project/
 ├── .claude/
 │   ├── CLAUDE.md          # Main Claude Code configuration
-│   ├── commands/          # Custom commands  
+│   ├── commands/          # Custom commands
 │   └── agents/           # Custom agent definitions
 ├── thoughts/
 │   ├── shared/           # Shared documentation
@@ -208,6 +219,16 @@ your-project/
 │   └── plans/           # Implementation plans
 └── mem8-config.yaml     # mem8 workspace settings
 ```
+
+## 👥 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development setup instructions.
+
+**Quick Links:**
+- 🐛 [Report Issues](https://github.com/killerapp/mem8/issues)
+- 💬 [Discussions](https://github.com/killerapp/mem8/discussions)
+- 🔧 [Development Guide](CONTRIBUTING.md)
+- 🐳 [Docker Setup](DOCKER.md)
 
 ## 🛠️ Advanced Usage
 
@@ -289,19 +310,23 @@ docker-compose up -d
 # - API Docs: http://localhost:8000/docs
 ```
 
-### API Server (Standalone)
-The `mem8 serve` command provides a clean, production-ready API server:
+### API Server (Requires Docker)
+The `mem8 serve` command starts the FastAPI backend server. **This requires a database (PostgreSQL or SQLite) which is provided via Docker:**
 
 ```bash
-# Development mode with auto-reload
-mem8 serve --reload
+# Start backend with Docker (recommended)
+docker-compose --env-file .env.dev up -d backend db
 
-# Production mode with multiple workers
-mem8 serve --workers 4 --port 8000
-
-# With custom host/port
-mem8 serve --host 0.0.0.0 --port 8080 --workers 2
+# The backend is now available at:
+# - API: http://localhost:8000
+# - Docs: http://localhost:8000/docs
+# - Health: http://localhost:8000/api/v1/health
 ```
+
+**Why Docker is required:**
+- Backend needs PostgreSQL database for teams, thoughts, and authentication
+- Docker Compose provides the full stack (backend + database + optional frontend)
+- See [DOCKER.md](DOCKER.md) for all deployment options
 
 ### Docker Deployment Options
 
