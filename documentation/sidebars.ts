@@ -30,6 +30,7 @@ const sidebars: SidebarsConfig = {
         'workflows/commit',
         'workflows/advanced',
         'workflows/best-practices',
+        'workflows/utility',
       ],
     },
     'concepts',
@@ -38,6 +39,9 @@ const sidebars: SidebarsConfig = {
       label: 'User Guide',
       items: [
         'user-guide/getting-started',
+        'user-guide/cli-commands',
+        'user-guide/workflows',
+        'user-guide/troubleshooting',
       ],
     },
     'external-templates',

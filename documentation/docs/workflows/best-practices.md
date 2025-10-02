@@ -50,9 +50,9 @@ mem8 doctor
 
 ## Next Steps
 
-- **[Commands Reference](./commands)** - Full command documentation
-- **[User Guide](./user-guide/getting-started)** - Practical examples
-- **[External Templates](./external-templates)** - Customize workflows
+- **[CLI Commands](../user-guide/cli-commands)** - Full command documentation
+- **[User Guide](../user-guide/getting-started)** - Practical examples
+- **[External Templates](../external-templates)** - Customize workflows
 - **[GitHub](https://github.com/killerapp/mem8)** - Explore source
 
 ## Real-World Example
