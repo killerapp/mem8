@@ -278,7 +278,7 @@ Ensures your development environment is complete:
 
 ```mermaid
 graph TD
-    A[/doctor] --> B{Check git}
+    A[doctor command] --> B{Check git}
     B -->|Missing| C[Install instructions]
     B -->|OK| D{Check gh CLI}
     D -->|Missing| E[Install instructions]
@@ -300,7 +300,7 @@ Find relevant past research and decisions:
 
 ```mermaid
 graph LR
-    A[/browse-memories 'auth'] --> B[Search thoughts/]
+    A[browse-memories 'auth'] --> B[Search thoughts/]
     B --> C[List matching documents]
     C --> D[User selects]
     D --> E[Load document]
@@ -316,7 +316,7 @@ Sets up mem8 with multi-repo discovery:
 
 ```mermaid
 graph TD
-    A[/setup-memory] --> B{Single repo?}
+    A[setup-memory command] --> B{Single repo?}
     B -->|Yes| C[Single-repo mode]
     B -->|No| D[Ask for repo list]
     D --> E[Multi-repo mode]
