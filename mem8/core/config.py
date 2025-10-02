@@ -175,27 +175,30 @@ class Config:
             return path
         return None
     
-    def save_workflow_preferences(self, template: str, workflow_provider: str, 
-                                automation_level: str, github_org: str = None, 
-                                github_repo: str = None) -> None:
-        """Save workflow preferences for future init commands."""
+    def save_workflow_preferences(self, template: str, workflow_provider: str,
+                                automation_level: str, github_org: str = None) -> None:
+        """Save workflow preferences for future init commands.
+
+        Note: github_repo is intentionally NOT saved as it's project-specific.
+        Each project should determine its repo name from context (directory name, git remote, etc).
+        """
         self.set('workspace.default_template', template)
         self.set('workflow.provider', workflow_provider)
         self.set('workflow.automation_level', automation_level)
-        
+
         if github_org:
             self.set('workflow.github_org', github_org)
-        if github_repo:
-            self.set('workflow.github_repo', github_repo)
     
     def get_workflow_defaults(self) -> Dict[str, Any]:
-        """Get saved workflow preferences for use as defaults."""
+        """Get saved workflow preferences for use as defaults.
+
+        Note: github_repo is intentionally excluded as it's project-specific.
+        """
         return {
             'template': self.get('workspace.default_template', 'full'),
             'workflow_provider': self.get('workflow.provider', 'github'),
             'automation_level': self.get('workflow.automation_level', 'standard'),
             'github_org': self.get('workflow.github_org'),
-            'github_repo': self.get('workflow.github_repo'),
         }
     
     def create_home_shortcut(self) -> bool:
