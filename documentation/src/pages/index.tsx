@@ -67,7 +67,16 @@ function HomepageHeader() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}
         >
+          <div className={styles.installCode}>
+            <code>uv tool install mem8</code>
+            <CopyButton text="uv tool install mem8" />
+          </div>
+          <div className={styles.installCode}>
+            <code>mkdir my-project && cd my-project && git init</code>
+            <CopyButton text="mkdir my-project && cd my-project && git init" />
+          </div>
           <div className={styles.installCode}>
             <code>mem8 init</code>
             <CopyButton text="mem8 init" />
