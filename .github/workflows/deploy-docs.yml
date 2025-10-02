@@ -23,6 +23,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: documentation/package-lock.json
 
+      - name: Cache Docusaurus build
+        uses: actions/cache@v4
+        with:
+          path: |
+            documentation/.docusaurus
+            documentation/node_modules/.cache
+          key: ${{ runner.os }}-docusaurus-${{ hashFiles('documentation/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-docusaurus-
+
       - name: Install dependencies
         working-directory: ./documentation
         run: npm ci
@@ -38,7 +48,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npx wrangler pages deploy ./build \
-            --project-name=mem8-docs \
+            --project-name=mem8 \
             --commit-hash=${{ github.sha }} \
             --commit-message="${{ github.event.head_commit.message }}" \
             --branch=${{ github.ref_name }}
@@ -47,5 +57,5 @@ jobs:
         if: github.event_name == 'push'
         run: |
           echo "🚀 Deployed to Cloudflare Pages"
-          echo "Preview: https://${{ github.sha }}.mem8-docs.pages.dev"
           echo "Production: https://mem8.agenticinsights.com"
+          echo "Cloudflare: https://mem8.pages.dev"
