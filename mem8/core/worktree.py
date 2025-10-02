@@ -4,28 +4,72 @@ import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
+def _validate_branch_name(branch_name: str) -> None:
+    """Validate branch name to prevent command injection and invalid git refs.
+
+    Args:
+        branch_name: The branch name to validate
+
+    Raises:
+        ValueError: If branch name contains invalid characters or patterns
+    """
+    import re
+
+    # Check for obviously malicious patterns
+    dangerous_chars = [';', '&', '|', '`', '$', '(', ')', '<', '>', '\n', '\r']
+    for char in dangerous_chars:
+        if char in branch_name:
+            raise ValueError(f"Invalid branch name: contains dangerous character '{char}'")
+
+    # Check for path traversal
+    if '..' in branch_name:
+        raise ValueError("Invalid branch name: contains path traversal pattern '..'")
+
+    # Check for absolute paths
+    if branch_name.startswith('/') or (len(branch_name) > 1 and branch_name[1] == ':'):
+        raise ValueError("Invalid branch name: appears to be an absolute path")
+
+    # Validate against git's branch naming rules (basic validation)
+    # Git refs cannot: start with ., contain .., contain ~, ^, :, ?, *, [, \, have double dots, end with .lock, contain @{
+    invalid_patterns = [
+        r'^\.',           # Starts with dot
+        r'\.\.',          # Contains double dots
+        r'[~^:?*\[\\\]]', # Contains special git characters
+        r'\.lock$',       # Ends with .lock
+        r'@\{',           # Contains @{
+        r'//',            # Contains double slash
+    ]
+
+    for pattern in invalid_patterns:
+        if re.search(pattern, branch_name):
+            raise ValueError(f"Invalid branch name: violates git ref naming rules (matched pattern: {pattern})")
+
+
 def create_worktree(ticket_id: str, branch_name: str, base_dir: Path) -> Path:
     """Create a git worktree for ticket implementation."""
     from .utils import get_git_info
-    
+
+    # Validate branch name to prevent injection and invalid refs
+    _validate_branch_name(branch_name)
+
     # Get current repository info
     git_info = get_git_info()
     if not git_info['is_git_repo']:
         raise ValueError("Not in a git repository")
-    
+
     repo_name = git_info['repo_root'].name
     worktree_path = base_dir / repo_name / ticket_id
-    
+
     # Create base directory
     worktree_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    # Create worktree
+
+    # Create worktree (safe with subprocess.run list args, but validated above for defense in depth)
     cmd = ["git", "worktree", "add", str(worktree_path), "-b", branch_name]
     result = subprocess.run(cmd, capture_output=True, text=True)
-    
+
     if result.returncode != 0:
         raise RuntimeError(f"Git worktree creation failed: {result.stderr}")
-    
+
     return worktree_path
 
 

@@ -408,8 +408,8 @@ Use `mem8 search` to find relevant content across all memories.
         return [e for e in entities if e.lifecycle_state == status]
     
     def search_content(
-        self, 
-        query: str, 
+        self,
+        query: str,
         limit: int = 10,
         content_type: str = 'all',
         search_method: str = 'fulltext',
@@ -417,11 +417,34 @@ Use `mem8 search` to find relevant content across all memories.
     ) -> Dict[str, Any]:
         """Search through memory content."""
         results = []
-        
+
+        # Validate path_filter to prevent directory traversal
+        if path_filter:
+            # Normalize the path to prevent traversal attacks
+            normalized_filter = Path(path_filter).as_posix()
+
+            # Check for path traversal patterns
+            if ".." in normalized_filter:
+                raise ValueError(f"Invalid path_filter: path traversal detected (contains '..')")
+
+            # Check for absolute paths
+            if path_filter.startswith("/") or (len(path_filter) > 1 and path_filter[1] == ":"):
+                raise ValueError(f"Invalid path_filter: absolute paths not allowed")
+
         # Search in thoughts directory
         thoughts_dir = self.config.thoughts_dir
         if thoughts_dir.exists() and content_type in ['all', 'thoughts']:
             search_dir = Path(thoughts_dir) / path_filter if path_filter else thoughts_dir
+
+            # Ensure search_dir is within workspace boundaries (defense in depth)
+            try:
+                search_dir_resolved = search_dir.resolve()
+                thoughts_dir_resolved = thoughts_dir.resolve()
+                # Check if search_dir is relative to thoughts_dir
+                search_dir_resolved.relative_to(thoughts_dir_resolved)
+            except ValueError:
+                raise ValueError(f"Invalid path_filter: escapes workspace boundary")
+
             if search_dir.exists():
                 if search_method == 'semantic':
                     results.extend(self._semantic_search_directory(search_dir, query, 'thoughts'))

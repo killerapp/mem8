@@ -35,39 +35,9 @@ typer_app = typer.Typer(
 
 
 # Enums for type safety
-class ShellType(str, Enum):
-    BASH = "bash"
-    ZSH = "zsh"
-    FISH = "fish"
-    POWERSHELL = "powershell"
-
-
-# Legacy template types - kept for backwards compatibility but not used in new init
-class TemplateType(str, Enum):
-    CLAUDE_CONFIG = "claude-config"
-    THOUGHTS_REPO = "thoughts-repo"
-    FULL = "full"
-
-
 class SearchMethod(str, Enum):
     FULLTEXT = "fulltext"
     SEMANTIC = "semantic"  # Experimental
-
-
-class SearchScope(str, Enum):
-    PERSONAL = "personal"
-    SHARED = "shared"
-    TEAM = "team"
-    ALL = "all"
-
-
-class ThoughtType(str, Enum):
-    PLAN = "plan"
-    RESEARCH = "research"
-    TICKET = "ticket"
-    PR = "pr"
-    DECISION = "decision"
-    ALL = "all"
 
 
 class ContentType(str, Enum):
@@ -104,20 +74,15 @@ class AppState:
         self._query_engine = None
         self._action_engine = None
         self._initialized = False
-        self._verbose = False
-        self._config_dir = None
-        
+
     def initialize(self, verbose: bool = False, config_dir: Optional[Path] = None):
-        """Initialize state with parameters."""
-        if self._initialized and self._verbose == verbose and self._config_dir == config_dir:
-            return  # Already initialized with same parameters
-            
-        self._verbose = verbose
-        self._config_dir = config_dir
-        
+        """Initialize state with parameters. Only initializes once."""
+        if self._initialized:
+            return  # Already initialized, skip re-initialization
+
         if verbose:
             setup_logging(True)
-            
+
         # Initialize components
         self._config = Config(config_dir)
         self._memory_manager = MemoryManager(self._config)
@@ -195,6 +160,13 @@ def get_config() -> Config:
 def set_app_state(verbose: bool = False, config_dir: Optional[Path] = None):
     """Initialize app state with parameters."""
     app_state.initialize(verbose=verbose, config_dir=config_dir)
+
+
+def handle_command_error(e: Exception, verbose: bool, context: str = "command") -> None:
+    """Standardized error handling for all commands."""
+    console.print(f"❌ [bold red]Error during {context}: {e}[/bold red]")
+    if verbose:
+        console.print_exception()
 
 
 # ============================================================================
@@ -301,9 +273,7 @@ def status(
                 console.print(f"  • {issue}")
                 
     except Exception as e:
-        console.print(f"❌ [bold red]Error checking status: {e}[/bold red]")
-        if verbose:
-            console.print_exception()
+        handle_command_error(e, verbose, "status check")
 
 
 @typer_app.command()
@@ -351,9 +321,7 @@ def doctor(
             console.print(f"\n⚠️  [yellow]Found {len(diagnosis['issues'])} issues. Run with --auto-fix to attempt repairs.[/yellow]")
             
     except Exception as e:
-        console.print(f"❌ [bold red]Error running diagnostics: {e}[/bold red]")
-        if verbose:
-            console.print_exception()
+        handle_command_error(e, verbose, "diagnostics")
 
 
 
@@ -448,29 +416,32 @@ def serve(
 @typer_app.command()
 def search(
     query: Annotated[str, typer.Argument(help="Search query")],
-    limit: Annotated[int, typer.Option("--limit", help="Maximum number of results to return")] = 10,
-    content_type: Annotated[ContentType, typer.Option("--type", help="Type of content to search")] = ContentType.ALL,
-    method: Annotated[
-        SearchMethod,
-        typer.Option("--method", help="Search method (semantic is experimental)")
-    ] = SearchMethod.FULLTEXT,
-    path: Annotated[Optional[str], typer.Option("--path", help="Restrict search to specific path")] = None,
-    web: Annotated[bool, typer.Option("--web", help="Open results in web UI")] = False,
-    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
+    limit: Annotated[int, typer.Option("--limit", help="Maximum number of results")] = 10,
+    category: Annotated[Optional[str], typer.Option("--category", "-c", help="Category: plans, research, decisions, shared")] = None,
+    method: Annotated[SearchMethod, typer.Option("--method", help="Search method")] = SearchMethod.FULLTEXT,
+    path: Annotated[Optional[str], typer.Option("--path", help="Path filter")] = None,
+    web: Annotated[bool, typer.Option("--web", help="Open in web UI")] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False
 ):
-    """Search through AI memory and thoughts. Semantic search is experimental."""
+    """
+    Full-text content search with context snippets.
+
+    Use 'search' to find specific text/keywords within file contents.
+    Use 'find' to browse/filter thoughts by type, status, or metadata.
+
+    Examples:
+      mem8 search "docker"                    # Search everywhere
+      mem8 search "auth" --category plans     # Search only plans
+      mem8 search "API" -c research           # Search only research
+    """
     import urllib.parse
     import webbrowser
-    from rich.table import Table
-    
-    set_app_state(verbose=verbose)
-    
-    # Handle web UI search
+
+    # Handle web UI search early - no need to initialize app state
     if web and query:
         console.print(f"🌐 [bold blue]Opening search for '{query}' in web UI...[/bold blue]")
-        # Open web UI with pre-populated search
         search_url = f'http://localhost:20040?search={urllib.parse.quote(query)}'
-        
+
         from .core.smart_setup import launch_web_ui, show_setup_instructions
         if launch_web_ui():
             webbrowser.open(search_url)
@@ -480,28 +451,48 @@ def search(
             instructions = show_setup_instructions()
             console.print(instructions)
         return
-    
-    # Traditional CLI search
+
+    # Traditional CLI search - initialize state now
+    set_app_state(verbose=verbose)
     state = get_state()
     memory_manager = state.memory_manager
-    
+
+    # Determine content type and path based on category
+    content_type = ContentType.ALL
+    path_filter = path
+
+    if category:
+        content_type = ContentType.THOUGHTS
+        if not path:
+            # Map category to path
+            category_paths = {
+                'plans': 'thoughts/shared/plans',
+                'research': 'thoughts/shared/research',
+                'decisions': 'thoughts/shared/decisions',
+                'tickets': 'thoughts/shared/tickets',
+                'prs': 'thoughts/shared/prs',
+                'shared': 'thoughts/shared',
+            }
+            path_filter = category_paths.get(category)
+
     search_method = f"[cyan]{method.value}[/cyan]"
-    console.print(f"[bold blue]Searching for: '{query}' ({search_method})[/bold blue]")
-    
+    category_display = f" in [cyan]{category}[/cyan]" if category else ""
+    console.print(f"[bold blue]Searching{category_display} for: '{query}' ({search_method})[/bold blue]")
+
     if method == SearchMethod.SEMANTIC:
         try:
             import sentence_transformers
         except ImportError:
             console.print("[yellow]⚠️  Semantic search requires sentence-transformers library[/yellow]")
             console.print("Install with: [dim]pip install 'mem8[semantic]'[/dim]")
-    
+
     try:
         results = memory_manager.search_content(
             query=query,
             limit=limit,
             content_type=content_type.value,
             search_method=method.value,
-            path_filter=path
+            path_filter=path_filter
         )
         
         if results['matches']:
@@ -553,52 +544,7 @@ def search(
             console.print("   • --type all to search all content types")
             
     except Exception as e:
-        console.print(f"❌ [bold red]Error during search: {e}[/bold red]")
-        if verbose:
-            console.print_exception()
-
-
-# ============================================================================
-# Intelligent Completion Functions
-# ============================================================================
-
-def complete_thought_queries(incomplete: str):
-    """Provide intelligent completion for thought queries."""
-    try:
-        # Initialize app state for completion
-        state = get_state()
-        memory_manager = state.memory_manager
-        entities = memory_manager.get_thought_entities()
-        
-        suggestions = set()
-        
-        # Add common query patterns
-        common_patterns = [
-            "completed plans", "active research", "draft plans", 
-            "personal notes", "shared decisions", "recent thoughts"
-        ]
-        suggestions.update([p for p in common_patterns if p.startswith(incomplete.lower())])
-        
-        # Add thought titles and topics
-        for entity in entities[:50]:  # Limit for performance
-            title = entity.metadata.get('topic', entity.path.stem)
-            if incomplete.lower() in title.lower():
-                suggestions.add(title)
-                
-            # Add individual words from titles for partial matching
-            words = title.lower().split()
-            for word in words:
-                if len(word) > 3 and word.startswith(incomplete.lower()):
-                    suggestions.add(word)
-        
-        # Add type-based suggestions
-        type_patterns = ["plans", "research", "tickets", "decisions", "prs"]
-        suggestions.update([t for t in type_patterns if t.startswith(incomplete.lower())])
-        
-        return sorted(list(suggestions))[:10]  # Limit to 10 suggestions
-    except Exception:
-        # Fallback to basic suggestions if anything fails
-        return ["plans", "research", "completed", "active", "shared", "personal"]
+        handle_command_error(e, verbose, "search")
 
 
 # ============================================================================
@@ -813,17 +759,35 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
 
 def _execute_action(action: str, results: list, force: bool, verbose: bool):
     """Execute action on found thoughts."""
-    if not force and action in ['delete', 'archive']:
-        import typer
-        confirm = typer.confirm(f"Are you sure you want to {action} {len(results)} thoughts?")
-        if not confirm:
-            console.print("❌ [yellow]Action cancelled[/yellow]")
-            return
-    
-    # Get action engine for execution  
+    # Enhanced confirmation for destructive actions
+    if action in ['delete', 'archive']:
+        # Show what will be affected
+        console.print(f"\n[yellow]⚠️  About to {action} {len(results)} file(s):[/yellow]")
+        for idx, entity in enumerate(results[:5]):  # Show first 5
+            console.print(f"  • {entity.path.name}")
+        if len(results) > 5:
+            console.print(f"  • ... and {len(results) - 5} more")
+
+        if not force:
+            # Require explicit typed confirmation for destructive actions
+            import typer
+            confirmation_text = "DELETE" if action == "delete" else "ARCHIVE"
+            console.print(f"\n[red]⚠️  This action cannot be easily undone![/red]")
+            console.print(f"[dim]Backups will be created in: {get_state().action_engine.backup_dir}[/dim]\n")
+
+            user_input = typer.prompt(
+                f"Type '{confirmation_text}' to confirm (or press Ctrl+C to cancel)",
+                default="",
+                show_default=False
+            )
+            if user_input.strip() != confirmation_text:
+                console.print("❌ [yellow]Action cancelled - confirmation text did not match[/yellow]")
+                return
+
+    # Get action engine for execution
     state = get_state()
     action_engine = state.action_engine
-    
+
     try:
         if action == 'show':
             for entity in results:
@@ -834,15 +798,18 @@ def _execute_action(action: str, results: list, force: bool, verbose: bool):
         elif action == 'delete':
             # Use the bulk delete method
             result = action_engine.delete_thoughts(results, dry_run=False)
+            console.print(f"\n✅ [green]Deleted {len(result['success'])} file(s)[/green]")
             for success_path in result['success']:
-                console.print(f"🗑️  [red]Deleted: {Path(success_path).name}[/red]")
+                console.print(f"  🗑️  [dim]{Path(success_path).name}[/dim]")
+            if result['backups']:
+                console.print(f"\n💾 [blue]Backups created in: {action_engine.backup_dir}[/blue]")
             for error in result['errors']:
                 console.print(f"❌ [red]Error deleting: {error}[/red]")
         elif action == 'archive':
             # For now, just show that archive isn't fully implemented
             console.print(f"❌ [yellow]Archive action not yet fully implemented[/yellow]")
         elif action == 'promote':
-            # For now, just show that promote isn't fully implemented  
+            # For now, just show that promote isn't fully implemented
             console.print(f"❌ [yellow]Promote action not yet fully implemented[/yellow]")
     except Exception as e:
         console.print(f"❌ [red]Error executing {action}: {e}[/red]")
@@ -878,7 +845,10 @@ def _preview_action(action: str, results: list):
 # ============================================================================
 
 # Create find subcommand app
-find_app = typer.Typer(name="find", help="Find thoughts by category and keywords")
+find_app = typer.Typer(
+    name="find",
+    help="Browse/filter thoughts by type, status, or metadata. For content search, use 'mem8 search <query>' instead."
+)
 typer_app.add_typer(find_app, name="find")
 
 def _find_thoughts_new(
@@ -999,7 +969,7 @@ def find_all_new(
         "--dry-run", help="Show what would be done without executing"
     )] = False,
     force: Annotated[bool, typer.Option(
-        "--force", help="Skip confirmation prompts for destructive actions"
+        "--force", help="⚠️  Skip confirmation prompts for destructive actions (use with caution)"
     )] = False,
     verbose: Annotated[bool, typer.Option(
         "--verbose", "-v", help="Enable verbose output"
@@ -1023,7 +993,7 @@ def find_plans_new(
         "--dry-run", help="Show what would be done without executing"
     )] = False,
     force: Annotated[bool, typer.Option(
-        "--force", help="Skip confirmation prompts for destructive actions"
+        "--force", help="⚠️  Skip confirmation prompts for destructive actions (use with caution)"
     )] = False,
     verbose: Annotated[bool, typer.Option(
         "--verbose", "-v", help="Enable verbose output"
@@ -1047,7 +1017,7 @@ def find_research_new(
         "--dry-run", help="Show what would be done without executing"
     )] = False,
     force: Annotated[bool, typer.Option(
-        "--force", help="Skip confirmation prompts for destructive actions"
+        "--force", help="⚠️  Skip confirmation prompts for destructive actions (use with caution)"
     )] = False,
     verbose: Annotated[bool, typer.Option(
         "--verbose", "-v", help="Enable verbose output"
@@ -1102,6 +1072,53 @@ def find_completed_new(
 # ============================================================================
 # Remaining Commands (Phase 3)
 # ============================================================================
+
+def _should_skip_confirmation(force: bool, non_interactive: bool, existing_thoughts: bool, existing_claude: bool, should_install_templates: bool, template_type: str) -> tuple[bool, list[str]]:
+    """Determine if we should skip confirmation and what issues exist."""
+    needs_confirmation = False
+    issues = []
+
+    if existing_thoughts and not force:
+        issues.append("thoughts/ directory already exists")
+        needs_confirmation = True
+
+    if existing_claude and should_install_templates and "claude" in (template_type or "") and not force:
+        issues.append(".claude/ directory already exists")
+        needs_confirmation = True
+
+    return needs_confirmation, issues
+
+
+def _handle_init_confirmation(needs_confirmation: bool, issues: list[str], force: bool, non_interactive: bool) -> bool:
+    """Handle confirmation logic for init command. Returns True if should proceed."""
+    if not needs_confirmation:
+        return True
+
+    if force:
+        return True
+
+    console.print("\n⚠️  [yellow]Existing directories detected:[/yellow]")
+    for issue in issues:
+        console.print(f"  • {issue}")
+
+    console.print("\n💡 [cyan]What will happen:[/cyan]")
+    console.print("  • Existing directories will be [bold]preserved (not overwritten)[/bold]")
+    console.print("  • Only missing components will be created")
+    console.print("  • Use [dim]--force[/dim] to overwrite existing directories")
+
+    if non_interactive:
+        console.print("\n❌ [red]Cannot proceed in non-interactive mode with existing data[/red]")
+        console.print("💡 [dim]Use --force to proceed anyway, or run from a clean directory[/dim]")
+        return False
+
+    import typer
+    proceed = typer.confirm("\nContinue with setup (will skip existing directories)?")
+    if not proceed:
+        console.print("❌ [yellow]Setup cancelled[/yellow]")
+        return False
+
+    return True
+
 
 def _validate_init_workspace_location(force: bool, non_interactive: bool = False) -> Path:
     """Validate workspace location for init command only."""
@@ -1161,7 +1178,7 @@ def init(
         "--web", help="Launch web UI after setup"
     )] = False,
     force: Annotated[bool, typer.Option(
-        "--force", help="Skip all confirmations, overwrite existing directories, use defaults"
+        "--force", help="⚠️  DANGEROUS: Skip all confirmations and overwrite existing directories without backup"
     )] = False,
     non_interactive: Annotated[bool, typer.Option(
         "--non-interactive", help="Non-interactive mode, use auto-detected defaults without prompts"
@@ -1237,46 +1254,23 @@ def init(
         # 3. Check for existing setup and conflicts
         existing_thoughts = Path('thoughts').exists()
         existing_claude = Path('.claude').exists()
-        needs_confirmation = False
-        issues = []
-        
-        if existing_thoughts and not force:
-            issues.append("thoughts/ directory already exists")
-            needs_confirmation = True
-        
-        if existing_claude and should_install_templates and "claude" in (template_type or "") and not force:
-            issues.append(".claude/ directory already exists")
-            needs_confirmation = True
-        
+
+        needs_confirmation, issues = _should_skip_confirmation(
+            force, non_interactive, existing_thoughts, existing_claude,
+            should_install_templates, template_type
+        )
+
         # Only show repository info in verbose mode or if explicitly requested
         if verbose and config.get('repositories'):
             console.print(f"📁 [dim]Including {len(config['repositories'])} repositories[/dim]")
-        
+
         if shared_dir:
             config['shared_location'] = shared_dir
             config['shared_enabled'] = True  # Enable shared when --shared-dir is provided
-        
+
         # 4. Handle confirmations if needed
-        if needs_confirmation and not force:
-            console.print("\n⚠️  [yellow]Existing directories detected:[/yellow]")
-            for issue in issues:
-                console.print(f"  • {issue}")
-
-            console.print("\n💡 [cyan]What will happen:[/cyan]")
-            console.print("  • Existing directories will be [bold]preserved (not overwritten)[/bold]")
-            console.print("  • Only missing components will be created")
-            console.print("  • Use [dim]--force[/dim] to overwrite existing directories")
-
-            if non_interactive:
-                console.print("\n❌ [red]Cannot proceed in non-interactive mode with existing data[/red]")
-                console.print("💡 [dim]Use --force to proceed anyway, or run from a clean directory[/dim]")
-                return
-
-            import typer
-            proceed = typer.confirm("\nContinue with setup (will skip existing directories)?")
-            if not proceed:
-                console.print("❌ [yellow]Setup cancelled[/yellow]")
-                return
+        if not _handle_init_confirmation(needs_confirmation, issues, force, non_interactive):
+            return
         
         # 5. Create directory structure
         console.print("📂 [dim]Creating directory structure...[/dim]")
@@ -1320,9 +1314,7 @@ def init(
         console.print("  • Use [cyan]mem8 search \"query\"[/cyan] to find thoughts")
         
     except Exception as e:
-        console.print(f"❌ [bold red]Error during setup: {e}[/bold red]")
-        if verbose:
-            console.print_exception()
+        handle_command_error(e, verbose, "setup")
 
 
 def _analyze_claude_template(workspace_dir: Path) -> Dict[str, Any]:
@@ -1509,44 +1501,6 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                 console.print(f"[yellow]Could not install {template_name}: {e}[/yellow]")
 
 
-def _check_conflicts(workspace_dir: Path, templates: list[str]) -> list[str]:
-    """Check for existing files that would be overwritten."""
-    conflicts = []
-    
-    for template in templates:
-        if "claude" in template and (workspace_dir / ".claude").exists():
-            conflicts.append(".claude directory")
-        if "thoughts" in template and (workspace_dir / "thoughts").exists():
-            conflicts.append("thoughts directory")
-    
-    return conflicts
-
-
-def _backup_shared_thoughts(workspace_dir: Path) -> Optional[Path]:
-    """Backup existing thoughts/shared directory."""
-    shared_dir = workspace_dir / "thoughts" / "shared"
-    if shared_dir.exists() and any(shared_dir.iterdir()):
-        backup_dir = workspace_dir / ".mem8_backup" / "thoughts_shared"
-        backup_dir.parent.mkdir(parents=True, exist_ok=True)
-        
-        import shutil
-        shutil.copytree(shared_dir, backup_dir, dirs_exist_ok=True)
-        console.print(f"[yellow]Backed up thoughts/shared to {backup_dir}[/yellow]")
-        return backup_dir
-    
-    return None
-
-
-def _restore_shared_thoughts(workspace_dir: Path, backup_dir: Path) -> None:
-    """Restore backed up thoughts/shared directory."""
-    if backup_dir.exists():
-        import shutil
-        shared_dir = workspace_dir / "thoughts" / "shared"
-        shutil.copytree(backup_dir, shared_dir, dirs_exist_ok=True)
-        console.print("[green]Restored thoughts/shared from backup[/green]")
-        shutil.rmtree(backup_dir.parent)
-
-
 @typer_app.command()
 def sync(
     direction: Annotated[SyncDirection, typer.Option(
@@ -1582,9 +1536,7 @@ def sync(
                 console.print(f"Error: {result['error']}")
                 
     except Exception as e:
-        console.print(f"❌ [red]Error during sync: {e}[/red]")
-        if verbose:
-            console.print_exception()
+        handle_command_error(e, verbose, "sync")
 
 
 # ============================================================================
@@ -1769,7 +1721,7 @@ def worktree_list(
 def worktree_remove(
     worktree_path: Annotated[Path, typer.Argument(help="Path to worktree to remove")],
     force: Annotated[bool, typer.Option(
-        "--force", help="Force removal even with uncommitted changes"
+        "--force", help="⚠️  Force removal even with uncommitted changes (use with caution)"
     )] = False,
     verbose: Annotated[bool, typer.Option(
         "--verbose", "-v", help="Enable verbose output"
