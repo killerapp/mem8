@@ -67,7 +67,7 @@ function HomepageHeader() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', maxWidth: '600px' }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', maxWidth: '600px', margin: '0 auto' }}
         >
           <div className={styles.installCode}>
             <code>uvx mem8 init</code>
