@@ -16,6 +16,7 @@ const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'intro',
     'installation',
+    'workflows',
     'concepts',
     {
       type: 'category',

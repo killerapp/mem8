@@ -16,13 +16,28 @@ function HomepageHeader() {
         <Heading as="h1" className="hero__title">
           {siteConfig.title}
         </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
+        <p className="hero__subtitle" style={{fontSize: '1.5rem', marginBottom: '1rem'}}>
+          Memory-First Development for Claude Code
+        </p>
+        <p style={{fontSize: '1.1rem', maxWidth: '800px', margin: '0 auto 2rem', opacity: 0.9}}>
+          Research. Plan. Implement. Commit.<br/>
+          Build features faster with parallel sub-agents and persistent memory.
+        </p>
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/intro">
-            Docusaurus Tutorial - 5min ⏱️
+            to="/docs">
+            Get Started →
           </Link>
+          <Link
+            className="button button--outline button--secondary button--lg"
+            to="https://github.com/killerapp/mem8"
+            style={{marginLeft: '1rem'}}>
+            View on GitHub
+          </Link>
+        </div>
+        <div style={{marginTop: '2rem', fontSize: '0.9rem', opacity: 0.8}}>
+          <code>uv tool install mem8</code>
         </div>
       </div>
     </header>

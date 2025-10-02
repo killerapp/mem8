@@ -11,32 +11,34 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
+    title: '🔍 Research with Parallel Sub-Agents',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        <code>/research_codebase</code> spawns specialized agents to explore your code in parallel.
+        Automated codebase analysis generates structured research documents with file references and architectural insights.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: '📋 Plan with Context',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        <code>/create_plan</code> designs implementation with concrete steps.
+        Plans stored in <code>thoughts/shared/plans/</code> become executable roadmaps
+        that guide both you and Claude through complex features.
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: '⚡ Implement Plan-Aware',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        <code>/implement_plan</code> executes with full context of your research and design.
+        Checkboxes track progress. <code>/commit</code> creates conventional commits.
+        Ship features faster with memory-first development.
       </>
     ),
   },
