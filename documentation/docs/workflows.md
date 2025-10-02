@@ -212,7 +212,7 @@ Create conventional commits based on session context.
 
 ```mermaid
 graph LR
-    A[/commit] --> B[Review Session History]
+    A[commit] --> B[Review Session History]
     B --> C[Run git status]
     C --> D[Analyze Changes]
     D --> E[Draft Commit Messages]
