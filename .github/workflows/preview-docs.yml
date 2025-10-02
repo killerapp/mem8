@@ -41,13 +41,13 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           OUTPUT=$(npx wrangler pages deploy ./build \
-            --project-name=mem8-docs \
+            --project-name=mem8 \
             --commit-hash=${{ github.event.pull_request.head.sha }} \
             --commit-message="PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}" \
             --branch=pr-${{ github.event.pull_request.number }})
 
           # Extract deployment URL from output
-          DEPLOYMENT_URL=$(echo "$OUTPUT" | grep -oP 'https://[a-z0-9]+\.mem8-docs\.pages\.dev' | head -1)
+          DEPLOYMENT_URL=$(echo "$OUTPUT" | grep -oP 'https://[a-z0-9]+\.mem8\.pages\.dev' | head -1)
           echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
