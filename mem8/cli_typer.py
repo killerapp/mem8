@@ -748,13 +748,13 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     interactive_config["web"] = False
     
     # Save workflow preferences for future use
+    # Note: github_repo is intentionally NOT saved as it's project-specific
     if template and template != "none":
         config.save_workflow_preferences(
             template=template,
             workflow_provider=interactive_config.get('workflow_provider', 'github'),
             automation_level=interactive_config.get('workflow_automation', 'standard'),
-            github_org=interactive_config.get('github_org'),
-            github_repo=interactive_config.get('github_repo')
+            github_org=interactive_config.get('github_org')
         )
         console.print("\n[dim]💾 Saved preferences for future init commands[/dim]")
     
