@@ -73,6 +73,22 @@ function HomepageHeader() {
             <CopyButton text="uv tool install mem8" />
           </div>
         </motion.div>
+
+        <motion.div
+          className={styles.templateExample}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0, duration: 0.6 }}
+          style={{marginTop: '2rem', maxWidth: '600px', margin: '2rem auto 0'}}
+        >
+          <p style={{fontSize: '0.9rem', color: '#7d8590', marginBottom: '0.75rem'}}>
+            Use team templates from GitHub:
+          </p>
+          <div className={styles.installCode}>
+            <code>mem8 init --template-source killerapp/mem8-templates</code>
+            <CopyButton text="mem8 init --template-source killerapp/mem8-templates" />
+          </div>
+        </motion.div>
       </div>
     </header>
   );

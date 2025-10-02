@@ -24,8 +24,11 @@ mem8 helps you:
 # Install mem8
 uv tool install mem8
 
-# Initialize a Claude Code workspace
-mem8 init
+# Initialize with official templates
+mem8 init --template-source killerapp/mem8-templates
+
+# Or use your team's custom templates
+mem8 init --template-source yourorg/team-templates
 
 # Search your thoughts
 mem8 search "authentication"

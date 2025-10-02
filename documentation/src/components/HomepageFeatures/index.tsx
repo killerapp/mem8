@@ -20,17 +20,17 @@ const FeatureList: FeatureItem[] = [
     ),
   },
   {
-    title: '📋 Plan with Context',
+    title: '🤝 Team Collaboration with Shared Templates',
     description: (
       <>
-        <code>/create_plan</code> designs implementation with concrete steps.
-        Plans stored in <code>thoughts/shared/plans/</code> become executable roadmaps
-        that guide both you and Claude through complex features.
+        Share Claude Code prompts and sub-agents across your team using GitHub templates.
+        Install from <code>killerapp/mem8-templates</code> or create your own.
+        Standardize workflows and best practices organization-wide.
       </>
     ),
   },
   {
-    title: '⚡ Implement Plan-Aware',
+    title: '⚡ Implement with Full Context',
     description: (
       <>
         <code>/implement_plan</code> executes with full context of your research and design.

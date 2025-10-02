@@ -1,10 +1,27 @@
 # External Template Sources
 
-mem8 supports loading templates from external sources, allowing you to:
-- Use custom templates from your organization
+**Share Claude Code workflows across your entire team.** mem8 supports loading templates from external sources, enabling teams to collaborate on prompts, sub-agents, and best practices.
+
+## Why Use External Templates?
+
+### Team Collaboration
+- **Standardize workflows** - Everyone uses the same Claude Code commands
+- **Share best practices** - Distribute proven sub-agent configurations
+- **Version control** - Track changes to prompts and workflows over time
+- **Organization-wide consistency** - Same tools, same patterns, same quality
+
+### Official Templates Repository
+The [`killerapp/mem8-templates`](https://github.com/killerapp/mem8-templates) repository provides:
+- Curated Claude Code integration templates
+- Battle-tested sub-agent configurations
+- Community-contributed workflows
+- Regular updates and improvements
+
+### Custom Templates
 - Fork and customize the official templates
+- Create organization-specific commands
 - Develop and test templates locally
-- Version and distribute templates independently
+- Version and distribute independently
 
 ## Quick Start
 
