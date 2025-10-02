@@ -16,7 +16,22 @@ const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'intro',
     'installation',
-    'workflows',
+    {
+      type: 'category',
+      label: 'Workflows',
+      link: {
+        type: 'doc',
+        id: 'workflows/index',
+      },
+      items: [
+        'workflows/research',
+        'workflows/plan',
+        'workflows/implement',
+        'workflows/commit',
+        'workflows/advanced',
+        'workflows/best-practices',
+      ],
+    },
     'concepts',
     {
       type: 'category',
