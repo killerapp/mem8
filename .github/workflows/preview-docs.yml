@@ -25,6 +25,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: documentation/package-lock.json
 
+      - name: Cache Docusaurus build
+        uses: actions/cache@v4
+        with:
+          path: |
+            documentation/.docusaurus
+            documentation/node_modules/.cache
+          key: ${{ runner.os }}-docusaurus-${{ hashFiles('documentation/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-docusaurus-
+
       - name: Install dependencies
         working-directory: ./documentation
         run: npm ci
