@@ -67,20 +67,15 @@ function HomepageHeader() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', maxWidth: '600px' }}
         >
           <div className={styles.installCode}>
-            <code>uv tool install mem8</code>
-            <CopyButton text="uv tool install mem8" />
+            <code>uvx mem8 init</code>
+            <CopyButton text="uvx mem8 init" />
           </div>
-          <div className={styles.installCode}>
-            <code>mkdir my-project && cd my-project && git init</code>
-            <CopyButton text="mkdir my-project && cd my-project && git init" />
-          </div>
-          <div className={styles.installCode}>
-            <code>mem8 init</code>
-            <CopyButton text="mem8 init" />
-          </div>
+          <p style={{ fontSize: '0.85rem', color: '#7d8590', marginTop: '0.5rem', textAlign: 'center' }}>
+            Run in any git repository to set up mem8 workspace with Claude Code integration
+          </p>
         </motion.div>
       </div>
     </header>
