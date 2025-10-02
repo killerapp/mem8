@@ -15,15 +15,13 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://killerapp.github.io',
+  url: 'https://mem8.agenticinsights.com',
   // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/mem8/',
+  baseUrl: '/',
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'killerapp', // Usually your GitHub org/user name.
-  projectName: 'mem8', // Usually your repo name.
+  // Cloudflare Pages deployment
+  organizationName: 'killerapp',
+  projectName: 'mem8',
 
   onBrokenLinks: 'throw',
 
@@ -54,16 +52,26 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    'docusaurus-plugin-llms-txt',
+  ],
+
+  themes: [
+    '@docusaurus/theme-mermaid',
+    '@docusaurus/theme-live-codeblock',
+  ],
+
   markdown: {
     mermaid: true,
   },
-  themes: ['@docusaurus/theme-mermaid'],
 
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
-      respectPrefersColorScheme: true,
+      defaultMode: 'dark',
+      disableSwitch: false,
+      respectPrefersColorScheme: false,
     },
     mermaid: {
       theme: {light: 'neutral', dark: 'dark'},
