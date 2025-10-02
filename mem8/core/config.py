@@ -51,6 +51,9 @@ class Config:
                 'auto_sync': True,
                 'sync_interval': 300,  # 5 minutes
             },
+            'templates': {
+                'default_source': None,  # None = builtin, or path/URL to external templates
+            },
             'discovery': {
                 'cross_repo': False,  # default to single-repo discovery
             },

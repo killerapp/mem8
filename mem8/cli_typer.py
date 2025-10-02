@@ -1168,6 +1168,9 @@ def init(
         "--template", "-t",
         help="Force specific template: claude-config, thoughts-repo, or full (default: auto-detect)",
     ),
+    template_source: Annotated[Optional[str], typer.Option(
+        "--template-source", help="External template source: local path, git URL, or GitHub shorthand (org/repo)"
+    )] = None,
     repos: Annotated[Optional[str], typer.Option(
         "--repos", help="Comma-separated list of repository paths to discover"
     )] = None,
@@ -1280,7 +1283,7 @@ def init(
         if should_install_templates and template_type != "none":
             template_name = template_type or "full"
             console.print(f"\n📦 [cyan]Installing '{template_name}' template...[/cyan]")
-            _install_templates(template_name, force, verbose, interactive_config)
+            _install_templates(template_name, force, verbose, interactive_config, template_source)
         
         if setup_result['errors']:
             console.print("❌ [red]Errors during setup:[/red]")
@@ -1376,129 +1379,148 @@ def _analyze_claude_template(workspace_dir: Path) -> Dict[str, Any]:
     
     return analysis
 
-def _install_templates(template_type: str, force: bool, verbose: bool, interactive_config: Dict[str, Any] = None) -> None:
+def _install_templates(template_type: str, force: bool, verbose: bool, interactive_config: Dict[str, Any] = None, template_source: Optional[str] = None) -> None:
     """Install cookiecutter templates to the workspace."""
     from cookiecutter.main import cookiecutter
-    from importlib import resources
-    import mem8.templates
     from .core.config import Config
-    
-    # Resolve template paths
+    from .core.template_source import create_template_source
+
+    # Get template source (external or builtin)
+    if template_source is None:
+        # Check for configured default source
+        config = Config()
+        template_source = config.get('templates.default_source')
+
+    # Create and resolve template source
+    source = create_template_source(template_source)
+
     try:
-        template_base = resources.files(mem8.templates)
-    except (ImportError, AttributeError):
-        # Development fallback
-        template_base = Path(__file__).parent.parent
-    
-    # Map template types to directories
-    template_map = {
-        "full": ["claude-dot-md-template", "shared-thoughts-template"],
-        "claude-config": ["claude-dot-md-template"],
-        "thoughts-repo": ["shared-thoughts-template"],
-    }
-    
-    if template_type not in template_map:
-        console.print(f"[red]Invalid template: {template_type}[/red]")
-        return
-    
-    # Use current working directory (validation already done at init start)
-    workspace_dir = Path.cwd()
-    
-    # Run cookiecutter for each template
-    for template_name in template_map[template_type]:
-        template_path = template_base / template_name
-        
-        # Check if target already exists
-        target_dir = ".claude" if "claude" in template_name else "thoughts"
-        
-        # Special handling for Claude templates - analyze what will be installed
-        if "claude" in template_name:
-            analysis = _analyze_claude_template(workspace_dir)
-            
-            if (workspace_dir / target_dir).exists() and not force:
-                console.print(f"\n⚠️  [yellow]Existing Claude Code integration detected:[/yellow]")
-                console.print(f"  • {len(analysis['existing_commands'])} existing commands")
-                console.print(f"  • {len(analysis['existing_agents'])} existing agents")
-                
-                if analysis['conflicts']:
-                    console.print(f"\n🔄 [red]These will be overwritten by mem8:[/red]")
-                    for conflict in analysis['conflicts'][:5]:  # Show first 5
-                        console.print(f"    • {conflict}")
-                    if len(analysis['conflicts']) > 5:
-                        console.print(f"    • ... and {len(analysis['conflicts']) - 5} more")
-                
-                console.print(f"\n🎯 [cyan]mem8 will install:[/cyan]")
-                console.print(f"  • {len(analysis['template_commands'])} commands")
-                console.print(f"  • {len(analysis['template_agents'])} agents")
-                
-                import typer
-                if not typer.confirm("\nProceed? (mem8 will manage Claude Code components from now on)"):
-                    console.print("  ⏭️  Skipping .claude/ installation")
+        template_base = source.resolve()
+
+        # Map template types to directories
+        template_map = {
+            "full": ["claude-dot-md-template", "shared-thoughts-template"],
+            "claude-config": ["claude-dot-md-template"],
+            "thoughts-repo": ["shared-thoughts-template"],
+        }
+
+        if template_type not in template_map:
+            console.print(f"[red]Invalid template: {template_type}[/red]")
+            return
+
+        # Use current working directory (validation already done at init start)
+        workspace_dir = Path.cwd()
+
+        # Run cookiecutter for each template
+        for template_name in template_map[template_type]:
+            # Use template source to resolve path
+            try:
+                template_path = source.get_template_path(template_name)
+            except ValueError as e:
+                if verbose:
+                    console.print(f"[yellow]Template not found in source: {template_name}[/yellow]")
+                    console.print(f"[dim]Error: {e}[/dim]")
+                # Try fallback for builtin templates
+                template_path = template_base / template_name
+                if not template_path.exists():
+                    console.print(f"[red]Template not available: {template_name}[/red]")
                     continue
-        elif (workspace_dir / target_dir).exists() and not force:
-            # For non-Claude directories, simple skip
-            console.print(f"  ⏭️  Skipping {target_dir}/ - already exists")
-            continue
-        
-        try:
-            # Build extra_context from interactive configuration
-            extra_context = {}
-            if "claude" in template_name:
-                extra_context = {"project_slug": ".claude"}
-                
-                # Apply interactive configuration to claude templates
-                if interactive_config:
-                    if "workflow_provider" in interactive_config:
-                        extra_context["workflow_provider"] = interactive_config["workflow_provider"]
-                    if "github_org" in interactive_config:
-                        extra_context["github_org"] = interactive_config["github_org"]
-                    if "github_repo" in interactive_config:
-                        extra_context["github_repo"] = interactive_config["github_repo"]
-                    if "workflow_automation" in interactive_config:
-                        extra_context["include_workflow_automation"] = interactive_config["workflow_automation"]
-                    if "username" in interactive_config:
-                        extra_context["username"] = interactive_config["username"]
-                    if "shared_enabled" in interactive_config:
-                        extra_context["shared_enabled"] = interactive_config["shared_enabled"]
-            
-            # Use no_input mode when NOT in interactive mode
-            # When interactive_config is None, we're in regular mode, so no_input=True
-            # When interactive_config is provided, we already have all values, so no_input=True
-            no_input = True
-            
-            cookiecutter(
-                str(template_path),
-                no_input=no_input,
-                output_dir=str(workspace_dir),
-                overwrite_if_exists=force,
-                extra_context=extra_context
-            )
-            
-            # Show detailed installation report for Claude templates
+
+            # Check if target already exists
+            target_dir = ".claude" if "claude" in template_name else "thoughts"
+
+            # Special handling for Claude templates - analyze what will be installed
             if "claude" in template_name:
                 analysis = _analyze_claude_template(workspace_dir)
-                console.print(f"\n🤖 [bold cyan]Claude Code Integration Complete![/bold cyan]")
-                console.print(f"\n  📝 **{len(analysis['template_commands'])} commands** installed:")
-                cmd_list = ', '.join(analysis['template_commands'][:5])
-                if len(analysis['template_commands']) > 5:
-                    cmd_list += f" (+{len(analysis['template_commands']) - 5} more)"
-                console.print(f"     {cmd_list}")
-                
-                console.print(f"\n  🤖 **{len(analysis['template_agents'])} agents** installed:")
-                agent_list = ', '.join(analysis['template_agents'][:4])
-                if len(analysis['template_agents']) > 4:
-                    agent_list += f" (+{len(analysis['template_agents']) - 4} more)"
-                console.print(f"     {agent_list}")
-                
-                console.print(f"\n  🌐 [dim]mem8 now manages these Claude Code components for:[/dim]")
-                console.print(f"     [dim]• Dynamic agentic workflows & knowledge base[/dim]")
-                console.print(f"     [dim]• Version-controlled outer-loop automation[/dim]")
-                console.print(f"     [dim]• Human-driven subagent orchestration[/dim]")
-            elif "thoughts" in template_name:
-                console.print(f"  ✅ Installed thoughts/ structure")
-        except Exception as e:
-            if verbose:
-                console.print(f"[yellow]Could not install {template_name}: {e}[/yellow]")
+
+                if (workspace_dir / target_dir).exists() and not force:
+                    console.print(f"\n⚠️  [yellow]Existing Claude Code integration detected:[/yellow]")
+                    console.print(f"  • {len(analysis['existing_commands'])} existing commands")
+                    console.print(f"  • {len(analysis['existing_agents'])} existing agents")
+
+                    if analysis['conflicts']:
+                        console.print(f"\n🔄 [red]These will be overwritten by mem8:[/red]")
+                        for conflict in analysis['conflicts'][:5]:  # Show first 5
+                            console.print(f"    • {conflict}")
+                        if len(analysis['conflicts']) > 5:
+                            console.print(f"    • ... and {len(analysis['conflicts']) - 5} more")
+
+                    console.print(f"\n🎯 [cyan]mem8 will install:[/cyan]")
+                    console.print(f"  • {len(analysis['template_commands'])} commands")
+                    console.print(f"  • {len(analysis['template_agents'])} agents")
+
+                    import typer
+                    if not typer.confirm("\nProceed? (mem8 will manage Claude Code components from now on)"):
+                        console.print("  ⏭️  Skipping .claude/ installation")
+                        continue
+            elif (workspace_dir / target_dir).exists() and not force:
+                # For non-Claude directories, simple skip
+                console.print(f"  ⏭️  Skipping {target_dir}/ - already exists")
+                continue
+
+            try:
+                # Build extra_context from interactive configuration
+                extra_context = {}
+                if "claude" in template_name:
+                    extra_context = {"project_slug": ".claude"}
+
+                    # Apply interactive configuration to claude templates
+                    if interactive_config:
+                        if "workflow_provider" in interactive_config:
+                            extra_context["workflow_provider"] = interactive_config["workflow_provider"]
+                        if "github_org" in interactive_config:
+                            extra_context["github_org"] = interactive_config["github_org"]
+                        if "github_repo" in interactive_config:
+                            extra_context["github_repo"] = interactive_config["github_repo"]
+                        if "workflow_automation" in interactive_config:
+                            extra_context["include_workflow_automation"] = interactive_config["workflow_automation"]
+                        if "username" in interactive_config:
+                            extra_context["username"] = interactive_config["username"]
+                        if "shared_enabled" in interactive_config:
+                            extra_context["shared_enabled"] = interactive_config["shared_enabled"]
+
+                # Use no_input mode when NOT in interactive mode
+                # When interactive_config is None, we're in regular mode, so no_input=True
+                # When interactive_config is provided, we already have all values, so no_input=True
+                no_input = True
+
+                cookiecutter(
+                    str(template_path),
+                    no_input=no_input,
+                    output_dir=str(workspace_dir),
+                    overwrite_if_exists=force,
+                    extra_context=extra_context
+                )
+
+                # Show detailed installation report for Claude templates
+                if "claude" in template_name:
+                    analysis = _analyze_claude_template(workspace_dir)
+                    console.print(f"\n🤖 [bold cyan]Claude Code Integration Complete![/bold cyan]")
+                    console.print(f"\n  📝 **{len(analysis['template_commands'])} commands** installed:")
+                    cmd_list = ', '.join(analysis['template_commands'][:5])
+                    if len(analysis['template_commands']) > 5:
+                        cmd_list += f" (+{len(analysis['template_commands']) - 5} more)"
+                    console.print(f"     {cmd_list}")
+
+                    console.print(f"\n  🤖 **{len(analysis['template_agents'])} agents** installed:")
+                    agent_list = ', '.join(analysis['template_agents'][:4])
+                    if len(analysis['template_agents']) > 4:
+                        agent_list += f" (+{len(analysis['template_agents']) - 4} more)"
+                    console.print(f"     {agent_list}")
+
+                    console.print(f"\n  🌐 [dim]mem8 now manages these Claude Code components for:[/dim]")
+                    console.print(f"     [dim]• Dynamic agentic workflows & knowledge base[/dim]")
+                    console.print(f"     [dim]• Version-controlled outer-loop automation[/dim]")
+                    console.print(f"     [dim]• Human-driven subagent orchestration[/dim]")
+                elif "thoughts" in template_name:
+                    console.print(f"  ✅ Installed thoughts/ structure")
+            except Exception as e:
+                if verbose:
+                    console.print(f"[yellow]Could not install {template_name}: {e}[/yellow]")
+
+    # Cleanup source if it was a temp directory
+    finally:
+        source.cleanup()
 
 
 @typer_app.command()
@@ -1877,6 +1899,219 @@ def metadata_project(
 
 # Enable Typer's built-in completion
 typer_app.add_completion = True
+# ============================================================================
+# Template Management Commands
+# ============================================================================
+
+# Create templates subcommand app
+templates_app = typer.Typer(name="templates", help="Template source management and inspection")
+typer_app.add_typer(templates_app, name="templates")
+
+@templates_app.command("list")
+def templates_list(
+    source: Annotated[Optional[str], typer.Option(
+        "--source", help="Template source (local path, git URL, or GitHub shorthand). Uses default/builtin if not specified."
+    )] = None,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """List available templates from a source."""
+    from .core.template_source import create_template_source
+    from .core.config import Config
+    from rich.table import Table
+
+    set_app_state(verbose=verbose)
+
+    # Use provided source, configured default, or builtin
+    if source is None:
+        config = Config()
+        source = config.get('templates.default_source')
+
+    source_display = source or "builtin"
+    console.print(f"[bold blue]Templates from: {source_display}[/bold blue]\n")
+
+    try:
+        with create_template_source(source) as template_source:
+            # Load manifest if available
+            manifest = template_source.load_manifest()
+
+            if manifest:
+                # Display from manifest
+                table = Table(title=f"Templates (manifest v{manifest.version})")
+                table.add_column("Name", style="cyan")
+                table.add_column("Type", style="green")
+                table.add_column("Description", style="dim")
+
+                for name, template_def in manifest.templates.items():
+                    desc = template_def.description or "(no description)"
+                    table.add_row(name, template_def.type, desc)
+
+                console.print(table)
+
+                if manifest.metadata:
+                    console.print(f"\n[dim]Source metadata:[/dim]")
+                    for key, value in manifest.metadata.items():
+                        console.print(f"  {key}: {value}")
+            else:
+                # Fallback: list discovered templates
+                templates = template_source.list_templates()
+
+                if templates:
+                    console.print("[yellow]No manifest found, listing discovered templates:[/yellow]\n")
+                    for template in templates:
+                        console.print(f"  • {template}")
+                else:
+                    console.print("[yellow]No templates found in source[/yellow]")
+
+            if verbose:
+                console.print(f"\n[dim]Source type: {template_source.source_type.value}[/dim]")
+                console.print(f"[dim]Resolved path: {template_source.resolve()}[/dim]")
+
+    except Exception as e:
+        handle_command_error(e, verbose, "template listing")
+
+
+@templates_app.command("validate")
+def templates_validate(
+    source: Annotated[Optional[str], typer.Option(
+        "--source", help="Template source to validate (local path, git URL, or GitHub shorthand)"
+    )] = None,
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Validate a template source and its manifest."""
+    from .core.template_source import create_template_source
+    from .core.config import Config
+
+    set_app_state(verbose=verbose)
+
+    # Use provided source or configured default
+    if source is None:
+        config = Config()
+        source = config.get('templates.default_source')
+        if source is None:
+            console.print("[red]No source specified and no default configured[/red]")
+            console.print("💡 [dim]Use --source to specify a template source[/dim]")
+            return
+
+    console.print(f"[bold blue]Validating template source: {source}[/bold blue]\n")
+
+    issues = []
+    warnings = []
+
+    try:
+        with create_template_source(source) as template_source:
+            # Check if source resolves
+            try:
+                resolved_path = template_source.resolve()
+                console.print(f"✅ [green]Source resolves to: {resolved_path}[/green]")
+            except Exception as e:
+                issues.append(f"Failed to resolve source: {e}")
+                console.print(f"❌ [red]Failed to resolve source: {e}[/red]")
+                return
+
+            # Check for manifest
+            manifest_path = resolved_path / "mem8-templates.yaml"
+            if manifest_path.exists():
+                console.print("✅ [green]Manifest file found[/green]")
+
+                # Load and validate manifest
+                try:
+                    manifest = template_source.load_manifest()
+                    console.print(f"✅ [green]Manifest parsed successfully (version {manifest.version})[/green]")
+
+                    # Validate templates
+                    console.print(f"\n[bold]Validating {len(manifest.templates)} template(s):[/bold]\n")
+                    for name, template_def in manifest.templates.items():
+                        console.print(f"  📦 [cyan]{name}[/cyan]")
+
+                        # Check if template path exists
+                        source_dir = resolved_path / manifest.source
+                        template_path = source_dir / template_def.path
+
+                        if template_path.exists():
+                            console.print(f"    ✅ Path exists: {template_def.path}")
+                        else:
+                            issue = f"Template path not found: {name} -> {template_def.path}"
+                            issues.append(issue)
+                            console.print(f"    ❌ [red]Path not found: {template_def.path}[/red]")
+
+                        # Check for cookiecutter.json
+                        cookiecutter_json = template_path / "cookiecutter.json"
+                        if cookiecutter_json.exists():
+                            console.print(f"    ✅ cookiecutter.json found")
+                        else:
+                            warning = f"No cookiecutter.json in template: {name}"
+                            warnings.append(warning)
+                            console.print(f"    ⚠️  [yellow]No cookiecutter.json found[/yellow]")
+
+                        if template_def.description:
+                            console.print(f"    [dim]{template_def.description}[/dim]")
+
+                except Exception as e:
+                    issue = f"Failed to parse manifest: {e}"
+                    issues.append(issue)
+                    console.print(f"❌ [red]Failed to parse manifest: {e}[/red]")
+            else:
+                warnings.append("No manifest file (will fallback to directory discovery)")
+                console.print("⚠️  [yellow]No manifest file found[/yellow]")
+                console.print(f"    [dim]Templates will be discovered from directory structure[/dim]")
+
+                # Try to list templates anyway
+                templates = template_source.list_templates()
+                if templates:
+                    console.print(f"\n[bold]Discovered {len(templates)} template(s) by fallback:[/bold]")
+                    for template in templates:
+                        console.print(f"  • {template}")
+
+            # Summary
+            console.print("\n" + "="*50)
+            if not issues and not warnings:
+                console.print("✅ [bold green]Validation passed! Template source is ready to use.[/bold green]")
+            elif not issues:
+                console.print(f"✅ [green]Validation passed with {len(warnings)} warning(s)[/green]")
+                for warning in warnings:
+                    console.print(f"  ⚠️  {warning}")
+            else:
+                console.print(f"❌ [red]Validation failed with {len(issues)} error(s)[/red]")
+                for issue in issues:
+                    console.print(f"  • {issue}")
+                if warnings:
+                    console.print(f"\n⚠️  [yellow]And {len(warnings)} warning(s):[/yellow]")
+                    for warning in warnings:
+                        console.print(f"  • {warning}")
+
+    except Exception as e:
+        handle_command_error(e, verbose, "template validation")
+
+
+@templates_app.command("set-default")
+def templates_set_default(
+    source: Annotated[str, typer.Argument(
+        help="Template source to set as default (local path, git URL, or GitHub shorthand). Use 'builtin' to reset."
+    )],
+    verbose: Annotated[bool, typer.Option(
+        "--verbose", "-v", help="Enable verbose output"
+    )] = False
+):
+    """Set the default template source for init commands."""
+    from .core.config import Config
+
+    set_app_state(verbose=verbose)
+    config = Config()
+
+    # Handle builtin keyword
+    if source.lower() == "builtin":
+        config.set('templates.default_source', None)
+        console.print("✅ [green]Reset to builtin templates[/green]")
+    else:
+        config.set('templates.default_source', source)
+        console.print(f"✅ [green]Default template source set to: {source}[/green]")
+        console.print("💡 [dim]Run 'mem8 templates validate' to test the source[/dim]")
+
+
 # Lightweight GitHub CLI helpers
 gh_app = typer.Typer(name="gh", help="GitHub CLI integration helpers")
 typer_app.add_typer(gh_app, name="gh")
