@@ -202,15 +202,33 @@ class Config:
             return False
 
         home_shortcut = Path.home() / ".mem8"
-        
+
         try:
-            # Remove existing shortcut if it exists
+            # Check existing shortcut
             if home_shortcut.exists() or home_shortcut.is_symlink():
                 if home_shortcut.is_dir() and not home_shortcut.is_symlink():
                     # It's a real directory, don't overwrite
                     return False
+
+                if home_shortcut.is_symlink():
+                    # Check if symlink points to our config directory
+                    existing_target = home_shortcut.resolve()
+                    if existing_target == self.config_dir.resolve():
+                        # Already points to correct location
+                        return True
+                    else:
+                        # Points to different location - warn and skip
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.warning(
+                            f"~/.mem8 symlink exists but points to {existing_target} "
+                            f"(expected {self.config_dir}). Skipping replacement."
+                        )
+                        return False
+
+                # Remove existing shortcut (non-directory file)
                 home_shortcut.unlink()
-            
+
             # Create symlink/junction to config directory
             if os.name == 'nt':  # Windows - use junction
                 import subprocess
@@ -221,6 +239,6 @@ class Config:
             else:  # Unix-like - use symlink
                 home_shortcut.symlink_to(self.config_dir)
                 return True
-                
+
         except (OSError, PermissionError):
             return False

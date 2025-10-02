@@ -223,13 +223,29 @@ def get_git_info() -> Dict[str, Any]:
         }
 
 
-def create_symlink(target: Path, link_path: Path) -> bool:
-    """Create a symlink with cross-platform support."""
+def create_symlink(target: Path, link_path: Path, force: bool = False) -> bool:
+    """Create a symlink with cross-platform support.
+
+    Args:
+        target: The target path the symlink should point to
+        link_path: The location where the symlink should be created
+        force: If True, replace existing symlinks. If False, fail if symlink exists.
+
+    Returns:
+        True if symlink was created successfully, False otherwise
+    """
     try:
-        if link_path.exists():
+        if link_path.exists() or link_path.is_symlink():
             if link_path.is_symlink():
+                if not force:
+                    # Don't replace existing symlinks without explicit permission
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Symlink already exists at {link_path}, skipping (use force=True to replace)")
+                    return False
+                # Remove existing symlink
                 link_path.unlink()
             else:
+                # Never overwrite real files/directories
                 return False
 
         # On Windows, try junction for directories
@@ -248,8 +264,13 @@ def create_symlink(target: Path, link_path: Path) -> bool:
         return False
 
 
-def create_symlink_with_info(target: Path, link_path: Path) -> tuple[bool, str]:
+def create_symlink_with_info(target: Path, link_path: Path, force: bool = False) -> tuple[bool, str]:
     """Create a symlink with cross-platform support and return info about what was created.
+
+    Args:
+        target: The target path the symlink should point to
+        link_path: The location where the symlink should be created
+        force: If True, replace existing symlinks. If False, fail if symlink exists.
 
     Returns:
         (success, link_type) where link_type is one of:
@@ -259,8 +280,12 @@ def create_symlink_with_info(target: Path, link_path: Path) -> tuple[bool, str]:
         - "failed" (could not create any type)
     """
     try:
-        if link_path.exists():
+        if link_path.exists() or link_path.is_symlink():
             if link_path.is_symlink():
+                if not force:
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Symlink already exists at {link_path}, skipping (use force=True to replace)")
+                    return False, "exists"
                 link_path.unlink()
             else:
                 return False, "failed"
