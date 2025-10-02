@@ -4,7 +4,7 @@
  */
 
 .heroBanner {
-  padding: 6rem 0 8rem;
+  padding: 4rem 0 4rem;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -13,7 +13,7 @@
 
 @media screen and (max-width: 996px) {
   .heroBanner {
-    padding: 3rem 1rem 4rem;
+    padding: 2rem 1rem 2rem;
   }
 }
 
@@ -23,10 +23,11 @@
   justify-content: center;
   gap: 1rem;
   flex-wrap: wrap;
+  margin-top: 1.5rem;
 }
 
 .installCodeContainer {
-  margin-top: 3rem;
+  margin-top: 2rem;
 }
 
 .installCode {
