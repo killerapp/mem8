@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'mem8',
-  tagline: 'AI Memory Management for Team Collaboration',
+  tagline: 'Memory-First Development for Claude Code',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -66,8 +66,8 @@ const config: Config = {
   },
 
   themeConfig: {
-    // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    // Social card for sharing
+    image: 'img/mem8-social-card.jpg',
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: false,
@@ -80,7 +80,7 @@ const config: Config = {
       title: 'mem8',
       logo: {
         alt: 'mem8 Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo-icon.png',
       },
       items: [
         {
