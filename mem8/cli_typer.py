@@ -608,8 +608,10 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         console.print("")
 
         # Use consistent GitHub context for defaults (prefer active account over saved preferences)
+        # Use current directory name as default for repo name instead of "your-repo"
+        current_dir_name = Path.cwd().name
         github_org = gh_context.get("org") or gh_context.get("username") or defaults.get('github_org') or "your-org"
-        github_repo = gh_context.get("repo") or defaults.get('github_repo') or "your-repo"
+        github_repo = gh_context.get("repo") or defaults.get('github_repo') or current_dir_name
 
         if gh_context.get("org") and gh_context.get("repo"):
             # Show what was detected and from where
