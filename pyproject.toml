@@ -1,6 +1,6 @@
 [project]
 name = "mem8"
-version = "2.11.0"
+version = "2.13.0"
 description = "Memory management CLI for team collaboration with shared thoughts"
 readme = "README.md"
 authors = [
@@ -120,5 +120,7 @@ warn_unused_configs = true
 
 [dependency-groups]
 dev = [
+    "numpy>=2.3.2",
+    "pillow>=11.3.0",
     "pytest>=8.4.1",
 ]

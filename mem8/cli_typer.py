@@ -608,8 +608,12 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         console.print("")
 
         # Use consistent GitHub context for defaults (prefer active account over saved preferences)
+        # Use current directory name as default for repo name instead of saved preference
+        # This ensures each project gets a sensible default based on its directory name
+        current_dir_name = Path.cwd().name
         github_org = gh_context.get("org") or gh_context.get("username") or defaults.get('github_org') or "your-org"
-        github_repo = gh_context.get("repo") or defaults.get('github_repo') or "your-repo"
+        # Prioritize: detected repo > current directory name > saved preference
+        github_repo = gh_context.get("repo") or current_dir_name
 
         if gh_context.get("org") and gh_context.get("repo"):
             # Show what was detected and from where
@@ -744,13 +748,13 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     interactive_config["web"] = False
     
     # Save workflow preferences for future use
+    # Note: github_repo is intentionally NOT saved as it's project-specific
     if template and template != "none":
         config.save_workflow_preferences(
             template=template,
             workflow_provider=interactive_config.get('workflow_provider', 'github'),
             automation_level=interactive_config.get('workflow_automation', 'standard'),
-            github_org=interactive_config.get('github_org'),
-            github_repo=interactive_config.get('github_repo')
+            github_org=interactive_config.get('github_org')
         )
         console.print("\n[dim]💾 Saved preferences for future init commands[/dim]")
     
