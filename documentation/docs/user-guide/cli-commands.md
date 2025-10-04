@@ -109,9 +109,12 @@ mem8 doctor --fix
 
 **Checks:**
 - Directory structure
+- `.mem8/toolbelt.json` manifest (core tooling availability)
 - Git configuration
 - Template integrity
 - Dependencies
+
+When a project template ships a `.mem8/toolbelt.json` manifest, `mem8 doctor` reads it to verify that required CLI tools are on your `PATH` for the current operating system. Missing core tools are flagged as issues, while recommended tools appear as actionable suggestions.
 
 ## Templates
 
