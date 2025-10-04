@@ -59,6 +59,8 @@ mem8 --help
 mem8 doctor
 ```
 
+If your project template includes a `.mem8/toolbelt.json` file, `mem8 doctor` will also confirm that the declared core CLI tools are installed for your operating system and suggest installs for any missing recommendations.
+
 ## Optional: GitHub CLI
 
 For GitHub integration features, install the GitHub CLI:

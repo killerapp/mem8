@@ -12,9 +12,11 @@ def generate_logos():
     root = Path(__file__).parent.parent
     source_logo = root / "mem8.png"
     docs_static = root / "documentation" / "static" / "img"
+    frontend_public = root / "frontend" / "public"
 
     # Ensure directories exist
     docs_static.mkdir(parents=True, exist_ok=True)
+    frontend_public.mkdir(parents=True, exist_ok=True)
 
     # Load source image
     img = Image.open(source_logo)
@@ -84,6 +86,38 @@ def generate_logos():
     apple_icon = icon_square.resize((180, 180), Image.Resampling.LANCZOS)
     apple_icon.save(docs_static / "apple-touch-icon.png")
     print(f"✓ Saved: apple-touch-icon.png")
+
+    # Copy to frontend
+    print("\nGenerating frontend assets...")
+
+    # Copy full logo with text for frontend
+    cropped.save(frontend_public / "logo_transparent_with_words.png")
+    print(f"✓ Saved: frontend/public/logo_transparent_with_words.png")
+
+    # Copy icon (just infinity symbol) for frontend
+    icon_square.save(frontend_public / "logo_mark.png")
+    print(f"✓ Saved: frontend/public/logo_mark.png")
+
+    # Generate frontend favicons
+    for size in favicon_sizes:
+        favicon = icon_square.resize((size, size), Image.Resampling.LANCZOS)
+        favicon.save(frontend_public / f"favicon-{size}x{size}.png")
+        print(f"✓ Saved: frontend/public/favicon-{size}x{size}.png")
+
+    # Add 48x48 for frontend (needed for .ico)
+    if 48 not in favicon_sizes:
+        favicon_48 = icon_square.resize((48, 48), Image.Resampling.LANCZOS)
+        favicon_48.save(frontend_public / "favicon-48x48.png")
+        print(f"✓ Saved: frontend/public/favicon-48x48.png")
+
+    # Generate frontend favicon.ico
+    icon_images = [icon_square.resize((s, s), Image.Resampling.LANCZOS) for s in [16, 32, 48, 64]]
+    icon_images[0].save(frontend_public / "favicon.ico", format='ICO', sizes=[(16,16), (32,32), (48,48), (64,64)])
+    print(f"✓ Saved: frontend/public/favicon.ico")
+
+    # Generate frontend apple-touch-icon
+    apple_icon.save(frontend_public / "apple-touch-icon.png")
+    print(f"✓ Saved: frontend/public/apple-touch-icon.png")
 
     # Generate social card (1200x630 with logo centered)
     social_card = Image.new('RGB', (1200, 630), (13, 17, 23))  # Dark background
