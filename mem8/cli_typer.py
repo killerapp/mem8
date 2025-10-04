@@ -1338,14 +1338,24 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
             # Check if target already exists
             target_dir = ".claude" if "claude" in template_name else "thoughts"
 
-            # Check if target exists
+            # Check if target exists and handle overwrite confirmation
+            should_overwrite = force
             if (workspace_dir / target_dir).exists() and not force:
                 if "claude" in template_name:
                     analysis = _analyze_claude_template(workspace_dir)
                     console.print(f"\n.claude/ exists ({len(analysis['existing_commands'])} commands, {len(analysis['existing_agents'])} agents)")
 
                     import typer
-                    if not typer.confirm("Overwrite with mem8 templates?", default=False):
+                    if typer.confirm("Overwrite with mem8 templates?", default=False):
+                        should_overwrite = True
+
+                        # Log what will be overwritten
+                        existing_items = analysis['existing_commands'] + analysis['existing_agents']
+                        if existing_items:
+                            console.print(f"  [dim]Will overwrite: {', '.join(existing_items[:5])}")
+                            if len(existing_items) > 5:
+                                console.print(f"  [dim]... and {len(existing_items) - 5} more[/dim]")
+                    else:
                         console.print("Skipped")
                         continue
                 else:
@@ -1382,7 +1392,7 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                     str(template_path),
                     no_input=no_input,
                     output_dir=str(workspace_dir),
-                    overwrite_if_exists=force,
+                    overwrite_if_exists=should_overwrite,
                     extra_context=extra_context
                 )
 
