@@ -3,12 +3,15 @@
 import os
 import shutil
 import time
+import sys
+import platform
 from importlib import resources
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from cookiecutter.main import cookiecutter
 
 from .config import Config
+from .template_source import TemplateSource
 from .utils import (
     get_shared_directory, 
     find_claude_code_workspace,
@@ -638,13 +641,28 @@ Use `mem8 search` to find relevant content across all memories.
         
         return []
     
+    def _check_command_available(self, command: str) -> bool:
+        """Check if a command is available in PATH."""
+        from shutil import which
+        return which(command) is not None
+
+    def _get_platform_key(self) -> str:
+        """Get platform key for install commands (windows, macos, linux)."""
+        system = platform.system().lower()
+        if system == 'darwin':
+            return 'macos'
+        elif system in ['linux', 'windows']:
+            return system
+        return 'linux'  # fallback
+
     def diagnose_workspace(self, auto_fix: bool = False) -> Dict[str, Any]:
         """Diagnose workspace health and optionally fix issues."""
         issues = []
         fixes_applied = []
-        
+        recommendations = []
+
         workspace_dir = self.config.workspace_dir
-        
+
         # Check critical components
         claude_dir = workspace_dir / ".claude"
         if not claude_dir.exists():
@@ -656,18 +674,18 @@ Use `mem8 search` to find relevant content across all memories.
             if auto_fix:
                 ensure_directory_exists(claude_dir)
                 fixes_applied.append('Created .claude directory')
-        
+
         thoughts_dir = workspace_dir / "thoughts"
         if not thoughts_dir.exists():
             issues.append({
-                'severity': 'warning', 
+                'severity': 'warning',
                 'description': 'thoughts directory missing',
                 'fix': 'Create thoughts directory'
             })
             if auto_fix:
                 ensure_directory_exists(thoughts_dir)
                 fixes_applied.append('Created thoughts directory')
-        
+
         # Check shared directory connectivity
         shared_dir = self.config.shared_dir
         if shared_dir and not shared_dir.exists():
@@ -676,16 +694,82 @@ Use `mem8 search` to find relevant content across all memories.
                 'description': f'Shared directory not accessible: {shared_dir}',
                 'fix': 'Check network connectivity or path'
             })
-        
+
+        # Check CLI toolbelt
+        toolbelt_issues = self._check_toolbelt()
+        issues.extend(toolbelt_issues)
+
         # Calculate health score
         total_checks = 4
         critical_issues = len([i for i in issues if i['severity'] == 'error'])
         warning_issues = len([i for i in issues if i['severity'] == 'warning'])
-        
+
         health_score = max(0, 100 - (critical_issues * 25) - (warning_issues * 10))
-        
+
         return {
             'issues': issues,
             'fixes_applied': fixes_applied,
             'health_score': health_score,
+            'recommendations': recommendations,
         }
+
+    def _check_toolbelt(self) -> List[Dict[str, Any]]:
+        """Check CLI toolbelt availability and return issues."""
+        issues = []
+
+        # Load toolbelt definition from builtin templates
+        try:
+            template_source = TemplateSource(None)  # builtin
+            manifest = template_source.load_manifest()
+
+            if not manifest or not manifest.toolbelt:
+                return issues
+
+            platform_key = self._get_platform_key()
+
+            # Check required tools
+            missing_required = []
+            for tool in manifest.toolbelt.required:
+                if not self._check_command_available(tool.command):
+                    install_cmd = tool.install.get(platform_key, 'See documentation')
+                    missing_required.append({
+                        'name': tool.name,
+                        'command': tool.command,
+                        'description': tool.description,
+                        'install': install_cmd
+                    })
+
+            if missing_required:
+                issues.append({
+                    'severity': 'warning',
+                    'description': f'Missing {len(missing_required)} required CLI tools',
+                    'missing_tools': missing_required
+                })
+
+            # Check optional tools
+            missing_optional = []
+            for tool in manifest.toolbelt.optional:
+                if not self._check_command_available(tool.command):
+                    install_cmd = tool.install.get(platform_key, 'See documentation')
+                    missing_optional.append({
+                        'name': tool.name,
+                        'command': tool.command,
+                        'description': tool.description,
+                        'install': install_cmd
+                    })
+
+            if missing_optional:
+                issues.append({
+                    'severity': 'info',
+                    'description': f'{len(missing_optional)} optional CLI tools available for install',
+                    'missing_tools': missing_optional
+                })
+
+        except Exception as e:
+            # Don't fail diagnostics if toolbelt check fails
+            issues.append({
+                'severity': 'info',
+                'description': f'Could not check CLI toolbelt: {str(e)}'
+            })
+
+        return issues

@@ -27,6 +27,22 @@ class TemplateSourceType(Enum):
 
 
 @dataclass
+class ToolbeltTool:
+    """Definition of a CLI tool in the toolbelt."""
+    name: str
+    command: str
+    description: str
+    install: Dict[str, str]  # platform -> install command
+
+
+@dataclass
+class ToolbeltDefinition:
+    """CLI toolbelt recommendations."""
+    required: List[ToolbeltTool]
+    optional: List[ToolbeltTool]
+
+
+@dataclass
 class TemplateDefinition:
     """Definition of a single template from the manifest."""
     name: str
@@ -43,6 +59,7 @@ class TemplateManifest:
     source: str  # Relative path to templates directory
     templates: Dict[str, TemplateDefinition]
     metadata: Optional[Dict[str, Any]] = None
+    toolbelt: Optional[ToolbeltDefinition] = None
 
 
 class TemplateSource:
@@ -216,7 +233,7 @@ class TemplateSource:
         with open(manifest_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
 
-        # Parse manifest
+        # Parse templates
         templates = {}
         for name, config in data.get('templates', {}).items():
             templates[name] = TemplateDefinition(
@@ -227,11 +244,36 @@ class TemplateSource:
                 description=config.get('description')
             )
 
+        # Parse toolbelt
+        toolbelt = None
+        if 'toolbelt' in data:
+            toolbelt_data = data['toolbelt']
+            required_tools = [
+                ToolbeltTool(
+                    name=tool['name'],
+                    command=tool['command'],
+                    description=tool['description'],
+                    install=tool['install']
+                )
+                for tool in toolbelt_data.get('required', [])
+            ]
+            optional_tools = [
+                ToolbeltTool(
+                    name=tool['name'],
+                    command=tool['command'],
+                    description=tool['description'],
+                    install=tool['install']
+                )
+                for tool in toolbelt_data.get('optional', [])
+            ]
+            toolbelt = ToolbeltDefinition(required=required_tools, optional=optional_tools)
+
         return TemplateManifest(
             version=data.get('version', 1),
             source=data.get('source', 'templates'),
             templates=templates,
-            metadata=data.get('metadata')
+            metadata=data.get('metadata'),
+            toolbelt=toolbelt
         )
 
     def list_templates(self) -> List[str]:

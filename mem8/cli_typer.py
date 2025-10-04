@@ -295,10 +295,20 @@ def doctor(
         if diagnosis['issues']:
             console.print("\n⚠️  [bold yellow]Issues found:[/bold yellow]")
             for issue in diagnosis['issues']:
-                severity_icon = "❌" if issue['severity'] == 'error' else "⚠️"
+                severity_icon = {
+                    'error': '❌',
+                    'warning': '⚠️',
+                    'info': 'ℹ️'
+                }.get(issue['severity'], '•')
                 console.print(f"  {severity_icon} {issue['description']}")
                 if auto_fix and issue.get('fixed'):
                     console.print(f"    ✅ [green]Fixed automatically[/green]")
+
+                # Show missing tools with install commands
+                if 'missing_tools' in issue:
+                    for tool in issue['missing_tools']:
+                        console.print(f"    • [cyan]{tool['name']}[/cyan] ({tool['command']}) - {tool['description']}")
+                        console.print(f"      Install: [yellow]{tool['install']}[/yellow]")
         
         # Show fixes applied
         if auto_fix and diagnosis['fixes_applied']:
