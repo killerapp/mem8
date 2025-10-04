@@ -1519,8 +1519,11 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                 elif "thoughts" in template_name:
                     console.print(f"  ✅ Installed thoughts/ structure")
             except Exception as e:
+                # Always show installation errors, not just in verbose mode
+                console.print(f"[red]❌ Failed to install {template_name}:[/red] {e}")
                 if verbose:
-                    console.print(f"[yellow]Could not install {template_name}: {e}[/yellow]")
+                    import traceback
+                    console.print(f"[dim]{traceback.format_exc()}[/dim]")
 
     # Cleanup source if it was a temp directory
     finally:
