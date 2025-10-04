@@ -563,49 +563,35 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     config = Config()
     defaults = config.get_workflow_defaults()
     
-    # Show project detection info more clearly
+    # Show project type
     if context['is_claude_code_project']:
-        console.print("\n🤖 [cyan]Claude Code project detected[/cyan]")
-    
-    console.print(f"\nDetected: {context['project_type']} project")
+        console.print("\nClaude Code project")
+    else:
+        console.print(f"\n{context['project_type'].title()} project")
     
     # Get consistent GitHub context early
     gh_context = get_consistent_github_context(prefer_authenticated_user=True)
 
-    # Start with workflow provider since most users want GitHub integration
-    console.print("\n[cyan]🔧 Workflow Provider Configuration[/cyan]")
-    console.print("Choose how you track and manage development tasks:")
-    console.print("")
-    console.print("[bold yellow]Provider Options:[/bold yellow]")
-    console.print("  • [green]github[/green]: Use GitHub Issues with labels (free, recommended)")
-    console.print("    - Creates commands for issue management via 'gh' CLI")
-    console.print("    - Simple workflow: needs-triage → ready-for-plan → ready-for-dev")
-    console.print("  • [red]none[/red]: No issue tracking integration")
+    # Workflow provider
+    console.print("\n[cyan]Workflow Provider[/cyan]")
+    console.print("  github - GitHub Issues integration (recommended)")
+    console.print("  none   - Skip issue tracking")
     console.print("")
 
-    # Workflow provider selection - simplified to just GitHub or none
+    # Workflow provider selection
     workflow_choices = ["github", "none"]
-    default_workflow = 'github'  # Always default to GitHub since it's most common
-    saved_preference = defaults.get('workflow_provider')
-    if saved_preference and saved_preference in workflow_choices and saved_preference != 'github':
-        console.print(f"[dim]💾 Using saved preference: {saved_preference}[/dim]")
-        default_workflow = saved_preference
+    default_workflow = defaults.get('workflow_provider', 'github')
 
-    workflow_provider = typer.prompt(
-        "Choose workflow provider",
-        default=default_workflow
-    )
+    workflow_provider = typer.prompt("Workflow provider", default=default_workflow)
     while workflow_provider not in workflow_choices:
-        console.print(f"[red]Invalid choice. Please select: github or none[/red]")
+        console.print("[red]Choose: github or none[/red]")
         workflow_provider = typer.prompt("Workflow provider", default="github")
 
     interactive_config = {"workflow_provider": workflow_provider}
 
-    # GitHub-specific configuration (do this early if GitHub is selected)
+    # GitHub-specific configuration
     if workflow_provider == "github":
-        console.print("[cyan]🐙 GitHub Repository Configuration[/cyan]")
-        console.print("Configure GitHub integration for issue management and workflows.")
-        console.print("")
+        console.print("\n[cyan]GitHub Configuration[/cyan]")
 
         # Use consistent GitHub context for defaults (prefer active account over saved preferences)
         # Use current directory name as default for repo name instead of saved preference
@@ -616,133 +602,56 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         github_repo = gh_context.get("repo") or current_dir_name
 
         if gh_context.get("org") and gh_context.get("repo"):
-            # Show what was detected and from where
-            if gh_context["auth_user"] and gh_context["repo_owner"]:
-                if gh_context["auth_user"] == gh_context["repo_owner"]:
-                    console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
-                else:
-                    console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
-                    console.print(f"[dim]  (Authenticated as: {gh_context['auth_user']}, Repo owner: {gh_context['repo_owner']})[/dim]")
-            else:
-                console.print(f"[green]✓ Auto-detected from gh CLI: {github_org}/{github_repo}[/green]")
-            console.print("")
-        elif gh_context.get("username"):
-            console.print("[yellow]⚠️  No GitHub repository linked to current directory[/yellow]")
-            console.print("[dim]    (Local git repo exists but not pushed to GitHub yet)[/dim]")
-            console.print("")
-        else:
-            console.print("")
+            console.print(f"  Detected: {github_org}/{github_repo}")
+        console.print("")
 
-        github_org = typer.prompt("GitHub username (for personal repos, use your username; for org repos, use organization name)", default=github_org)
-        github_repo = typer.prompt("GitHub repository name", default=github_repo)
+        github_org = typer.prompt("GitHub org/username", default=github_org)
+        github_repo = typer.prompt("Repository name", default=github_repo)
         interactive_config.update({
             "github_org": github_org,
             "github_repo": github_repo
         })
 
-    # Template selection with enhanced context
-    # Smart default: if thoughts/ already exists, default to claude-config instead of full
+    # Template selection
     existing_thoughts = Path('thoughts').exists()
-    if existing_thoughts and not defaults.get('template'):
-        default_template = 'claude-config'
-        console.print("[cyan]💡 Detected existing thoughts/ - defaulting to 'claude-config'[/cyan]")
-    else:
-        default_template = defaults.get('template', 'full')
-        if defaults.get('template') != 'full':
-            console.print(f"[dim]💾 Using saved preference: {default_template}[/dim]")
-
+    default_template = 'claude-config' if existing_thoughts else defaults.get('template', 'full')
     template_choices = ["full", "claude-config", "thoughts-repo", "none"]
 
-    console.print("[cyan]📋 Template Selection[/cyan]")
-    console.print("[bold yellow]Template Options:[/bold yellow]")
-    console.print("  • [green]full[/green]: Complete workflow commands + shared knowledge repository")
-    console.print("  • [blue]claude-config[/blue]: Just workflow commands for Claude Code integration")
-    console.print("  • [magenta]thoughts-repo[/magenta]: Just shared knowledge repository structure")
-    console.print("  • [red]none[/red]: Skip template installation")
-
-    if existing_thoughts:
-        console.print("\n[dim]Note: thoughts/ already exists, so 'full' will skip thoughts setup[/dim]")
+    console.print("\n[cyan]Template[/cyan]")
+    console.print("  full           - Commands + thoughts structure")
+    console.print("  claude-config  - Commands only")
+    console.print("  thoughts-repo  - Thoughts structure only")
+    console.print("  none           - Skip templates")
     console.print("")
     
-    template = typer.prompt(
-        "Choose template type",
-        default=default_template
-    )
+    template = typer.prompt("Template", default=default_template)
     while template not in template_choices:
-        console.print(f"[red]Invalid choice. Please select from: {', '.join(template_choices)}[/red]")
-        template = typer.prompt("Template type", default=default_template)
+        console.print("[red]Choose: full, claude-config, thoughts-repo, or none[/red]")
+        template = typer.prompt("Template", default=default_template)
 
     interactive_config["template"] = template if template != "none" else None
 
-    # Username selection (prefer GitHub CLI login if available)
+    # Username
     default_username = gh_context["username"] or get_git_username() or "user"
-    if gh_context["username"]:
-        console.print(f"[dim]Detected GitHub login via gh: [green]{gh_context['username']}[/green][/dim]")
-    interactive_username = typer.prompt(
-        "Choose username for local thoughts",
-        default=default_username,
-    )
+    interactive_username = typer.prompt("\nUsername for thoughts", default=default_username)
     interactive_config["username"] = interactive_username
 
-    # Workflow automation level (only if we have a workflow provider and templates)
-    if workflow_provider != "none" and template and template != "none":
-        console.print("[cyan]⚙️  Workflow Automation Level[/cyan]")
-        console.print("Configure workflow helper commands:")
-        console.print("")
-        console.print("[bold yellow]Automation Options:[/bold yellow]")
-        console.print("  • [green]standard[/green]: Include workflow automation commands")
-        console.print("    - Commands for issue management and workflow progression")
-        console.print("    - Integration with mem8 worktree and GitHub workflows")
-        console.print("  • [red]none[/red]: No workflow automation commands")
-        console.print("    - Just core research/plan/implement/commit commands")
-        console.print("")
-
-        automation_choices = ["standard", "none"]  # Remove 'advanced' until implemented
+    # Workflow automation (only if GitHub + templates)
+    if workflow_provider == "github" and template and template != "none":
+        automation_choices = ["standard", "none"]
         default_automation = defaults.get('automation_level', 'standard')
-        if defaults.get('automation_level') and defaults.get('automation_level') != 'standard':
-            console.print(f"[dim]💾 Using saved preference: {default_automation}[/dim]")
         workflow_automation = typer.prompt(
-            "Choose automation level",
+            "Workflow automation (standard/none)",
             default=default_automation
         )
         while workflow_automation not in automation_choices:
-            console.print(f"[red]Invalid choice. Please select from: {', '.join(automation_choices)}[/red]")
-            workflow_automation = typer.prompt("Choose automation level", default="standard")
+            console.print("[red]Choose: standard or none[/red]")
+            workflow_automation = typer.prompt("Workflow automation", default="standard")
         interactive_config["workflow_automation"] = workflow_automation
     
-    # Repository selection - simplified
-    if context.get('repos_from_parent'):
-        console.print(f"\n📁 [green]Found {context['repos_from_parent']} repositories in parent directory[/green]")
-        include_repos = typer.confirm("Include discovered repositories?", default=False)
-        interactive_config["include_repos"] = include_repos
-    else:
-        interactive_config["include_repos"] = False
-    
-    # Shared enablement (default: disabled)
-    console.print("\n[cyan]Shared/Team Thoughts[/cyan]")
-    console.print("Shared thoughts enable team collaboration via a centralized knowledge repository.")
-    console.print("This creates a symbolic link from thoughts/shared/ to a shared location.")
-    console.print("")
-
-    # Check if thoughts/shared already exists
-    existing_shared = (Path.cwd() / "thoughts" / "shared").exists()
-    if existing_shared:
-        console.print("[yellow]⚠️  thoughts/shared already exists - will be skipped[/yellow]")
-        enable_shared = False
-    else:
-        enable_shared = typer.confirm(
-            "Enable shared/team thoughts now?",
-            default=False,
-        )
-
-    interactive_config["shared_enabled"] = enable_shared
-    if enable_shared:
-        default_shared = str(context.get('shared_location', Path.home() / "mem8-shared"))
-        shared_dir = typer.prompt(
-            "Shared directory path",
-            default=default_shared
-        )
-        interactive_config["shared_dir"] = Path(shared_dir)
+    # Skip repo discovery and shared thoughts - keep it simple
+    interactive_config["include_repos"] = False
+    interactive_config["shared_enabled"] = False
     
     # Remove web UI launch question - per feedback
     interactive_config["web"] = False
@@ -1202,8 +1111,8 @@ def init(
     from .claude_integration import update_claude_md_integration
     
     set_app_state(verbose=verbose)
-    
-    console.print("🚀 [bold blue]Welcome to mem8 setup![/bold blue]")
+
+    console.print("[bold]mem8 init[/bold]")
     
     # INIT-SPECIFIC workspace validation - check git repository before setup
     validated_workspace_dir = _validate_init_workspace_location(force, non_interactive)
@@ -1229,13 +1138,9 @@ def init(
             web = web or interactive_config.get('web', False)
             repos = repos or interactive_config.get('repos')
         elif force:
-            # With force flag, use sensible defaults
             template = template or "full"
-            console.print("[dim]Using --force mode with default settings[/dim]")
         elif non_interactive:
-            # Non-interactive mode: use auto-detected defaults
             template = template or "full"
-            console.print("[dim]Using non-interactive mode with auto-detected defaults[/dim]")
         
         # 3. Generate smart configuration with interactive overrides
         context['interactive_config'] = interactive_config
@@ -1280,45 +1185,35 @@ def init(
             return
         
         # 5. Create directory structure
-        console.print("📂 [dim]Creating directory structure...[/dim]")
         setup_result = setup_minimal_structure(config)
-        
+
         # 6. Install templates if needed
         if should_install_templates and template_type != "none":
             template_name = template_type or "full"
-            console.print(f"\n📦 [cyan]Installing '{template_name}' template...[/cyan]")
+            console.print(f"\nInstalling {template_name} template...")
             _install_templates(template_name, force, verbose, interactive_config, template_source)
         
         if setup_result['errors']:
-            console.print("❌ [red]Errors during setup:[/red]")
+            console.print("[red]Errors:[/red]")
             for error in setup_result['errors']:
-                console.print(f"  • {error}")
+                console.print(f"  {error}")
             return
-        
-        # Show what was created
-        if setup_result['created']:
-            console.print("\n✅ [green]Created:[/green]")
+
+        # Show what was created (only if verbose or something actually created)
+        if verbose and setup_result['created']:
+            console.print("\nCreated:")
             for created in setup_result['created']:
-                console.print(f"  • {created}")
-        
-        if setup_result['linked']:
-            console.print("🔗 [blue]Linked:[/blue]")
-            for linked in setup_result['linked']:
-                console.print(f"  • {linked}")
-        
-        # Claude.md update removed per feedback - can be handled by frontend if needed
-        # Web UI launch removed per feedback - separate command
-        
-        # 8. Create ~/.mem8 shortcut for easy config access
+                console.print(f"  {created}")
+
+        # Create ~/.mem8 shortcut
         from .core.config import Config
         config_manager = Config()
-        if config_manager.create_home_shortcut():
-            console.print("🔗 [dim]Created ~/.mem8 shortcut for config access[/dim]")
-        
-        # 9. Show next steps
-        console.print("\n💡 [bold blue]Next steps:[/bold blue]")
-        console.print("  • Run [cyan]mem8 status[/cyan] to verify your setup")
-        console.print("  • Use [cyan]mem8 search \"query\"[/cyan] to find thoughts")
+        config_manager.create_home_shortcut()
+
+        # Done
+        console.print("\n[green]✓[/green] Setup complete")
+        console.print("  mem8 status  - verify setup")
+        console.print("  mem8 search  - find thoughts")
         
     except Exception as e:
         handle_command_error(e, verbose, "setup")
@@ -1433,34 +1328,19 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
             # Check if target already exists
             target_dir = ".claude" if "claude" in template_name else "thoughts"
 
-            # Special handling for Claude templates - analyze what will be installed
-            if "claude" in template_name:
-                analysis = _analyze_claude_template(workspace_dir)
-
-                if (workspace_dir / target_dir).exists() and not force:
-                    console.print(f"\n⚠️  [yellow]Existing Claude Code integration detected:[/yellow]")
-                    console.print(f"  • {len(analysis['existing_commands'])} existing commands")
-                    console.print(f"  • {len(analysis['existing_agents'])} existing agents")
-
-                    if analysis['conflicts']:
-                        console.print(f"\n🔄 [red]These will be overwritten by mem8:[/red]")
-                        for conflict in analysis['conflicts'][:5]:  # Show first 5
-                            console.print(f"    • {conflict}")
-                        if len(analysis['conflicts']) > 5:
-                            console.print(f"    • ... and {len(analysis['conflicts']) - 5} more")
-
-                    console.print(f"\n🎯 [cyan]mem8 will install:[/cyan]")
-                    console.print(f"  • {len(analysis['template_commands'])} commands")
-                    console.print(f"  • {len(analysis['template_agents'])} agents")
+            # Check if target exists
+            if (workspace_dir / target_dir).exists() and not force:
+                if "claude" in template_name:
+                    analysis = _analyze_claude_template(workspace_dir)
+                    console.print(f"\n.claude/ exists ({len(analysis['existing_commands'])} commands, {len(analysis['existing_agents'])} agents)")
 
                     import typer
-                    if not typer.confirm("\nProceed? (mem8 will manage Claude Code components from now on)"):
-                        console.print("  ⏭️  Skipping .claude/ installation")
+                    if not typer.confirm("Overwrite with mem8 templates?", default=False):
+                        console.print("Skipped")
                         continue
-            elif (workspace_dir / target_dir).exists() and not force:
-                # For non-Claude directories, simple skip
-                console.print(f"  ⏭️  Skipping {target_dir}/ - already exists")
-                continue
+                else:
+                    console.print(f"Skipping {target_dir}/ (already exists)")
+                    continue
 
             try:
                 # Build extra_context from interactive configuration
@@ -1496,28 +1376,12 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                     extra_context=extra_context
                 )
 
-                # Show detailed installation report for Claude templates
+                # Show installation result
                 if "claude" in template_name:
                     analysis = _analyze_claude_template(workspace_dir)
-                    console.print(f"\n🤖 [bold cyan]Claude Code Integration Complete![/bold cyan]")
-                    console.print(f"\n  📝 **{len(analysis['template_commands'])} commands** installed:")
-                    cmd_list = ', '.join(analysis['template_commands'][:5])
-                    if len(analysis['template_commands']) > 5:
-                        cmd_list += f" (+{len(analysis['template_commands']) - 5} more)"
-                    console.print(f"     {cmd_list}")
-
-                    console.print(f"\n  🤖 **{len(analysis['template_agents'])} agents** installed:")
-                    agent_list = ', '.join(analysis['template_agents'][:4])
-                    if len(analysis['template_agents']) > 4:
-                        agent_list += f" (+{len(analysis['template_agents']) - 4} more)"
-                    console.print(f"     {agent_list}")
-
-                    console.print(f"\n  🌐 [dim]mem8 now manages these Claude Code components for:[/dim]")
-                    console.print(f"     [dim]• Dynamic agentic workflows & knowledge base[/dim]")
-                    console.print(f"     [dim]• Version-controlled outer-loop automation[/dim]")
-                    console.print(f"     [dim]• Human-driven subagent orchestration[/dim]")
+                    console.print(f"  {len(analysis['template_commands'])} commands, {len(analysis['template_agents'])} agents installed")
                 elif "thoughts" in template_name:
-                    console.print(f"  ✅ Installed thoughts/ structure")
+                    console.print(f"  thoughts/ structure created")
             except Exception as e:
                 # Always show installation errors, not just in verbose mode
                 console.print(f"[red]❌ Failed to install {template_name}:[/red] {e}")
