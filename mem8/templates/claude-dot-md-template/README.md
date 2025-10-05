@@ -23,7 +23,7 @@ cookiecutter claude-dot-md-template
 | `project_slug` | .claude | Output directory name |
 | `include_agents` | true | Include agent definitions |
 | `include_commands` | true | Include command definitions |
-| `workflow_provider` | github | Workflow provider (github, linear, none) |
+| `include_github_integration` | true | Include GitHub Issues workflow integration |
 | `include_workflow_automation` | standard | Workflow automation level (standard, advanced, none) |
 | `include_web_search` | true | Include web search researcher agent |
 | `default_tools` | Read, Grep, Glob, LS | Default tools for agents |
@@ -49,11 +49,11 @@ cookiecutter claude-dot-md-template
 
 ### Command Line Options
 ```bash
-# Configure with Linear workflow provider and no automation
+# Configure without GitHub integration and no automation
 cookiecutter claude-dot-md-template \
   --no-input \
   --output-dir my-config \
-  -f workflow_provider=linear \
+  -f include_github_integration=false \
   -f include_workflow_automation=none
 ```
 

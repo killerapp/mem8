@@ -143,7 +143,7 @@ Based on the investigation, present a focused debug report:
 2. **If That Doesn't Work**:
    - Restart services: `make daemon` and `make wui`
    - Check browser console for WUI errors
-   - Run with debug: `HUMANLAYER_DEBUG=true make daemon`
+   - Run with debug: `MEM8_DEBUG=true make daemon`
 
 ### Can't Access?
 Some issues might be outside my reach:
