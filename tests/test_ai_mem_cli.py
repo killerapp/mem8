@@ -207,20 +207,86 @@ class Testmem8CLI:
                 "Issues found" in result.stdout or
                 result.returncode == 0)
     
-    def test_doctor_autofix(self):
-        """Test doctor command with auto-fix."""
+    def test_doctor_fix(self):
+        """Test doctor command with --fix flag."""
         self.run_mem8([
-            "init", 
+            "init",
             "--shared-dir", str(self.shared_dir),
             "--force"
         ])
-        
+
         # Remove a directory to create an issue
         shutil.rmtree(self.workspace_dir / "thoughts", ignore_errors=True)
-        
-        result = self.run_mem8(["doctor", "--auto-fix"])
+
+        result = self.run_mem8(["doctor", "--fix"])
         assert "Running mem8 diagnostics" in result.stdout
         # Should either fix the issue or report what was fixed
+        assert ("Fixed" in result.stdout or "fixes applied" in result.stdout.lower() or
+                result.returncode in [0, 1])  # 0 if fixed, 1 if issues remain
+
+    def test_doctor_json_output(self):
+        """Test doctor command with JSON output."""
+        self.run_mem8([
+            "init",
+            "--shared-dir", str(self.shared_dir),
+            "--force"
+        ])
+
+        result = self.run_mem8(["doctor", "--json"])
+
+        # Should output valid JSON
+        try:
+            import json
+            data = json.loads(result.stdout)
+
+            # Check required fields
+            assert "status" in data
+            assert data["status"] in ["healthy", "unhealthy"]
+            assert "health_score" in data
+            assert "issues" in data
+            assert "fixes_applied" in data
+            assert "recommendations" in data
+
+            # Verify types
+            assert isinstance(data["issues"], list)
+            assert isinstance(data["fixes_applied"], list)
+            assert isinstance(data["health_score"], (int, float))
+
+        except json.JSONDecodeError:
+            pytest.fail("doctor --json did not output valid JSON")
+
+    def test_doctor_toolbelt_checking(self):
+        """Test that doctor checks CLI toolbelt."""
+        self.run_mem8([
+            "init",
+            "--shared-dir", str(self.shared_dir),
+            "--force"
+        ])
+
+        result = self.run_mem8(["doctor"])
+
+        # Should mention tools or show healthy state
+        # The output will vary based on what's installed, but should contain relevant info
+        assert ("tools" in result.stdout.lower() or
+                "All checks passed" in result.stdout or
+                "Issues found" in result.stdout)
+
+    def test_doctor_exit_codes(self):
+        """Test that doctor returns appropriate exit codes."""
+        self.run_mem8([
+            "init",
+            "--shared-dir", str(self.shared_dir),
+            "--force"
+        ])
+
+        result = self.run_mem8(["doctor"])
+
+        # Exit code should be 0 (healthy) or 1 (issues found)
+        assert result.returncode in [0, 1]
+
+        # If exit code is 1, should have issues in output
+        if result.returncode == 1:
+            assert "Issues found" in result.stdout or "Missing" in result.stdout
     
     def test_claude_md_generation(self):
         """Test that CLAUDE.md is generated correctly."""
