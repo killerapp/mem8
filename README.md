@@ -14,8 +14,11 @@ mem8 is designed to work seamlessly with Claude Code, providing:
 
 ### 💻 CLI Commands
 ```bash
-mem8 init --template claude-config   # Initialize Claude Code workspace  
+mem8 init --template claude-config   # Initialize Claude Code workspace
 mem8 status                          # Check workspace health
+mem8 doctor                          # Diagnose issues and check CLI toolbelt
+mem8 doctor --fix                    # Auto-fix missing tools (where possible)
+mem8 doctor --json                   # Machine-readable output for agents
 mem8 search "query"                 # Search across all thoughts
 mem8 serve                           # Start the API server (port 8000)
 ```
@@ -83,6 +86,83 @@ cd frontend && npm install && npm run dev
 ```
 
 **Note:** The `mem8 serve` command requires Docker for the database. See [DOCKER.md](DOCKER.md) for details.
+
+## 🔧 CLI Toolbelt Management
+
+mem8 includes a CLI toolbelt verification system to ensure you have all necessary tools for AI-assisted development workflows.
+
+### Quick Check
+```bash
+# Check for missing tools
+mem8 doctor
+
+# Auto-install missing tools (where supported)
+mem8 doctor --fix
+
+# JSON output for agents/CI
+mem8 doctor --json
+```
+
+### Verified Tools
+
+The toolbelt checks for essential CLI tools that enhance AI workflows:
+
+**Required Tools:**
+- **ripgrep** (`rg`) - Fast recursive search, better than grep
+- **fd** (`fd`) - Fast file finder, better than find
+- **jq** - JSON processor for parsing API responses
+- **gh** - GitHub CLI for PR/issue management
+- **git** - Version control system
+
+**Optional Tools:**
+- **bat** - Syntax-highlighted file viewer
+- **delta** - Beautiful git diff viewer
+- **yq** - YAML/XML processor
+- **fzf** - Fuzzy finder for interactive selection
+- **sd** - Simpler sed alternative for text replacement
+- **ast-grep** - AST-based code search and refactoring
+
+### Version Requirements
+
+Tools with version requirements are automatically checked:
+```bash
+$ mem8 doctor
+⚠️  Missing 1 required CLI tools
+  • gh (gh) (requires >=2.60) - GitHub CLI
+    Install: winget install GitHub.cli
+    Current: 2.53.0
+```
+
+### Platform Support
+
+Install commands are automatically selected for your platform:
+- **Windows** - Uses `winget` package manager
+- **macOS** - Uses `brew` (Homebrew)
+- **Linux** - Uses `apt` or distro-specific managers
+
+### CI Integration
+
+The `--json` flag and exit codes make it CI-friendly:
+```bash
+mem8 doctor --json > toolbelt-status.json
+# Exit code 0 if all tools present, 1 if any missing
+```
+
+### Custom Toolbelts
+
+Projects can define custom tool requirements in `mem8-templates.yaml`:
+```yaml
+toolbelt:
+  required:
+    - name: "custom-tool"
+      command: "tool"
+      description: "Custom build tool"
+      version: ">=1.0"
+      install:
+        windows: "winget install tool"
+        macos: "brew install tool"
+        linux: "apt install tool"
+```
 
 ## 🔄 Development Workflow
 

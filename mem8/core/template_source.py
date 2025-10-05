@@ -33,6 +33,7 @@ class ToolbeltTool:
     command: str
     description: str
     install: Dict[str, str]  # platform -> install command
+    version: Optional[str] = None  # minimum version requirement (e.g., ">=2.60")
 
 
 @dataclass
@@ -253,7 +254,8 @@ class TemplateSource:
                     name=tool['name'],
                     command=tool['command'],
                     description=tool['description'],
-                    install=tool['install']
+                    install=tool['install'],
+                    version=tool.get('version')
                 )
                 for tool in toolbelt_data.get('required', [])
             ]
@@ -262,7 +264,8 @@ class TemplateSource:
                     name=tool['name'],
                     command=tool['command'],
                     description=tool['description'],
-                    install=tool['install']
+                    install=tool['install'],
+                    version=tool.get('version')
                 )
                 for tool in toolbelt_data.get('optional', [])
             ]

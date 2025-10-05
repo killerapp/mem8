@@ -646,6 +646,106 @@ Use `mem8 search` to find relevant content across all memories.
         from shutil import which
         return which(command) is not None
 
+    def _get_command_version(self, command: str) -> Optional[str]:
+        """Get the version of a command if available."""
+        import subprocess
+        import re
+
+        try:
+            # Try common version flags
+            for flag in ['--version', '-v', 'version']:
+                try:
+                    result = subprocess.run(
+                        [command, flag],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+                    output = result.stdout + result.stderr
+
+                    # Extract version number (e.g., "2.60.1", "v1.2.3")
+                    version_match = re.search(r'v?(\d+\.\d+(?:\.\d+)?)', output)
+                    if version_match:
+                        return version_match.group(1)
+                except (subprocess.TimeoutExpired, FileNotFoundError):
+                    continue
+        except Exception:
+            pass
+
+        return None
+
+    def _compare_versions(self, current: str, required: str) -> bool:
+        """
+        Compare version strings.
+
+        Args:
+            current: Current version (e.g., "2.60.1")
+            required: Required version with operator (e.g., ">=2.60", "==1.0.0")
+
+        Returns:
+            True if requirement is satisfied
+        """
+        import re
+        from packaging import version
+
+        try:
+            # Parse operator and version from required string
+            match = re.match(r'([><=!]+)?\s*v?(\d+\.\d+(?:\.\d+)?)', required)
+            if not match:
+                return True  # Can't parse requirement, assume OK
+
+            operator = match.group(1) or '>='
+            required_ver = match.group(2)
+
+            current_ver = version.parse(current)
+            required_ver = version.parse(required_ver)
+
+            if operator == '>=':
+                return current_ver >= required_ver
+            elif operator == '>':
+                return current_ver > required_ver
+            elif operator == '==':
+                return current_ver == required_ver
+            elif operator == '<=':
+                return current_ver <= required_ver
+            elif operator == '<':
+                return current_ver < required_ver
+            elif operator == '!=':
+                return current_ver != required_ver
+
+            return False
+        except Exception:
+            # If comparison fails, assume version is OK
+            return True
+
+    def _install_tool(self, tool_name: str, install_cmd: str) -> tuple[bool, str]:
+        """
+        Attempt to install a tool using the provided command.
+
+        Returns:
+            (success: bool, message: str)
+        """
+        import subprocess
+
+        try:
+            # Run install command
+            result = subprocess.run(
+                install_cmd,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minute timeout
+            )
+
+            if result.returncode == 0:
+                return True, f"Successfully installed {tool_name}"
+            else:
+                return False, f"Installation failed: {result.stderr[:200]}"
+        except subprocess.TimeoutExpired:
+            return False, f"Installation timed out after 5 minutes"
+        except Exception as e:
+            return False, f"Installation failed: {str(e)}"
+
     def _get_platform_key(self) -> str:
         """Get platform key for install commands (windows, macos, linux)."""
         system = platform.system().lower()
@@ -696,7 +796,7 @@ Use `mem8 search` to find relevant content across all memories.
             })
 
         # Check CLI toolbelt
-        toolbelt_issues = self._check_toolbelt()
+        toolbelt_issues = self._check_toolbelt(auto_fix=auto_fix, fixes_applied=fixes_applied)
         issues.extend(toolbelt_issues)
 
         # Calculate health score
@@ -713,9 +813,17 @@ Use `mem8 search` to find relevant content across all memories.
             'recommendations': recommendations,
         }
 
-    def _check_toolbelt(self) -> List[Dict[str, Any]]:
-        """Check CLI toolbelt availability and return issues."""
+    def _check_toolbelt(self, auto_fix: bool = False, fixes_applied: List[str] = None) -> List[Dict[str, Any]]:
+        """
+        Check CLI toolbelt availability and return issues.
+
+        Args:
+            auto_fix: If True, attempt to install missing tools
+            fixes_applied: List to append fix messages to
+        """
         issues = []
+        if fixes_applied is None:
+            fixes_applied = []
 
         # Load toolbelt definition from builtin templates
         try:
@@ -730,14 +838,39 @@ Use `mem8 search` to find relevant content across all memories.
             # Check required tools
             missing_required = []
             for tool in manifest.toolbelt.required:
-                if not self._check_command_available(tool.command):
-                    install_cmd = tool.install.get(platform_key, 'See documentation')
-                    missing_required.append({
+                is_available = self._check_command_available(tool.command)
+                current_version = None
+                version_ok = True
+
+                if is_available:
+                    # Check version if required
+                    if tool.version:
+                        current_version = self._get_command_version(tool.command)
+                        if current_version:
+                            version_ok = self._compare_versions(current_version, tool.version)
+                        else:
+                            version_ok = False  # Can't verify version
+
+                if not is_available or not version_ok:
+                    install_cmd = tool.install.get(platform_key, tool.install.get('all', 'See documentation'))
+                    tool_info = {
                         'name': tool.name,
                         'command': tool.command,
                         'description': tool.description,
-                        'install': install_cmd
-                    })
+                        'install': install_cmd,
+                        'version': tool.version,
+                        'current_version': current_version
+                    }
+
+                    # Attempt auto-fix if requested
+                    if auto_fix and install_cmd != 'See documentation':
+                        success, message = self._install_tool(tool.name, install_cmd)
+                        if success:
+                            fixes_applied.append(message)
+                            tool_info['fixed'] = True
+                            continue  # Don't add to missing list if fixed
+
+                    missing_required.append(tool_info)
 
             if missing_required:
                 issues.append({
@@ -749,14 +882,39 @@ Use `mem8 search` to find relevant content across all memories.
             # Check optional tools
             missing_optional = []
             for tool in manifest.toolbelt.optional:
-                if not self._check_command_available(tool.command):
-                    install_cmd = tool.install.get(platform_key, 'See documentation')
-                    missing_optional.append({
+                is_available = self._check_command_available(tool.command)
+                current_version = None
+                version_ok = True
+
+                if is_available:
+                    # Check version if specified
+                    if tool.version:
+                        current_version = self._get_command_version(tool.command)
+                        if current_version:
+                            version_ok = self._compare_versions(current_version, tool.version)
+                        else:
+                            version_ok = False
+
+                if not is_available or not version_ok:
+                    install_cmd = tool.install.get(platform_key, tool.install.get('all', 'See documentation'))
+                    tool_info = {
                         'name': tool.name,
                         'command': tool.command,
                         'description': tool.description,
-                        'install': install_cmd
-                    })
+                        'install': install_cmd,
+                        'version': tool.version,
+                        'current_version': current_version
+                    }
+
+                    # Auto-fix optional tools too if requested
+                    if auto_fix and install_cmd != 'See documentation':
+                        success, message = self._install_tool(tool.name, install_cmd)
+                        if success:
+                            fixes_applied.append(message)
+                            tool_info['fixed'] = True
+                            continue
+
+                    missing_optional.append(tool_info)
 
             if missing_optional:
                 issues.append({

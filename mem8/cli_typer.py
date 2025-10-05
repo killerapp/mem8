@@ -278,19 +278,40 @@ def status(
 
 @typer_app.command()
 def doctor(
-    auto_fix: Annotated[bool, typer.Option("--auto-fix", help="Attempt to automatically fix issues")] = False,
+    fix: Annotated[bool, typer.Option("--fix", help="Attempt to automatically fix issues")] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output results as JSON for agent consumption")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
     """Diagnose and fix mem8 workspace issues."""
+    import json
+    import sys
+
     set_app_state(verbose=verbose)
     state = get_state()
     memory_manager = state.memory_manager
-    
-    console.print("[bold blue]Running mem8 diagnostics...[/bold blue]")
-    
+
+    if not json_output:
+        console.print("[bold blue]Running mem8 diagnostics...[/bold blue]")
+
     try:
-        diagnosis = memory_manager.diagnose_workspace(auto_fix=auto_fix)
-        
+        diagnosis = memory_manager.diagnose_workspace(auto_fix=fix)
+
+        # JSON output mode
+        if json_output:
+            json_output_data = {
+                "status": "healthy" if not diagnosis['issues'] else "unhealthy",
+                "health_score": diagnosis['health_score'],
+                "issues": diagnosis['issues'],
+                "fixes_applied": diagnosis['fixes_applied'],
+                "recommendations": diagnosis.get('recommendations', [])
+            }
+            print(json.dumps(json_output_data, indent=2))
+            # Exit with non-zero if there are issues
+            if diagnosis['issues']:
+                sys.exit(1)
+            return
+
+        # Human-readable output mode
         # Show issues
         if diagnosis['issues']:
             console.print("\n⚠️  [bold yellow]Issues found:[/bold yellow]")
@@ -301,35 +322,44 @@ def doctor(
                     'info': 'ℹ️'
                 }.get(issue['severity'], '•')
                 console.print(f"  {severity_icon} {issue['description']}")
-                if auto_fix and issue.get('fixed'):
+                if fix and issue.get('fixed'):
                     console.print(f"    ✅ [green]Fixed automatically[/green]")
 
                 # Show missing tools with install commands
                 if 'missing_tools' in issue:
                     for tool in issue['missing_tools']:
-                        console.print(f"    • [cyan]{tool['name']}[/cyan] ({tool['command']}) - {tool['description']}")
+                        version_info = f" (requires {tool['version']})" if tool.get('version') else ""
+                        console.print(f"    • [cyan]{tool['name']}[/cyan] ({tool['command']}){version_info} - {tool['description']}")
                         console.print(f"      Install: [yellow]{tool['install']}[/yellow]")
-        
+
+                        # Show current version if available
+                        if tool.get('current_version'):
+                            console.print(f"      Current: [yellow]{tool['current_version']}[/yellow]")
+
         # Show fixes applied
-        if auto_fix and diagnosis['fixes_applied']:
+        if fix and diagnosis['fixes_applied']:
             console.print("\n✅ [bold green]Fixes applied:[/bold green]")
-            for fix in diagnosis['fixes_applied']:
-                console.print(f"  • {fix}")
-        
+            for fix_msg in diagnosis['fixes_applied']:
+                console.print(f"  • {fix_msg}")
+
         # Show recommendations
         if diagnosis.get('recommendations'):
             console.print("\n💡 [bold blue]Recommendations:[/bold blue]")
             for rec in diagnosis['recommendations']:
                 console.print(f"  • {rec}")
-        
+
         # Overall health
         if not diagnosis['issues']:
             console.print("\n✅ [bold green]All checks passed! Your mem8 workspace is healthy.[/bold green]")
-        elif auto_fix:
+        elif fix:
             console.print(f"\n🔧 [blue]Fixed {len(diagnosis['fixes_applied'])} of {len(diagnosis['issues'])} issues.[/blue]")
         else:
-            console.print(f"\n⚠️  [yellow]Found {len(diagnosis['issues'])} issues. Run with --auto-fix to attempt repairs.[/yellow]")
-            
+            console.print(f"\n⚠️  [yellow]Found {len(diagnosis['issues'])} issues. Run with --fix to attempt repairs.[/yellow]")
+
+        # Exit with non-zero code if issues remain (CI-friendly)
+        if diagnosis['issues']:
+            sys.exit(1)
+
     except Exception as e:
         handle_command_error(e, verbose, "diagnostics")
 
