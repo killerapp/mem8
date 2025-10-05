@@ -161,35 +161,65 @@ Doctor can use custom toolbelt definitions from external template sources:
 **Project-Level Configuration** (`.mem8/config.yaml`):
 ```yaml
 templates:
-  # GitHub shorthand
-  default_source: "killerapp/mem8#subdir=mem8/templates"
+  # Dedicated template repo (root-level)
+  default_source: "my-org/templates"
 
-  # Or full Git URL with tag
-  default_source: "https://github.com/my-org/templates.git@v1.0.0"
+  # Fork of killerapp/mem8-templates
+  default_source: "acme-corp/mem8-templates"
 
-  # Or local path
+  # Monorepo with templates in subdirectory
+  default_source: "my-org/monorepo#subdir=mem8/templates"
+
+  # Specific version/tag
+  default_source: "my-org/templates@v1.0.0"
+
+  # Local development path
   default_source: "/path/to/templates"
 ```
 
 **User-Level Configuration** (`~/.config/mem8/config.yaml`):
 ```bash
 # Set default for all projects
-mem8 templates set-default "org/repo#subdir=path"
+mem8 templates set-default "org/repo"
 
 # Or edit manually at ~/.config/mem8/config.yaml
 ```
 
 **CLI Override:**
 ```bash
-# Use organization's custom toolbelt
-mem8 doctor --template-source "my-org/company-tools"
+# Dedicated template repo (cleanest for organizations)
+mem8 doctor --template-source "acme-corp/mem8-templates"
 
-# Use specific version
-mem8 doctor --template-source "my-org/tools@v2.0.0#subdir=templates"
+# Fork of official templates with customizations
+mem8 doctor --template-source "my-org/mem8-templates"
 
-# Use local development version
+# Monorepo with templates in subdirectory
+mem8 doctor --template-source "my-org/monorepo#subdir=tools/templates"
+
+# Use specific version/branch
+mem8 doctor --template-source "my-org/templates@v2.0.0"
+
+# Local development version
 mem8 doctor --template-source "/path/to/local/templates"
 ```
+
+**Template Repo Patterns:**
+
+1. **Dedicated Repo (Recommended for Organizations)**
+   - Fork `killerapp/mem8-templates` → `acme-corp/mem8-templates`
+   - Customize toolbelt for your org's standards
+   - Reference directly: `acme-corp/mem8-templates`
+   - No `#subdir=` needed - manifest at root
+
+2. **Monorepo with Templates**
+   - Keep templates alongside code
+   - Use `#subdir=path/to/templates`
+   - Example: `my-org/platform#subdir=config/mem8-templates`
+
+3. **Local Development**
+   - Test changes before pushing
+   - Use absolute or relative paths
+   - Example: `--template-source ./my-templates`
 
 ### Custom Toolbelts
 

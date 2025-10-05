@@ -81,6 +81,33 @@ class TestExternalTemplateSources:
         data = json.loads(result.stdout)
         assert "status" in data
 
+    def test_doctor_with_root_level_template_repo(self):
+        """Test doctor with dedicated template repo (no subdir)."""
+        # Test with killerapp/mem8-templates which has manifest at root
+        result = subprocess.run(
+            ["mem8", "doctor",
+             "--template-source", "killerapp/mem8-templates@feature/toolbelt-manifest",
+             "--json"],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+
+        # Should complete successfully
+        assert result.returncode in [0, 1]
+
+        import json
+        data = json.loads(result.stdout)
+        assert "issues" in data
+
+        # Should have checked tools from the manifest
+        if any("missing_tools" in issue for issue in data.get("issues", [])):
+            for issue in data["issues"]:
+                if "missing_tools" in issue:
+                    # Verify it found tools from mem8-templates manifest
+                    commands = [t["command"] for t in issue["missing_tools"]]
+                    assert any(cmd in ["rg", "fd", "gh", "jq"] for cmd in commands)
+
     def test_doctor_uses_project_config(self):
         """Test that doctor reads .mem8/config.yaml."""
         with tempfile.TemporaryDirectory() as tmpdir:
