@@ -148,6 +148,49 @@ mem8 doctor --json > toolbelt-status.json
 # Exit code 0 if all tools present, 1 if any missing
 ```
 
+### External Template Sources
+
+Doctor can use custom toolbelt definitions from external template sources:
+
+**Priority Order:**
+1. CLI flag: `--template-source`
+2. Project config: `.mem8/config.yaml`
+3. User config: `~/.config/mem8/config.yaml`
+4. Builtin templates (default)
+
+**Project-Level Configuration** (`.mem8/config.yaml`):
+```yaml
+templates:
+  # GitHub shorthand
+  default_source: "killerapp/mem8#subdir=mem8/templates"
+
+  # Or full Git URL with tag
+  default_source: "https://github.com/my-org/templates.git@v1.0.0"
+
+  # Or local path
+  default_source: "/path/to/templates"
+```
+
+**User-Level Configuration** (`~/.config/mem8/config.yaml`):
+```bash
+# Set default for all projects
+mem8 templates set-default "org/repo#subdir=path"
+
+# Or edit manually at ~/.config/mem8/config.yaml
+```
+
+**CLI Override:**
+```bash
+# Use organization's custom toolbelt
+mem8 doctor --template-source "my-org/company-tools"
+
+# Use specific version
+mem8 doctor --template-source "my-org/tools@v2.0.0#subdir=templates"
+
+# Use local development version
+mem8 doctor --template-source "/path/to/local/templates"
+```
+
 ### Custom Toolbelts
 
 Projects can define custom tool requirements in `mem8-templates.yaml`:

@@ -755,8 +755,13 @@ Use `mem8 search` to find relevant content across all memories.
             return system
         return 'linux'  # fallback
 
-    def diagnose_workspace(self, auto_fix: bool = False) -> Dict[str, Any]:
-        """Diagnose workspace health and optionally fix issues."""
+    def diagnose_workspace(self, auto_fix: bool = False, template_source: Optional[str] = None) -> Dict[str, Any]:
+        """Diagnose workspace health and optionally fix issues.
+
+        Args:
+            auto_fix: If True, attempt to fix issues automatically
+            template_source: Optional external template source (local path, git URL, or GitHub shorthand)
+        """
         issues = []
         fixes_applied = []
         recommendations = []
@@ -796,7 +801,11 @@ Use `mem8 search` to find relevant content across all memories.
             })
 
         # Check CLI toolbelt
-        toolbelt_issues = self._check_toolbelt(auto_fix=auto_fix, fixes_applied=fixes_applied)
+        toolbelt_issues = self._check_toolbelt(
+            auto_fix=auto_fix,
+            fixes_applied=fixes_applied,
+            template_source=template_source
+        )
         issues.extend(toolbelt_issues)
 
         # Calculate health score
@@ -813,22 +822,24 @@ Use `mem8 search` to find relevant content across all memories.
             'recommendations': recommendations,
         }
 
-    def _check_toolbelt(self, auto_fix: bool = False, fixes_applied: List[str] = None) -> List[Dict[str, Any]]:
+    def _check_toolbelt(self, auto_fix: bool = False, fixes_applied: List[str] = None, template_source: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Check CLI toolbelt availability and return issues.
 
         Args:
             auto_fix: If True, attempt to install missing tools
             fixes_applied: List to append fix messages to
+            template_source: Optional external template source (local path, git URL, or GitHub shorthand)
         """
         issues = []
         if fixes_applied is None:
             fixes_applied = []
 
-        # Load toolbelt definition from builtin templates
+        # Load toolbelt definition from template source
         try:
-            template_source = TemplateSource(None)  # builtin
-            manifest = template_source.load_manifest()
+            from .template_source import create_template_source
+            source = create_template_source(template_source)  # None = builtin
+            manifest = source.load_manifest()
 
             if not manifest or not manifest.toolbelt:
                 return issues

@@ -280,6 +280,9 @@ def status(
 def doctor(
     fix: Annotated[bool, typer.Option("--fix", help="Attempt to automatically fix issues")] = False,
     json_output: Annotated[bool, typer.Option("--json", help="Output results as JSON for agent consumption")] = False,
+    template_source: Annotated[Optional[str], typer.Option(
+        "--template-source", help="Template source for toolbelt definition: local path, git URL, or GitHub shorthand (org/repo)"
+    )] = None,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
     """Diagnose and fix mem8 workspace issues."""
@@ -290,11 +293,33 @@ def doctor(
     state = get_state()
     memory_manager = state.memory_manager
 
+    # Resolve template source from: CLI flag > project config > user config > builtin
+    if template_source is None:
+        from .core.config import Config
+
+        # Check project-level config first
+        project_config_file = Path.cwd() / ".mem8" / "config.yaml"
+        if project_config_file.exists():
+            import yaml
+            try:
+                with open(project_config_file, 'r') as f:
+                    project_config = yaml.safe_load(f) or {}
+                    template_source = project_config.get('templates', {}).get('default_source')
+            except Exception:
+                pass
+
+        # Fall back to user-level config
+        if template_source is None:
+            config = Config()
+            template_source = config.get('templates.default_source')
+
     if not json_output:
         console.print("[bold blue]Running mem8 diagnostics...[/bold blue]")
+        if template_source:
+            console.print(f"[dim]Using template source: {template_source}[/dim]")
 
     try:
-        diagnosis = memory_manager.diagnose_workspace(auto_fix=fix)
+        diagnosis = memory_manager.diagnose_workspace(auto_fix=fix, template_source=template_source)
 
         # JSON output mode
         if json_output:
