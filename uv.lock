@@ -941,7 +941,7 @@ wheels = [
 
 [[package]]
 name = "mem8"
-version = "2.13.1"
+version = "2.15.1"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -949,6 +949,7 @@ dependencies = [
     { name = "cookiecutter" },
     { name = "fastapi" },
     { name = "gitpython" },
+    { name = "packaging" },
     { name = "pathlib" },
     { name = "platformdirs" },
     { name = "pydantic" },
@@ -1016,6 +1017,7 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'server'", specifier = ">=0.25.0" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.0.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
+    { name = "packaging", specifier = ">=23.0" },
     { name = "passlib", extras = ["bcrypt"], marker = "extra == 'server'", specifier = ">=1.7.4" },
     { name = "pathlib", specifier = ">=1.0.0" },
     { name = "platformdirs", specifier = ">=3.0.0" },

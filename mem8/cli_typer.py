@@ -376,6 +376,16 @@ def doctor(
         # Overall health
         if not diagnosis['issues']:
             console.print("\n✅ [bold green]All checks passed! Your mem8 workspace is healthy.[/bold green]")
+
+            # Save verified tools when healthy
+            try:
+                from .core.toolbelt import save_verified_tools
+                output_file = save_verified_tools()
+                if verbose:
+                    console.print(f"[dim]Saved verified tools to {output_file}[/dim]")
+            except Exception:
+                pass  # Non-critical, don't fail on this
+
         elif fix:
             console.print(f"\n🔧 [blue]Fixed {len(diagnosis['fixes_applied'])} of {len(diagnosis['issues'])} issues.[/blue]")
         else:
@@ -1275,6 +1285,15 @@ def init(
         config_manager = Config()
         config_manager.create_home_shortcut()
 
+        # Save verified tools
+        try:
+            from .core.toolbelt import save_verified_tools
+            output_file = save_verified_tools()
+            if verbose:
+                console.print(f"[dim]Saved verified tools to {output_file}[/dim]")
+        except Exception:
+            pass  # Non-critical, don't fail on this
+
         # Done
         console.print("\n[green]✓[/green] Setup complete")
         console.print("  mem8 status  - verify setup")
@@ -2085,3 +2104,44 @@ def gh_whoami(
             console.print("[dim]No repository detected in current directory[/dim]")
     else:
         console.print("[yellow]gh not detected or no active login for this host[/yellow]")
+
+
+@typer_app.command()
+def tools(
+    save: Annotated[bool, typer.Option("--save", help="Save verified tools to .mem8/verified_tools.yaml")] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
+):
+    """List verified/available CLI tools and OS details for AI system prompts."""
+    from .core.toolbelt import check_verified_tools, save_verified_tools as save_tools_to_file
+    from rich.table import Table
+
+    set_app_state(verbose=verbose)
+
+    # Check tools
+    output_data = check_verified_tools()
+    os_info = output_data['os']
+    verified = output_data['tools']
+
+    # Display to user
+    console.print("[bold blue]System Environment[/bold blue]")
+    console.print(f"OS: {os_info['system']} {os_info['release']} ({os_info['machine']})")
+    console.print(f"Python: {os_info['python_version']}")
+
+    console.print("\n[bold blue]Verified Tools[/bold blue]")
+    if verified:
+        table = Table()
+        table.add_column("Tool", style="cyan")
+        table.add_column("Version", style="green")
+
+        for tool, version in sorted(verified.items()):
+            table.add_row(tool, version)
+        console.print(table)
+    else:
+        console.print("[yellow]No tools verified[/yellow]")
+
+    # Save if requested
+    if save:
+        output_file = save_tools_to_file()
+        console.print(f"\n✅ [green]Saved to {output_file}[/green]")
+    else:
+        console.print("\n💡 [dim]Use --save to write to .mem8/verified_tools.yaml[/dim]")
