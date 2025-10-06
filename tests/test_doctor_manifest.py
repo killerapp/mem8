@@ -60,7 +60,9 @@ class TestDoctorManifestIntegration:
         result = subprocess.run(
             ["mem8", "doctor", "--json"],
             capture_output=True,
-            text=True
+            text=True,
+            encoding='utf-8',
+            errors='replace'
         )
 
         data = json.loads(result.stdout)
@@ -86,7 +88,7 @@ class TestDoctorManifestIntegration:
             tool_commands = [t["command"] for t in missing_tools]
 
             # Should be checking for known tools from manifest
-            known_commands = ["rg", "fd", "gh", "git", "jq", "bat", "delta", "yq", "fzf"]
+            known_commands = ["rg", "fd", "gh", "git", "jq", "bat", "delta", "yq", "fzf", "sd", "ast-grep"]
             for cmd in tool_commands:
                 assert cmd in known_commands, f"Unknown tool checked: {cmd}"
 
@@ -162,7 +164,9 @@ class TestDoctorManifestIntegration:
             result = subprocess.run(
                 ["mem8", "doctor"],
                 capture_output=True,
-                text=True
+                text=True,
+            encoding='utf-8',
+            errors='replace'
             )
 
             # If the tool is installed but wrong version, should show both versions
@@ -179,7 +183,9 @@ class TestDoctorManifestIntegration:
         result = subprocess.run(
             ["mem8", "doctor"],
             capture_output=True,
-            text=True
+            text=True,
+            encoding='utf-8',
+            errors='replace'
         )
 
         if "Install:" in result.stdout:
@@ -193,7 +199,7 @@ class TestDoctorManifestIntegration:
             # Get platform key
             from mem8.core.memory import MemoryManager
             from mem8.core.config import Config
-            manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+            manager = MemoryManager(Config())
             platform_key = manager._get_platform_key()
 
             # Verify install commands match platform
@@ -233,7 +239,9 @@ class TestDoctorManifestIntegration:
         result = subprocess.run(
             ["mem8", "doctor", "--json"],
             capture_output=True,
-            text=True
+            text=True,
+            encoding='utf-8',
+            errors='replace'
         )
 
         data = json.loads(result.stdout)

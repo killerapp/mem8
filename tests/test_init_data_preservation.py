@@ -141,7 +141,7 @@ class TestInitDataPreservation:
         assert "Existing workspace components found" not in result.stdout
         assert "WARNING:" not in result.stdout
         # Should start cookiecutter process
-        assert "project_name" in result.stdout or "Creating" in result.stdout
+        assert "mem8 init" in result.stdout or "Installing" in result.stdout or "Setup complete" in result.stdout
     
     def test_force_flag_suggestions(self):
         """Test that helpful suggestions are provided."""
@@ -274,7 +274,9 @@ This represents months of important work that must never be lost!
         print("\\n🔍 Test 1: Running init without --force (should warn and abort)")
         result = subprocess.run(
             ["mem8", "init", "--template", "thoughts-repo", "--non-interactive"],
-            capture_output=True, text=True
+            capture_output=True, text=True,
+            encoding='utf-8',
+            errors='replace'
         )
         print("Result:")
         print(result.stdout)

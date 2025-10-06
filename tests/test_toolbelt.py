@@ -18,7 +18,7 @@ class TestVersionChecking:
 
     def test_get_command_version_gh(self):
         """Test extracting version from gh --version output."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch('subprocess.run') as mock_run:
             mock_run.return_value = Mock(
@@ -32,7 +32,7 @@ class TestVersionChecking:
 
     def test_get_command_version_no_match(self):
         """Test when version cannot be extracted."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch('subprocess.run') as mock_run:
             mock_run.return_value = Mock(
@@ -46,7 +46,7 @@ class TestVersionChecking:
 
     def test_compare_versions_greater_equal(self):
         """Test >= version comparison."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         # Exact match
         assert manager._compare_versions('2.60.0', '>=2.60')
@@ -62,7 +62,7 @@ class TestVersionChecking:
 
     def test_compare_versions_equal(self):
         """Test == version comparison."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         assert manager._compare_versions('2.60.0', '==2.60.0')
         assert not manager._compare_versions('2.60.1', '==2.60.0')
@@ -70,7 +70,7 @@ class TestVersionChecking:
 
     def test_compare_versions_greater(self):
         """Test > version comparison."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         assert manager._compare_versions('2.61.0', '>2.60')
         assert not manager._compare_versions('2.60.0', '>2.60')
@@ -78,7 +78,7 @@ class TestVersionChecking:
 
     def test_compare_versions_less_equal(self):
         """Test <= version comparison."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         assert manager._compare_versions('2.60.0', '<=2.60')
         assert manager._compare_versions('2.59.0', '<=2.60')
@@ -86,14 +86,14 @@ class TestVersionChecking:
 
     def test_compare_versions_not_equal(self):
         """Test != version comparison."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         assert manager._compare_versions('2.61.0', '!=2.60.0')
         assert not manager._compare_versions('2.60.0', '!=2.60.0')
 
     def test_compare_versions_invalid(self):
         """Test that invalid comparisons return True (fail-open)."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         # Invalid version string - should not crash, returns True
         assert manager._compare_versions('2.60.0', 'invalid')
@@ -105,11 +105,11 @@ class TestToolbeltChecking:
 
     def test_check_toolbelt_all_present(self):
         """Test when all required tools are present."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch.object(manager, '_check_command_available', return_value=True):
-            with patch('mem8.core.memory.TemplateSource') as mock_source:
-                # Mock manifest with required tools
+            with patch('mem8.core.template_source.create_template_source') as mock_create:
+                mock_source = Mock()
                 mock_manifest = Mock()
                 mock_manifest.toolbelt = ToolbeltDefinition(
                     required=[
@@ -122,18 +122,20 @@ class TestToolbeltChecking:
                     ],
                     optional=[]
                 )
-                mock_source.return_value.load_manifest.return_value = mock_manifest
+                mock_source.load_manifest.return_value = mock_manifest
+                mock_create.return_value = mock_source
 
                 issues = manager._check_toolbelt()
                 assert len(issues) == 0
 
     def test_check_toolbelt_missing_required(self):
         """Test detection of missing required tools."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch.object(manager, '_check_command_available', return_value=False):
             with patch.object(manager, '_get_platform_key', return_value='windows'):
-                with patch('mem8.core.memory.TemplateSource') as mock_source:
+                with patch('mem8.core.template_source.create_template_source') as mock_create:
+                    mock_source = Mock()
                     mock_manifest = Mock()
                     mock_manifest.toolbelt = ToolbeltDefinition(
                         required=[
@@ -146,7 +148,8 @@ class TestToolbeltChecking:
                         ],
                         optional=[]
                     )
-                    mock_source.return_value.load_manifest.return_value = mock_manifest
+                    mock_source.load_manifest.return_value = mock_manifest
+                    mock_create.return_value = mock_source
 
                     issues = manager._check_toolbelt()
                     assert len(issues) == 1
@@ -156,12 +159,13 @@ class TestToolbeltChecking:
 
     def test_check_toolbelt_version_mismatch(self):
         """Test detection of version mismatches."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch.object(manager, '_check_command_available', return_value=True):
             with patch.object(manager, '_get_command_version', return_value='2.50.0'):
                 with patch.object(manager, '_get_platform_key', return_value='windows'):
-                    with patch('mem8.core.memory.TemplateSource') as mock_source:
+                    with patch('mem8.core.template_source.create_template_source') as mock_create:
+                        mock_source = Mock()
                         mock_manifest = Mock()
                         mock_manifest.toolbelt = ToolbeltDefinition(
                             required=[
@@ -175,7 +179,8 @@ class TestToolbeltChecking:
                             ],
                             optional=[]
                         )
-                        mock_source.return_value.load_manifest.return_value = mock_manifest
+                        mock_source.load_manifest.return_value = mock_manifest
+                        mock_create.return_value = mock_source
 
                         issues = manager._check_toolbelt()
                         assert len(issues) == 1
@@ -185,11 +190,12 @@ class TestToolbeltChecking:
 
     def test_check_toolbelt_optional_missing(self):
         """Test detection of missing optional tools."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch.object(manager, '_check_command_available', return_value=False):
             with patch.object(manager, '_get_platform_key', return_value='macos'):
-                with patch('mem8.core.memory.TemplateSource') as mock_source:
+                with patch('mem8.core.template_source.create_template_source') as mock_create:
+                    mock_source = Mock()
                     mock_manifest = Mock()
                     mock_manifest.toolbelt = ToolbeltDefinition(
                         required=[],
@@ -202,7 +208,8 @@ class TestToolbeltChecking:
                             )
                         ]
                     )
-                    mock_source.return_value.load_manifest.return_value = mock_manifest
+                    mock_source.load_manifest.return_value = mock_manifest
+                    mock_create.return_value = mock_source
 
                     issues = manager._check_toolbelt()
                     assert len(issues) == 1
@@ -215,7 +222,7 @@ class TestAutoFix:
 
     def test_install_tool_success(self):
         """Test successful tool installation."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch('subprocess.run') as mock_run:
             mock_run.return_value = Mock(returncode=0, stderr='')
@@ -226,7 +233,7 @@ class TestAutoFix:
 
     def test_install_tool_failure(self):
         """Test failed tool installation."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch('subprocess.run') as mock_run:
             mock_run.return_value = Mock(returncode=1, stderr='Installation failed')
@@ -237,7 +244,7 @@ class TestAutoFix:
 
     def test_install_tool_timeout(self):
         """Test installation timeout handling."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch('subprocess.run') as mock_run:
             import subprocess
@@ -249,13 +256,14 @@ class TestAutoFix:
 
     def test_check_toolbelt_with_autofix(self):
         """Test auto-fix during toolbelt checking."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
         fixes_applied = []
 
         with patch.object(manager, '_check_command_available', return_value=False):
             with patch.object(manager, '_get_platform_key', return_value='linux'):
                 with patch.object(manager, '_install_tool', return_value=(True, 'Installed successfully')):
-                    with patch('mem8.core.memory.TemplateSource') as mock_source:
+                    with patch('mem8.core.template_source.create_template_source') as mock_create:
+                        mock_source = Mock()
                         mock_manifest = Mock()
                         mock_manifest.toolbelt = ToolbeltDefinition(
                             required=[
@@ -268,7 +276,8 @@ class TestAutoFix:
                             ],
                             optional=[]
                         )
-                        mock_source.return_value.load_manifest.return_value = mock_manifest
+                        mock_source.load_manifest.return_value = mock_manifest
+                        mock_create.return_value = mock_source
 
                         issues = manager._check_toolbelt(auto_fix=True, fixes_applied=fixes_applied)
 
@@ -284,7 +293,7 @@ class TestDiagnoseWorkspace:
 
     def test_diagnose_returns_json_structure(self):
         """Test that diagnose_workspace returns proper structure."""
-        config = Config(workspace_dir=Path.cwd())
+        config = Config()
         manager = MemoryManager(config)
 
         with patch.object(manager, '_check_toolbelt', return_value=[]):
@@ -300,7 +309,7 @@ class TestDiagnoseWorkspace:
 
     def test_diagnose_exit_code_behavior(self):
         """Test that diagnosis results can be used for exit codes."""
-        config = Config(workspace_dir=Path.cwd())
+        config = Config()
         manager = MemoryManager(config)
 
         with patch.object(manager, '_check_toolbelt', return_value=[]):
@@ -319,32 +328,33 @@ class TestPlatformDetection:
 
     def test_get_platform_key_windows(self):
         """Test Windows platform detection."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch('platform.system', return_value='Windows'):
             assert manager._get_platform_key() == 'windows'
 
     def test_get_platform_key_macos(self):
         """Test macOS platform detection."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch('platform.system', return_value='Darwin'):
             assert manager._get_platform_key() == 'macos'
 
     def test_get_platform_key_linux(self):
         """Test Linux platform detection."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch('platform.system', return_value='Linux'):
             assert manager._get_platform_key() == 'linux'
 
     def test_platform_specific_install_commands(self):
         """Test that correct install command is selected per platform."""
-        manager = MemoryManager(Config(workspace_dir=Path.cwd()))
+        manager = MemoryManager(Config())
 
         with patch.object(manager, '_check_command_available', return_value=False):
             with patch.object(manager, '_get_platform_key', return_value='windows'):
-                with patch('mem8.core.memory.TemplateSource') as mock_source:
+                with patch('mem8.core.template_source.create_template_source') as mock_create:
+                    mock_source = Mock()
                     mock_manifest = Mock()
                     mock_manifest.toolbelt = ToolbeltDefinition(
                         required=[
@@ -361,7 +371,8 @@ class TestPlatformDetection:
                         ],
                         optional=[]
                     )
-                    mock_source.return_value.load_manifest.return_value = mock_manifest
+                    mock_source.load_manifest.return_value = mock_manifest
+                    mock_create.return_value = mock_source
 
                     issues = manager._check_toolbelt()
                     assert 'winget install ripgrep' in issues[0]['missing_tools'][0]['install']
