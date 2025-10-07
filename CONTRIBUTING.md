@@ -31,7 +31,7 @@ mem8 --version
 
 Full contributing documentation is available at:
 
-**📚 [docs.codebasecontext.org/contributing](https://docs.codebasecontext.org/contributing)** (or `documentation/docs/contributing/`)
+**📚 [codebasecontext.org/docs/contributing](https://codebasecontext.org/docs/contributing)**
 
 Topics covered:
 - Development setup (CLI-only vs full-stack)
@@ -44,7 +44,7 @@ Topics covered:
 
 - **Issues:** [github.com/killerapp/mem8/issues](https://github.com/killerapp/mem8/issues)
 - **Discussions:** [github.com/killerapp/mem8/discussions](https://github.com/killerapp/mem8/discussions)
-- **Documentation:** [docs.codebasecontext.org](https://docs.codebasecontext.org)
+- **Documentation:** [codebasecontext.org](https://codebasecontext.org)
 
 ## Code of Conduct
 
