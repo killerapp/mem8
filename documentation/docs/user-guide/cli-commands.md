@@ -134,6 +134,62 @@ mem8 templates set-default killerapp/mem8-templates
 mem8 templates show-default
 ```
 
+## Tools
+
+### `mem8 tools`
+
+List toolbelt CLI tools and OS details for AI system prompts.
+
+```bash
+# List tools
+mem8 tools
+
+# Save toolbelt to .mem8/tools.md
+mem8 tools --save
+```
+
+**Options:**
+- `--save` - Save toolbelt to `.mem8/tools.md`
+- `--verbose` - Enable verbose output
+
+## Ports
+
+### `mem8 ports`
+
+Manage project port assignments to prevent conflicts across projects.
+
+```bash
+# Show current project's port assignments
+mem8 ports --show
+
+# Lease new ports for this project
+mem8 ports --lease
+
+# Release this project's port lease
+mem8 ports --release
+
+# List all port leases across all projects
+mem8 ports --list-all
+
+# Check for port conflicts
+mem8 ports --check-conflicts
+
+# Kill process using specified port
+mem8 ports --kill 8080
+```
+
+**Options:**
+- `--lease` - Lease new ports for this project
+- `--start` - Starting port number (auto-assign if not specified)
+- `--count` - Number of ports to lease
+- `--release` - Release this project's port lease
+- `--list-all` - List all port leases across all projects
+- `--check-conflicts` - Check for port conflicts
+- `--kill` - Kill process using specified port
+- `--force` - Force kill port outside project range
+- `--show` - Show current project's port assignments
+- `--verbose` - Enable verbose output
+
 ## Version
 
 ### `mem8 version`
