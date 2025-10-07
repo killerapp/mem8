@@ -9,9 +9,7 @@ wheels/
 # Virtual environments
 .venv
 
-# Output directory for generated templates
-out/
-out-*/
+# Temporary test files
 test-*/
 *-files.txt
 
@@ -37,11 +35,10 @@ Thumbs.db
 # Backups
 backups/
 
+# Environment files (copy .env.example to .env)
 .env
-.env.*local*
-.env.*.local*
-.env.dev
-.env.prod
+.env.local
+.env.*.local
 
 # Test reports and coverage
 htmlcov/
