@@ -67,19 +67,19 @@ def _init_git_repo(path: Path):
 
 @pytest.fixture
 def make_repo(tmp_path) -> Callable[..., Path]:
-    """Factory to create a mock git repo with optional thoughts content.
+    """Factory to create a mock git repo with optional memory content.
 
-    Usage: repo_path = make_repo(name="repo1", with_thoughts=True)
+    Usage: repo_path = make_repo(name="repo1", with_memory=True)
     """
 
-    def _factory(name: str = "repo", with_thoughts: bool = True, files: int = 2) -> Path:
+    def _factory(name: str = "repo", with_memory: bool = True, files: int = 2) -> Path:
         repo = tmp_path / name
         _init_git_repo(repo)
-        if with_thoughts:
-            thoughts = repo / "thoughts"
-            (thoughts / "shared").mkdir(parents=True, exist_ok=True)
+        if with_memory:
+            memory = repo / "memory"
+            (memory / "shared").mkdir(parents=True, exist_ok=True)
             for i in range(files):
-                (thoughts / f"file_{i+1}.md").write_text(
+                (memory / f"file_{i+1}.md").write_text(
                     f"# Thought {i+1}\n\nSome content.", encoding="utf-8"
                 )
         return repo

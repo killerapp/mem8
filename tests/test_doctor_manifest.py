@@ -1,5 +1,5 @@
 """
-Tests to verify mem8 doctor correctly loads and uses mem8-templates.yaml manifest.
+Tests to verify mem8 doctor correctly loads and uses manifest.yaml manifest.
 
 This validates that the toolbelt definitions from the builtin templates
 are properly loaded and used during diagnosis.
@@ -11,7 +11,7 @@ import pytest
 
 
 class TestDoctorManifestIntegration:
-    """Test that doctor command uses mem8-templates.yaml correctly."""
+    """Test that doctor command uses manifest.yaml correctly."""
 
     def test_builtin_manifest_loads(self):
         """Verify that builtin templates manifest loads correctly."""
@@ -37,12 +37,12 @@ class TestDoctorManifestIntegration:
         assert "gh" in [t.command for t in manifest.toolbelt.required]
 
     def test_manifest_location(self):
-        """Verify manifest is in correct location."""
-        from importlib import resources
-        import mem8.templates
+        """Verify manifest is accessible from builtin template source."""
+        from mem8.core.template_source import get_builtin_templates
 
-        template_path = Path(str(resources.files(mem8.templates)))
-        manifest_path = template_path / "mem8-templates.yaml"
+        # Builtin now uses external templates, so manifest should be accessible
+        source = get_builtin_templates()
+        manifest_path = source.resolve() / "manifest.yaml"
 
         assert manifest_path.exists(), f"Manifest not found at {manifest_path}"
 

@@ -1,13 +1,13 @@
 # mem8 - Claude Code Workspace Manager
 
-A streamlined CLI tool for managing Claude Code customizations and documentation workflows. Create standardized project templates, manage thoughts/research documents, and enhance your Claude Code development experience.
+A streamlined CLI tool for managing Claude Code customizations and documentation workflows. Create standardized project templates, manage memory/research documents, and enhance your Claude Code development experience.
 
 ## 🎯 Overview
 
 mem8 is designed to work seamlessly with Claude Code, providing:
 - **💻 Rich CLI Interface** - Manage Claude Code customizations and project templates  
-- **📝 Thoughts Management** - Organize research, plans, and documentation in markdown
-- **🎨 Dashboard** - Optional web interface to browse your workspace and thoughts
+- **📝 Memory Management** - Organize research, plans, and documentation in markdown
+- **🎨 Dashboard** - Optional web interface to browse your workspace and memory
 - **🏗️ Template System** - Cookiecutter templates for Claude Code configurations
 
 ## ✨ Core Features
@@ -24,24 +24,24 @@ mem8 tools --save                    # Save toolbelt to .mem8/tools.md
 mem8 ports --lease                   # Lease port range for project
 mem8 ports                           # Show current project's port assignments
 mem8 ports --kill <port>             # Kill process on port (safe mode)
-mem8 search "query"                  # Search across all thoughts
+mem8 search "query"                  # Search across all memory
 mem8 serve                           # Start the API server (port 8000)
 ```
 
 ### 📁 Template System
 - **claude-dot-md-template** - Generate `.claude/[agents,commands]` configurations
-- **shared-thoughts-template** - Create structured thoughts repositories
+- **shared-memory-template** - Create structured memory repositories
 - **Cookiecutter integration** - Flexible, customizable project generation
 
-### 🔍 Thoughts Organization
+### 🔍 Memory Organization
 ```
-thoughts/
+memory/
 ├── shared/
 │   ├── research/      # Research documents
 │   ├── plans/         # Implementation plans  
 │   ├── prs/          # PR descriptions
 │   └── decisions/     # Technical decisions
-└── {project}/         # Project-specific thoughts
+└── {project}/         # Project-specific memory
 ```
 
 ## 🚀 Quick Start
@@ -62,8 +62,8 @@ uv tool install --editable .
 # Create Claude Code configuration
 mem8 init --template claude-config
 
-# Create thoughts repository
-mem8 init --template thoughts-repo
+# Create memory repository
+mem8 init --template memory-repo
 
 # Check everything is working
 mem8 status
@@ -228,7 +228,7 @@ mem8 doctor --template-source "/path/to/local/templates"
 
 ### Custom Toolbelts
 
-Projects can define custom tool requirements in `mem8-templates.yaml`:
+Projects can define custom tool requirements in `manifest.yaml`:
 ```yaml
 toolbelt:
   required:
@@ -327,7 +327,7 @@ mem8 provides a structured inner loop for effective development:
 1. **Research** (`/research_codebase`) - Understand existing patterns and architecture
    - Uses parallel sub-agents for comprehensive codebase analysis
    - Creates timestamped research documents with metadata
-   - Integrates findings from both code and thoughts repository
+   - Integrates findings from both code and memory repository
 
 2. **Plan** (`/create_plan`) - Design your approach with concrete steps
    - Structured implementation plans with technical details
@@ -373,7 +373,7 @@ mem8 init --template claude-config
 # Creates: .claude/CLAUDE.md, commands/, agents/
 ```
 
-### Thoughts Repository (`thoughts-repo`)  
+### Memory Repository (`memory-repo`)  
 Creates structured documentation with:
 - Research document templates
 - Planning frameworks
@@ -382,8 +382,8 @@ Creates structured documentation with:
 
 **Example Usage:**
 ```bash
-mem8 init --template thoughts-repo  
-# Creates: thoughts/shared/, thoughts/research/, etc.
+mem8 init --template memory-repo  
+# Creates: memory/shared/, memory/research/, etc.
 ```
 
 ## 🎛️ Configuration
@@ -403,8 +403,8 @@ mem8 init --template claude-config
 # Use custom cookiecutter configs
 mem8 init --template claude-config --config-file custom-config.yaml
 
-# Link shared thoughts across projects
-mem8 sync --link-shared ~/shared-thoughts
+# Link shared memory across projects
+mem8 sync --link-shared ~/shared-memory
 ```
 
 ## 💻 Web Interface (Optional)
@@ -447,7 +447,7 @@ your-project/
 │   ├── CLAUDE.md          # Main Claude Code configuration
 │   ├── commands/          # Custom commands
 │   └── agents/           # Custom agent definitions
-├── thoughts/
+├── memory/
 │   ├── shared/           # Shared documentation
 │   ├── research/         # Research documents
 │   └── plans/           # Implementation plans
@@ -472,7 +472,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed de
 mem8 search "authentication"
 
 # Search in specific directories
-mem8 search "API" --path thoughts/shared/research
+mem8 search "API" --path memory/shared/research
 
 # Search with filters
 mem8 search "bug" --tags "urgent" --type "plans"
@@ -483,8 +483,8 @@ mem8 search "bug" --tags "urgent" --type "plans"
 # Sync with shared directory
 mem8 sync
 
-# Create symlinks to shared thoughts
-mem8 sync --link ~/team-shared-thoughts
+# Create symlinks to shared memory
+mem8 sync --link ~/team-shared-memory
 
 # Check sync status
 mem8 status --verbose
@@ -520,9 +520,9 @@ echo "Analyzing codebase structure..."
 Configure in `.claude/CLAUDE.md`:
 ```markdown
 # Project Context
-- Use `thoughts/research/` for background research
-- Store implementation plans in `thoughts/plans/`
-- Document decisions in `thoughts/decisions/`
+- Use `memory/research/` for background research
+- Store implementation plans in `memory/plans/`
+- Document decisions in `memory/decisions/`
 ```
 
 ## 🚀 Production Deployment
@@ -558,7 +558,7 @@ docker-compose --env-file .env.dev up -d backend db
 ```
 
 **Why Docker is required:**
-- Backend needs PostgreSQL database for teams, thoughts, and authentication
+- Backend needs PostgreSQL database for teams, memory, and authentication
 - Docker Compose provides the full stack (backend + database + optional frontend)
 - See [DOCKER.md](DOCKER.md) for all deployment options
 
@@ -592,7 +592,7 @@ docker-compose --env-file .env.dev up -d --build
 ### Architecture
 The production deployment uses:
 - **mem8 serve**: FastAPI backend with unified CLI entry point
-- **PostgreSQL**: Primary database for storing thoughts and metadata
+- **PostgreSQL**: Primary database for storing memory and metadata
 - **Redis**: Cache layer and websocket support
 - **Next.js**: Frontend application on port 22211
 
@@ -608,8 +608,8 @@ The production deployment uses:
 ### Research & Planning
 ```bash
 # Start new research
-mem8 init --template thoughts-repo
-cd thoughts/research
+mem8 init --template memory-repo
+cd memory/research
 # Create research-topic.md
 
 # Plan implementation  
@@ -644,7 +644,7 @@ MIT License - see LICENSE file for details.
 Contributions welcome! Focus areas:
 1. **New Templates** - Create templates for different project types
 2. **CLI Enhancements** - Improve search and sync functionality
-3. **Web Interface** - Enhance the thoughts file viewer
+3. **Web Interface** - Enhance the memory file viewer
 4. **Documentation** - Improve setup and usage guides
 
 ---

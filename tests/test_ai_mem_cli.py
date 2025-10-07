@@ -110,7 +110,7 @@ class Testmem8CLI:
 
         # Check that directories were created
         assert (self.workspace_dir / ".claude").exists()
-        assert (self.workspace_dir / "thoughts").exists()
+        assert (self.workspace_dir / "memory").exists()
         assert self.shared_dir.exists()
     
     def test_initialization_force(self):
@@ -182,7 +182,7 @@ class Testmem8CLI:
         ])
         
         # Create test content
-        test_file = self.workspace_dir / "thoughts" / "test.md"
+        test_file = self.workspace_dir / "memory" / "test.md"
         test_file.parent.mkdir(exist_ok=True)
         test_file.write_text("# Test Document\\n\\nThis is a test document with searchable content.")
         
@@ -213,7 +213,7 @@ class Testmem8CLI:
         ])
 
         # Remove a directory to create an issue
-        shutil.rmtree(self.workspace_dir / "thoughts", ignore_errors=True)
+        shutil.rmtree(self.workspace_dir / "memory", ignore_errors=True)
 
         result = self.run_mem8(["doctor", "--fix"], expect_success=False)
         assert "Running mem8 diagnostics" in result.stdout
@@ -308,11 +308,11 @@ class Testmem8CLI:
         ])
         
         # Check shared directory structure
-        assert (self.shared_dir / "thoughts").exists()
-        assert (self.shared_dir / "thoughts" / "shared" / "plans").exists()
-        assert (self.shared_dir / "thoughts" / "shared" / "decisions").exists()
-        assert (self.shared_dir / "thoughts" / "shared" / "research").exists()
-        assert (self.shared_dir / "thoughts" / "README.md").exists()
+        assert (self.shared_dir / "memory").exists()
+        assert (self.shared_dir / "memory" / "shared" / "plans").exists()
+        assert (self.shared_dir / "memory" / "shared" / "decisions").exists()
+        assert (self.shared_dir / "memory" / "shared" / "research").exists()
+        assert (self.shared_dir / "memory" / "README.md").exists()
     
     def test_error_handling(self):
         """Test error handling for invalid operations."""
@@ -322,10 +322,10 @@ class Testmem8CLI:
         assert result.returncode == 0
     
     def test_init_protects_existing_data(self):
-        """Test that init command protects existing thoughts/shared data."""
+        """Test that init command protects existing memory/shared data."""
         # Create important user data first
-        thoughts_dir = self.workspace_dir / "thoughts"
-        shared_dir = thoughts_dir / "shared"
+        memory_dir = self.workspace_dir / "memory"
+        shared_dir = memory_dir / "shared"
         shared_dir.mkdir(parents=True, exist_ok=True)
 
         important_file = shared_dir / "critical_research.md"
@@ -333,7 +333,7 @@ class Testmem8CLI:
 
         # Test that init detects and warns about existing data
         result = self.run_mem8([
-            "init", "--template", "thoughts-repo", "--non-interactive"
+            "init", "--template", "memory-repo", "--non-interactive"
         ], expect_success=False)
 
         # Should warn about existing data (text changed with new system)

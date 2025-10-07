@@ -1,4 +1,4 @@
-"""Thought entity data model for semantic understanding of thoughts."""
+"""Thought entity data model for semantic understanding of memory."""
 
 import time
 from dataclasses import dataclass
@@ -81,7 +81,7 @@ class ThoughtEntity:
         path_parts = path.parts
         if 'shared' in path_parts:
             return 'shared'
-        elif any(user in path_parts for user in ['vaski', 'allison', 'thoughts']):
+        elif any(user in path_parts for user in ['vaski', 'allison', 'memory']):
             return 'personal' 
         else:
             return 'unknown'
@@ -126,7 +126,7 @@ class ThoughtEntity:
                     'confidence': 0.8
                 })
         
-        # Look for @ mentions (like @thoughts/shared/...)
+        # Look for @ mentions (like @memory/shared/...)
         at_mentions = re.findall(r'@([a-zA-Z0-9/_-]+)', content)
         for mention in at_mentions:
             relationships.append({
