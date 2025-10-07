@@ -176,14 +176,17 @@ class TemplateSource:
             return path
 
         if self.source_type == TemplateSourceType.BUILTIN:
-            # Use builtin templates from package
-            try:
-                from importlib import resources
-                import mem8.templates
-                self._resolved_path = Path(str(resources.files(mem8.templates)))
-            except (ImportError, AttributeError):
-                # Development fallback
-                self._resolved_path = Path(__file__).parent.parent / "templates"
+            # Builtin templates now live in external repo (killerapp/mem8-templates)
+            # Use the default external source instead
+            from .config import Config
+            config = Config()
+            default_source = config.get('templates.default_source', 'killerapp/mem8-templates')
+
+            # Create a new TemplateSource for the external repo
+            external_source = TemplateSource(default_source)
+            self._resolved_path = external_source.resolve()
+            # Copy over the temp_dir for cleanup
+            self._temp_dir = external_source._temp_dir
             return self._resolved_path
 
         if self.source_type in [TemplateSourceType.GIT, TemplateSourceType.GITHUB]:

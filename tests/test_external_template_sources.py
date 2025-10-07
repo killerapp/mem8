@@ -20,11 +20,11 @@ class TestExternalTemplateSources:
 
     def test_doctor_with_local_path(self):
         """Test doctor --template-source with local path."""
-        # Use the actual templates directory
-        from importlib import resources
-        import mem8.templates
+        # Templates are now external, use builtin source for local path testing
+        from mem8.core.template_source import get_builtin_templates
 
-        template_path = Path(str(resources.files(mem8.templates)))
+        source = get_builtin_templates()
+        template_path = source.resolve()
 
         result = subprocess.run(
             ["mem8", "doctor", "--template-source", str(template_path), "--json"],
@@ -160,10 +160,10 @@ class TestExternalTemplateSources:
             with open(config_file, 'w') as f:
                 yaml.dump(config, f)
 
-            # Use CLI flag to override
-            from importlib import resources
-            import mem8.templates
-            valid_path = str(resources.files(mem8.templates))
+            # Use CLI flag to override with builtin templates
+            from mem8.core.template_source import get_builtin_templates
+            source = get_builtin_templates()
+            valid_path = str(source.resolve())
 
             result = subprocess.run(
                 ["mem8", "doctor",
@@ -186,13 +186,11 @@ class TestExternalTemplateSources:
             assert not any("/invalid/path" in msg for msg in error_messages)
 
     def test_project_config_format(self):
-        """Test that project config follows expected format."""
-        example_config = Path(__file__).parent.parent / "mem8" / "templates" / "example-mem8-config.yaml"
-
-        assert example_config.exists(), "Example config file should exist"
-
-        with open(example_config, 'r') as f:
-            config = yaml.safe_load(f)
+        """Test that default config follows expected format."""
+        # Example config is now in external templates, test default config instead
+        from mem8.core.config import Config
+        config_obj = Config()
+        config = config_obj._get_default_config()
 
         # Should have templates section
         assert "templates" in config

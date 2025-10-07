@@ -37,12 +37,12 @@ class TestDoctorManifestIntegration:
         assert "gh" in [t.command for t in manifest.toolbelt.required]
 
     def test_manifest_location(self):
-        """Verify manifest is in correct location."""
-        from importlib import resources
-        import mem8.templates
+        """Verify manifest is accessible from builtin template source."""
+        from mem8.core.template_source import get_builtin_templates
 
-        template_path = Path(str(resources.files(mem8.templates)))
-        manifest_path = template_path / "mem8-templates.yaml"
+        # Builtin now uses external templates, so manifest should be accessible
+        source = get_builtin_templates()
+        manifest_path = source.resolve() / "mem8-templates.yaml"
 
         assert manifest_path.exists(), f"Manifest not found at {manifest_path}"
 
