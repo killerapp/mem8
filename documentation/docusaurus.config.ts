@@ -101,7 +101,7 @@ const config: Config = {
             },
             {
               label: 'YouTube Videos',
-              href: 'https://www.youtube.com/@codebasecontext',
+              href: 'https://www.youtube.com/watch?v=6icquh4thCw',
             },
             {
               label: 'Agentic Insights',
