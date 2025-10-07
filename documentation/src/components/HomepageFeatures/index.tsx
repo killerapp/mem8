@@ -7,6 +7,7 @@ import styles from './styles.module.css';
 type FeatureItem = {
   title: string;
   description: ReactNode;
+  link: string;
 };
 
 const FeatureList: FeatureItem[] = [
@@ -19,16 +20,18 @@ const FeatureList: FeatureItem[] = [
         Keep AI context focused and relevant across long development sessions.
       </>
     ),
+    link: '/docs/workflows/research',
   },
   {
     title: '🤝 External Templates & Team Collaboration',
     description: (
       <>
-        Share Claude Code prompts and workflows using <a href="/docs/external-templates">external templates</a>.
+        Share Claude Code prompts and workflows using <a href="https://github.com/killerapp/mem8-templates" target="_blank" rel="noopener noreferrer">external templates</a>.
         Install from <code>killerapp/mem8-templates</code> or create your own.
         Standardize development practices across teams and organizations.
       </>
     ),
+    link: 'https://github.com/killerapp/mem8-templates',
   },
   {
     title: '🔧 Toolbelt & Port Management',
@@ -39,18 +42,27 @@ const FeatureList: FeatureItem[] = [
         Streamline your development environment setup and maintenance.
       </>
     ),
+    link: '/docs/user-guide/cli-commands',
   },
 ];
 
-function Feature({title, description}: FeatureItem, index: number) {
+function Feature({title, description, link}: FeatureItem, index: number) {
+  const isExternal = link.startsWith('http');
+
   return (
     <div className={clsx('col col--4')}>
-      <AnimatedCard delay={index * 0.2}>
-        <div className="text--center padding-horiz--md">
-          <Heading as="h3">{title}</Heading>
-          <p>{description}</p>
-        </div>
-      </AnimatedCard>
+      <a
+        href={link}
+        style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+        {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      >
+        <AnimatedCard delay={index * 0.2}>
+          <div className="text--center padding-horiz--md">
+            <Heading as="h3">{title}</Heading>
+            <p>{description}</p>
+          </div>
+        </AnimatedCard>
+      </a>
     </div>
   );
 }
