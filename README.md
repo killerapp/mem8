@@ -228,7 +228,7 @@ mem8 doctor --template-source "/path/to/local/templates"
 
 ### Custom Toolbelts
 
-Projects can define custom tool requirements in `mem8-templates.yaml`:
+Projects can define custom tool requirements in `manifest.yaml`:
 ```yaml
 toolbelt:
   required:

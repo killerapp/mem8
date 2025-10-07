@@ -259,7 +259,7 @@ class TemplateSource:
         Returns:
             TemplateManifest if manifest file exists, None otherwise
         """
-        manifest_path = self.resolve() / "mem8-templates.yaml"
+        manifest_path = self.resolve() / "manifest.yaml"
         if not manifest_path.exists():
             return None
 

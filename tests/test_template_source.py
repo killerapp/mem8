@@ -18,7 +18,7 @@ def test_builtin_template_source():
 
     path = source.resolve()
     assert path.exists()
-    assert (path / "mem8-templates.yaml").exists()
+    assert (path / "manifest.yaml").exists()
 
 
 def test_local_template_source():

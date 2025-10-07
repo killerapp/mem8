@@ -1978,7 +1978,7 @@ def templates_validate(
                 return
 
             # Check for manifest
-            manifest_path = resolved_path / "mem8-templates.yaml"
+            manifest_path = resolved_path / "manifest.yaml"
             if manifest_path.exists():
                 console.print("✅ [green]Manifest file found[/green]")
 
