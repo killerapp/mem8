@@ -8,6 +8,7 @@ import Heading from '@theme/Heading';
 import { motion } from 'framer-motion';
 import ShimmerButton from '@site/src/components/AnimatedComponents/ShimmerButton';
 import GradientText from '@site/src/components/AnimatedComponents/GradientText';
+import GlitchText from '@site/src/components/AnimatedComponents/GlitchText';
 import CopyButton from '@site/src/components/AnimatedComponents/CopyButton';
 
 import styles from './index.module.css';
@@ -40,7 +41,7 @@ function HomepageHeader() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            A toolkit for managing AI context windows, memory, and development workflows.<br/>
+            A toolkit for managing AI context windows, memory, and development workflows with <GlitchText />.<br/>
             Features include memory management, toolbelt integration, and intelligent port management.
           </motion.p>
         </motion.div>
