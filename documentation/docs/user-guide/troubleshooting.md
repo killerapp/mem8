@@ -102,7 +102,7 @@ mem8 init --force
 ls memory/shared/
 
 # Check search path
-mem8 search "query" --path thoughts/
+mem8 search "query" --path memory/
 
 # Try broader search
 mem8 search "query"
@@ -263,7 +263,7 @@ mem8 status
 mem8 --verbose status
 
 # Check for large files
-du -sh thoughts/
+du -sh memory/
 
 # Optimize git repository
 cd thoughts
@@ -284,8 +284,8 @@ mem8 search "query" --limit 5
 find thoughts -type f -size +1M
 
 # Archive old thoughts
-mkdir thoughts/archive
-mv memory/shared/old-* thoughts/archive/
+mkdir memory/archive
+mv memory/shared/old-* memory/archive/
 ```
 
 ## Configuration Issues
@@ -425,7 +425,7 @@ mem8 init --template full
 4. **Monitor disk space:**
    ```bash
    df -h
-   du -sh thoughts/
+   du -sh memory/
    ```
 
 ## Next Steps

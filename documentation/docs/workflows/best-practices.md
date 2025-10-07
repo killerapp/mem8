@@ -44,7 +44,7 @@ mem8 doctor
 # Catches issues early
 ✅ git: installed
 ✅ gh: authenticated
-✅ thoughts/: synced
+✅ memory/: synced
 ⚠️  .claude/agents/: 2 deprecated agents found
 ```
 
@@ -74,11 +74,11 @@ timeline
     section Day 3
       09:00 : /m8-describe-pr
       09:30 : PR submitted
-      10:00 : Team review using thoughts/
+      10:00 : Team review using memory/
 ```
 
 **Result:**
 - 3 days from idea to PR
-- Fully documented in thoughts/
+- Fully documented in memory/
 - Team can understand all decisions
 - Next OAuth2 provider takes 1 day (memory!)

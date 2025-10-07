@@ -27,7 +27,7 @@ Thoughts are structured markdown documents that capture:
 ### Thought Structure
 
 ```
-thoughts/
+memory/
 ├── shared/          # Team-shared thoughts
 │   ├── research/    # Research documents
 │   ├── plans/       # Implementation plans
@@ -42,7 +42,7 @@ thoughts/
 ### Shared vs Personal
 
 - **Shared** (`memory/shared/`) - Committed to git, visible to team
-- **Personal** (`thoughts/{username}/`) - Your private workspace
+- **Personal** (`memory/{username}/`) - Your private workspace
 - **Searchable** - Automatic symlinks for unified search
 
 ### Thought Lifecycle
@@ -144,7 +144,7 @@ project/
 │   ├── agents/      # AI agent definitions
 │   ├── commands/    # Slash command scripts
 │   └── CLAUDE.md    # Workspace configuration
-├── thoughts/         # Thought repository
+├── memory/         # Thought repository
 │   ├── shared/      # Team thoughts
 │   └── username/    # Personal thoughts
 └── README.md         # Project documentation
@@ -278,7 +278,7 @@ mem8 sync --dry-run
 ### Team Workflows
 
 1. **Initialize** - Team lead runs `mem8 init --template full`
-2. **Share** - Commit `.claude/` and `thoughts/` to git
+2. **Share** - Commit `.claude/` and `memory/` to git
 3. **Clone** - Team members clone repo
 4. **Sync** - Use `mem8 sync` for thought sharing
 5. **Search** - Everyone can search shared thoughts

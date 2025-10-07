@@ -90,7 +90,7 @@ Document PRs for future reference:
 
 ```bash
 # After creating PR
-/document_pr https://github.com/org/repo/pull/123
+/m8-describe-pr https://github.com/org/repo/pull/123
 ```
 
 Creates: `memory/shared/prs/123_description.md`

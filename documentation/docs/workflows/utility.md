@@ -33,8 +33,8 @@ mem8 search "query" --limit 5
 # Specific directory
 mem8 search "query" --path memory/shared/research
 
-# JSON output
-mem8 search "query" --format json
+# Category filter
+mem8 search "query" --category plans
 ```
 
 ## File Management
@@ -45,10 +45,10 @@ Keep your thoughts directory organized:
 
 ```bash
 # Create archive structure
-mkdir -p thoughts/archive/$(date +%Y)
+mkdir -p memory/archive/$(date +%Y)
 
 # Move old files
-mv memory/shared/research/old-* thoughts/archive/$(date +%Y)/
+mv memory/shared/research/old-* memory/archive/$(date +%Y)/
 
 # Commit changes
 cd thoughts
@@ -168,9 +168,9 @@ Save search results for later:
 
 ```bash
 # Export to file
-mem8 search "authentication" --format json > auth-results.json
+mem8 search "authentication" --limit 20 > auth-results.txt
 
-# Pretty print
+# Save and display simultaneously
 mem8 search "OAuth" | tee oauth-findings.txt
 ```
 
@@ -185,7 +185,7 @@ Create a complete backup:
 mkdir -p ~/.mem8/backups/$(date +%Y%m%d)
 
 # Backup thoughts
-tar czf ~/.mem8/backups/$(date +%Y%m%d)/thoughts.tar.gz thoughts/
+tar czf ~/.mem8/backups/$(date +%Y%m%d)/thoughts.tar.gz memory/
 
 # Backup config
 tar czf ~/.mem8/backups/$(date +%Y%m%d)/claude.tar.gz .claude/
@@ -308,7 +308,7 @@ find thoughts -name "*.md" -exec grep -l "^---$" {} \; | \
   xargs -I {} sh -c 'echo "Checking {}" && head -n 20 {}'
 
 # Check for broken links
-grep -r "\[.*\](.*/.*)" thoughts/
+grep -r "\[.*\](.*/.*)" memory/
 ```
 
 ### Check Git Status
@@ -358,7 +358,7 @@ rm -rf .claude thoughts
 mem8 init --template full
 
 # Restore thoughts history
-mv thoughts.backup/.git thoughts/
+mv thoughts.backup/.git memory/
 ```
 
 ## Next Steps

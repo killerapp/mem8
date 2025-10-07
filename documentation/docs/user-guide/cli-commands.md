@@ -46,7 +46,8 @@ mem8 search "OAuth" --limit 5 --path memory/shared/research
 **Options:**
 - `--limit` - Maximum number of results (default: 10)
 - `--path` - Search only in specific directory
-- `--format` - Output format: `text`, `json`
+- `--category` - Filter by category: `plans`, `research`, `decisions`, `shared`
+- `--method` - Search method: `fulltext`, `semantic`
 
 ## Status
 

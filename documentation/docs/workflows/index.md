@@ -24,7 +24,7 @@ graph LR
 ### Why This Works
 
 Each phase:
-- **Stores context** in `thoughts/` for future reference
+- **Stores context** in `memory/` for future reference
 - **Uses sub-agents** to parallelize work
 - **Builds on previous work** through file references
 - **Creates artifacts** that Claude Code can read
