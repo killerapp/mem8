@@ -96,7 +96,7 @@ const config: Config = {
           position: 'left',
           items: [
             {
-              label: 'Specification',
+              label: 'Specification (Archived)',
               href: 'https://github.com/codebase-context-spec/codebase-context-spec',
             },
             {

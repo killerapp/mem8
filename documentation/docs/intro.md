@@ -8,6 +8,10 @@ sidebar_position: 1
 
 Codebase Context is a collection of tools and approaches for managing AI context windows, memory, and development workflows. mem8 is the primary CLI tool that helps bridge the gaps between AI capabilities and developer needs.
 
+:::info Historical Note
+The original [codebase-context-spec](https://github.com/codebase-context-spec/codebase-context-spec) project is **archived and no longer maintained or supported**. mem8 represents the current, actively developed implementation of these concepts.
+:::
+
 ## What is mem8?
 
 mem8 addresses common challenges in AI-assisted development:
