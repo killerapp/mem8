@@ -267,5 +267,4 @@ lsof -i :8000
 ## Next Steps
 
 - [Architecture](./architecture) - Understand the system design
-- [Testing Guide](./testing) - Write and run tests
-- [Code Style](./code-style) - Follow coding conventions
+- [Back to Contributing](./) - Main contributing guide

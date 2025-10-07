@@ -108,9 +108,9 @@ npm run dev
    ```
 
 2. **Make your changes**
-   - Follow [code style guidelines](./code-style)
    - Add tests for new features
    - Update documentation
+   - Follow existing code patterns
 
 3. **Test your changes**
    ```bash
@@ -221,5 +221,3 @@ chore: update dependencies
 
 - [Development Setup](./setup) - Detailed environment setup
 - [Architecture](./architecture) - System design and components
-- [Testing Guide](./testing) - Writing and running tests
-- [Code Style](./code-style) - Coding conventions

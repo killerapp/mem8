@@ -290,6 +290,5 @@ E2E Tests (10%)
 
 ## Next Steps
 
-- [Testing Guide](./testing) - Write and run tests
-- [Code Style](./code-style) - Follow conventions
-- [API Reference](../api-reference) - Backend API docs
+- [Development Setup](./setup) - Set up your environment
+- [Back to Contributing](./) - Main contributing guide
