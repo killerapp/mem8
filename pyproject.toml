@@ -1,6 +1,6 @@
 [project]
 name = "mem8"
-version = "2.15.1"
+version = "2.16.0"
 description = "Memory management CLI for team collaboration with shared thoughts"
 readme = "README.md"
 authors = [
