@@ -647,45 +647,30 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     # Get consistent GitHub context early
     gh_context = get_consistent_github_context(prefer_authenticated_user=True)
 
-    # Workflow provider
-    console.print("\n[cyan]Workflow Provider[/cyan]")
-    console.print("  github - GitHub Issues integration (recommended)")
-    console.print("  none   - Skip issue tracking")
+    # Always use GitHub as workflow provider (simplified - no choice)
+    interactive_config = {"workflow_provider": "github"}
+
+    # GitHub configuration
+    console.print("\n[cyan]GitHub Configuration[/cyan]")
+
+    # Use consistent GitHub context for defaults (prefer active account over saved preferences)
+    # Use current directory name as default for repo name instead of saved preference
+    # This ensures each project gets a sensible default based on its directory name
+    current_dir_name = Path.cwd().name
+    github_org = gh_context.get("org") or gh_context.get("username") or defaults.get('github_org') or "your-org"
+    # Prioritize: detected repo > current directory name > saved preference
+    github_repo = gh_context.get("repo") or current_dir_name
+
+    if gh_context.get("org") and gh_context.get("repo"):
+        console.print(f"  Detected: {github_org}/{github_repo}")
     console.print("")
 
-    # Workflow provider selection
-    workflow_choices = ["github", "none"]
-    default_workflow = defaults.get('workflow_provider', 'github')
-
-    workflow_provider = typer.prompt("Workflow provider", default=default_workflow)
-    while workflow_provider not in workflow_choices:
-        console.print("[red]Choose: github or none[/red]")
-        workflow_provider = typer.prompt("Workflow provider", default="github")
-
-    interactive_config = {"workflow_provider": workflow_provider}
-
-    # GitHub-specific configuration
-    if workflow_provider == "github":
-        console.print("\n[cyan]GitHub Configuration[/cyan]")
-
-        # Use consistent GitHub context for defaults (prefer active account over saved preferences)
-        # Use current directory name as default for repo name instead of saved preference
-        # This ensures each project gets a sensible default based on its directory name
-        current_dir_name = Path.cwd().name
-        github_org = gh_context.get("org") or gh_context.get("username") or defaults.get('github_org') or "your-org"
-        # Prioritize: detected repo > current directory name > saved preference
-        github_repo = gh_context.get("repo") or current_dir_name
-
-        if gh_context.get("org") and gh_context.get("repo"):
-            console.print(f"  Detected: {github_org}/{github_repo}")
-        console.print("")
-
-        github_org = typer.prompt("GitHub org/username", default=github_org)
-        github_repo = typer.prompt("Repository name", default=github_repo)
-        interactive_config.update({
-            "github_org": github_org,
-            "github_repo": github_repo
-        })
+    github_org = typer.prompt("GitHub org/username", default=github_org)
+    github_repo = typer.prompt("Repository name", default=github_repo)
+    interactive_config.update({
+        "github_org": github_org,
+        "github_repo": github_repo
+    })
 
     # Template selection
     existing_memory = Path('memory').exists()
@@ -711,8 +696,8 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     interactive_username = typer.prompt("\nUsername for memory", default=default_username)
     interactive_config["username"] = interactive_username
 
-    # Workflow automation (only if GitHub + templates)
-    if workflow_provider == "github" and template and template != "none":
+    # Workflow automation (always GitHub, simplified)
+    if template and template != "none":
         automation_choices = ["standard", "none"]
         default_automation = defaults.get('automation_level', 'standard')
         workflow_automation = typer.prompt(
