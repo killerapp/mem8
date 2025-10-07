@@ -1,8 +1,8 @@
 [project]
 name = "mem8"
 version = "4.0.0"
-description = "Memory management CLI for team collaboration with shared thoughts"
-readme = "README.md"
+description = "Context management toolkit for AI-assisted development"
+readme = "PYPI_README.md"
 authors = [
     {name = "killerapp", email = "vaskin@gmail.com"},
 ]
@@ -18,7 +18,7 @@ classifiers = [
     "Topic :: Documentation",
     "Topic :: Text Processing",
 ]
-keywords = ["memory", "collaboration", "thoughts", "knowledge-management", "claude-code", "ai-memory"]
+keywords = ["context-management", "ai-development", "memory", "claude-code", "templates", "toolbelt", "port-management"]
 requires-python = ">=3.11"
 dependencies = [
     "click>=8.1.0",
