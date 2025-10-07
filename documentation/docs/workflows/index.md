@@ -34,7 +34,7 @@ Each phase:
 - **[Research](./research)** - Deep codebase analysis with parallel sub-agents
 - **[Plan](./plan)** - Create implementation plans from research
 - **[Implement](./implement)** - Execute plans with full context
-- **[Commit](./m8-commit)** - Create conventional commits
+- **[Commit](./commit)** - Create conventional commits
 - **[Utility Commands](./utility)** - Supporting commands for workflow management
 - **[Advanced Workflows](./advanced)** - Team collaboration and optimization
 
