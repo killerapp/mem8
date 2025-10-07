@@ -32,7 +32,7 @@ class ThoughtActionEngine:
         """Ensure backup and audit structure exists."""
         self.backup_dir.mkdir(parents=True, exist_ok=True)
         
-    def delete_thoughts(self, entities: List[ThoughtEntity], dry_run: bool = False) -> Dict[str, Any]:
+    def delete_memory(self, entities: List[ThoughtEntity], dry_run: bool = False) -> Dict[str, Any]:
         """Safely delete thought entities with backup."""
         if dry_run:
             return self._preview_delete(entities)
@@ -65,14 +65,14 @@ class ThoughtActionEngine:
                 
         return results
         
-    def archive_thoughts(self, entities: List[ThoughtEntity], target_dir: Optional[Path] = None, dry_run: bool = False) -> Dict[str, Any]:
+    def archive_memory(self, entities: List[ThoughtEntity], target_dir: Optional[Path] = None, dry_run: bool = False) -> Dict[str, Any]:
         """Archive thought entities by moving to archive directory."""
         if dry_run:
             return self._preview_archive(entities, target_dir)
             
         # Determine archive location
         if not target_dir:
-            target_dir = self.config.thoughts_dir / "archive"
+            target_dir = self.config.memory_dir / "archive"
             
         target_dir.mkdir(parents=True, exist_ok=True)
         
@@ -86,9 +86,9 @@ class ThoughtActionEngine:
             try:
                 # Determine target path preserving directory structure
                 try:
-                    rel_path = entity.path.relative_to(self.config.thoughts_dir)
+                    rel_path = entity.path.relative_to(self.config.memory_dir)
                 except ValueError:
-                    # If path is not relative to thoughts_dir, use just the filename
+                    # If path is not relative to memory_dir, use just the filename
                     rel_path = entity.path.name
                 
                 target_path = target_dir / rel_path
@@ -111,8 +111,8 @@ class ThoughtActionEngine:
                 
         return results
         
-    def promote_thoughts(self, entities: List[ThoughtEntity], from_scope: str, to_scope: str, dry_run: bool = False) -> Dict[str, Any]:
-        """Promote thoughts between scopes (personal <-> shared <-> team)."""
+    def promote_memory(self, entities: List[ThoughtEntity], from_scope: str, to_scope: str, dry_run: bool = False) -> Dict[str, Any]:
+        """Promote memory between scopes (personal <-> shared <-> team)."""
         if dry_run:
             return self._preview_promote(entities, from_scope, to_scope)
             
@@ -208,12 +208,12 @@ class ThoughtActionEngine:
     def _preview_archive(self, entities: List[ThoughtEntity], target_dir: Optional[Path]) -> Dict[str, Any]:
         """Preview archive operation."""
         if not target_dir:
-            target_dir = self.config.thoughts_dir / "archive"
+            target_dir = self.config.memory_dir / "archive"
         
         preview_paths = []
         for entity in entities:
             try:
-                rel_path = entity.path.relative_to(self.config.thoughts_dir)
+                rel_path = entity.path.relative_to(self.config.memory_dir)
             except ValueError:
                 rel_path = entity.path.name
             target_path = target_dir / rel_path
@@ -250,11 +250,11 @@ class ThoughtActionEngine:
     
     def _calculate_promotion_path(self, entity: ThoughtEntity, to_scope: str) -> Path:
         """Calculate target path for scope promotion."""
-        thoughts_dir = self.config.thoughts_dir
+        memory_dir = self.config.memory_dir
         
         if to_scope == 'shared':
             # Move to shared directory
-            target_base = thoughts_dir / "shared"
+            target_base = memory_dir / "shared"
             # Preserve type-based directory structure
             if entity.type in ['plan', 'research', 'ticket', 'decision']:
                 target_dir = target_base / f"{entity.type}s"
@@ -264,10 +264,10 @@ class ThoughtActionEngine:
             # Move to user's personal directory
             import os
             username = os.environ.get('USERNAME', os.environ.get('USER', 'user'))
-            target_dir = thoughts_dir / username
+            target_dir = memory_dir / username
         else:
             # Default fallback
-            target_dir = thoughts_dir / to_scope
+            target_dir = memory_dir / to_scope
         
         target_dir.mkdir(parents=True, exist_ok=True)
         return target_dir / entity.path.name

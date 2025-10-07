@@ -52,7 +52,7 @@ class Config:
                 'sync_interval': 300,  # 5 minutes
             },
             'templates': {
-                'default_source': None,  # None = builtin, or path/URL to external templates
+                'default_source': 'killerapp/mem8-templates',  # External template repo (cached at ~/.mem8/template-cache/)
             },
             'discovery': {
                 'cross_repo': False,  # default to single-repo discovery
@@ -159,9 +159,9 @@ class Config:
         return self.workspace_dir / ".claude"
     
     @property
-    def thoughts_dir(self) -> Path:
-        """Get thoughts directory path."""
-        return self.workspace_dir / "thoughts"
+    def memory_dir(self) -> Path:
+        """Get memory directory path."""
+        return self.workspace_dir / "memory"
     
     @property
     def shared_dir(self) -> Optional[Path]:

@@ -48,16 +48,16 @@ def test_init_interactive_minimal(tmp_path):
 
     # Should not crash
     assert result.returncode == 0
-    # Thoughts directory should be created
-    assert (ws / "thoughts").exists()
+    # Memory directory should be created
+    assert (ws / "memory").exists()
     # Shared should NOT be created when disabled (default)
-    assert not (ws / "thoughts" / "shared").exists()
+    assert not (ws / "memory" / "shared").exists()
 
 
 @pytest.mark.cli
-@pytest.mark.skip(reason="Shared thoughts test needs investigation - may be related to Windows junction handling")
+@pytest.mark.skip(reason="Shared memory test needs investigation - may be related to Windows junction handling")
 def test_init_with_shared_enabled(tmp_path):
-    """Test enabling shared thoughts during init."""
+    """Test enabling shared memory during init."""
     ws = tmp_path / "ws"
     shared_path = tmp_path / "shared_mem8"
     ws.mkdir()
@@ -75,12 +75,12 @@ def test_init_with_shared_enabled(tmp_path):
     # Provide interactive answers for new flow:
     # Since we have a git repo, no git warning prompt
     # 1) workflow provider -> none
-    # 2) template -> thoughts-repo (need this for shared functionality)
+    # 2) template -> memory-repo (need this for shared functionality)
     # 3) username -> testuser
     # 4) include repos -> n (default)
     # 5) enable shared -> y
     # 6) shared path -> <shared_path>
-    input_text = f"none\nthoughts-repo\ntestuser\nn\ny\n{shared_path}\n"
+    input_text = f"none\nmemory-repo\ntestuser\nn\ny\n{shared_path}\n"
 
     env = os.environ.copy()
     env["PYTHONPATH"] = str(Path(__file__).parent.parent)
@@ -96,19 +96,19 @@ def test_init_with_shared_enabled(tmp_path):
 
     # Should not crash
     assert result.returncode == 0
-    # Thoughts directory should be created
-    assert (ws / "thoughts").exists()
+    # Memory directory should be created
+    assert (ws / "memory").exists()
     # User directory should be created with the provided username
-    assert (ws / "thoughts" / "testuser").exists()
+    assert (ws / "memory" / "testuser").exists()
     # Shared link should be created (could be symlink, junction, or directory on Windows)
-    shared_path_obj = ws / "thoughts" / "shared"
+    shared_path_obj = ws / "memory" / "shared"
     # Check multiple ways since Windows junctions behave differently
     assert shared_path_obj.exists() or shared_path_obj.is_dir() or shared_path_obj.is_symlink()
-    # Shared thoughts root should be created
-    assert (shared_path / "thoughts").exists()
+    # Shared memory root should be created
+    assert (shared_path / "memory").exists()
     # Verify subdirectories were created
-    assert (shared_path / "thoughts" / "shared" / "decisions").exists()
-    assert (shared_path / "thoughts" / "shared" / "plans").exists()
+    assert (shared_path / "memory" / "shared" / "decisions").exists()
+    assert (shared_path / "memory" / "shared" / "plans").exists()
 
     # Check that output includes link type information
     output = result.stdout + result.stderr

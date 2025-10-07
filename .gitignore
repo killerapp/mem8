@@ -49,3 +49,4 @@ reports/
 .coverage
 .pytest_cache/
 
+/memory/

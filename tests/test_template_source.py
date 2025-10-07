@@ -82,7 +82,7 @@ def test_manifest_loading():
     assert manifest is not None
     assert manifest.version == 1
     assert "claude-config" in manifest.templates
-    assert "thoughts-repo" in manifest.templates
+    assert "memory-repo" in manifest.templates
     assert "full" in manifest.templates
 
 

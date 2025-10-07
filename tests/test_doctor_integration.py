@@ -269,10 +269,10 @@ class TestDoctorIntegration:
             )
 
             # Remove a directory
-            thoughts_dir = workspace / "thoughts"
-            if thoughts_dir.exists():
+            memory_dir = workspace / "memory"
+            if memory_dir.exists():
                 # Windows permissions issue - use ignore_errors
-                shutil.rmtree(thoughts_dir, ignore_errors=True)
+                shutil.rmtree(memory_dir, ignore_errors=True)
 
             # Doctor should detect the issue if deletion succeeded
             result = self.run_doctor(cwd=workspace)
@@ -280,8 +280,8 @@ class TestDoctorIntegration:
             # If directory was successfully deleted, should report issue
             # Otherwise just verify doctor runs
             assert result.returncode in [0, 1]
-            if not thoughts_dir.exists():
-                assert "thoughts" in result.stdout.lower() or "missing" in result.stdout.lower()
+            if not memory_dir.exists():
+                assert "memory" in result.stdout.lower() or "missing" in result.stdout.lower()
 
 
 class TestDoctorPerformance:

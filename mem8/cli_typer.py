@@ -41,7 +41,7 @@ class SearchMethod(str, Enum):
 
 
 class ContentType(str, Enum):
-    THOUGHTS = "thoughts"
+    MEMORY = "memory"
     MEMORIES = "memories"
     ALL = "all"
 
@@ -502,7 +502,7 @@ def search(
     Full-text content search with context snippets.
 
     Use 'search' to find specific text/keywords within file contents.
-    Use 'find' to browse/filter thoughts by type, status, or metadata.
+    Use 'find' to browse/filter memory by type, status, or metadata.
 
     Examples:
       mem8 search "docker"                    # Search everywhere
@@ -537,16 +537,16 @@ def search(
     path_filter = path
 
     if category:
-        content_type = ContentType.THOUGHTS
+        content_type = ContentType.MEMORY
         if not path:
             # Map category to path
             category_paths = {
-                'plans': 'thoughts/shared/plans',
-                'research': 'thoughts/shared/research',
-                'decisions': 'thoughts/shared/decisions',
-                'tickets': 'thoughts/shared/tickets',
-                'prs': 'thoughts/shared/prs',
-                'shared': 'thoughts/shared',
+                'plans': 'memory/shared/plans',
+                'research': 'memory/shared/research',
+                'decisions': 'memory/shared/decisions',
+                'tickets': 'memory/shared/tickets',
+                'prs': 'memory/shared/prs',
+                'shared': 'memory/shared',
             }
             path_filter = category_paths.get(category)
 
@@ -688,27 +688,27 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         })
 
     # Template selection
-    existing_thoughts = Path('thoughts').exists()
-    default_template = 'claude-config' if existing_thoughts else defaults.get('template', 'full')
-    template_choices = ["full", "claude-config", "thoughts-repo", "none"]
+    existing_memory = Path('memory').exists()
+    default_template = 'claude-config' if existing_memory else defaults.get('template', 'full')
+    template_choices = ["full", "claude-config", "memory-repo", "none"]
 
     console.print("\n[cyan]Template[/cyan]")
-    console.print("  full           - Commands + thoughts structure")
+    console.print("  full           - Commands + memory structure")
     console.print("  claude-config  - Commands only")
-    console.print("  thoughts-repo  - Thoughts structure only")
+    console.print("  memory-repo  - Memory structure only")
     console.print("  none           - Skip templates")
     console.print("")
     
     template = typer.prompt("Template", default=default_template)
     while template not in template_choices:
-        console.print("[red]Choose: full, claude-config, thoughts-repo, or none[/red]")
+        console.print("[red]Choose: full, claude-config, memory-repo, or none[/red]")
         template = typer.prompt("Template", default=default_template)
 
     interactive_config["template"] = template if template != "none" else None
 
     # Username
     default_username = gh_context["username"] or get_git_username() or "user"
-    interactive_username = typer.prompt("\nUsername for thoughts", default=default_username)
+    interactive_username = typer.prompt("\nUsername for memory", default=default_username)
     interactive_config["username"] = interactive_username
 
     # Workflow automation (only if GitHub + templates)
@@ -724,7 +724,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
             workflow_automation = typer.prompt("Workflow automation", default="standard")
         interactive_config["workflow_automation"] = workflow_automation
     
-    # Skip repo discovery and shared thoughts - keep it simple
+    # Skip repo discovery and shared memory - keep it simple
     interactive_config["include_repos"] = False
     interactive_config["shared_enabled"] = False
     
@@ -746,7 +746,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _execute_action(action: str, results: list, force: bool, verbose: bool):
-    """Execute action on found thoughts."""
+    """Execute action on found memory."""
     # Enhanced confirmation for destructive actions
     if action in ['delete', 'archive']:
         # Show what will be affected
@@ -785,7 +785,7 @@ def _execute_action(action: str, results: list, force: bool, verbose: bool):
                 console.print()
         elif action == 'delete':
             # Use the bulk delete method
-            result = action_engine.delete_thoughts(results, dry_run=False)
+            result = action_engine.delete_memory(results, dry_run=False)
             console.print(f"\n✅ [green]Deleted {len(result['success'])} file(s)[/green]")
             for success_path in result['success']:
                 console.print(f"  🗑️  [dim]{Path(success_path).name}[/dim]")
@@ -809,7 +809,7 @@ def _preview_action(action: str, results: list):
     """Preview what action would do without executing."""
     from rich.table import Table
     
-    table = Table(title=f"Would {action} {len(results)} thoughts (dry run)")
+    table = Table(title=f"Would {action} {len(results)} memory (dry run)")
     table.add_column("Action", style="cyan", width=10)
     table.add_column("Type", style="blue", width=10)
     table.add_column("Path", style="dim")
@@ -835,11 +835,11 @@ def _preview_action(action: str, results: list):
 # Create find subcommand app
 find_app = typer.Typer(
     name="find",
-    help="Browse/filter thoughts by type, status, or metadata. For content search, use 'mem8 search <query>' instead."
+    help="Browse/filter memory by type, status, or metadata. For content search, use 'mem8 search <query>' instead."
 )
 typer_app.add_typer(find_app, name="find")
 
-def _find_thoughts_new(
+def _find_memory_new(
     filter_type: str = "all",
     filter_value: str = None,
     keywords: Optional[str] = None,
@@ -858,7 +858,7 @@ def _find_thoughts_new(
     state = get_state()
     discovery = state.memory_manager.thought_discovery
     
-    # Get filtered thoughts using existing methods
+    # Get filtered memory using existing methods
     if filter_type == "type":
         results = discovery.find_by_type(filter_value)
     elif filter_type == "scope":
@@ -866,7 +866,7 @@ def _find_thoughts_new(
     elif filter_type == "status":
         results = discovery.find_by_status(filter_value)
     else:
-        results = discovery.discover_all_thoughts()
+        results = discovery.discover_all_memory()
     
     # Apply keyword filter if provided
     if keywords and keywords.strip():
@@ -892,7 +892,7 @@ def _find_thoughts_new(
     results = results[:limit]
     
     if not results:
-        console.print("[yellow]❌ No thoughts found[/yellow]")
+        console.print("[yellow]❌ No memory found[/yellow]")
         return
     
     # Show what we're finding
@@ -907,7 +907,7 @@ def _find_thoughts_new(
         console.print(f"[bold {action_color}]Action: {action.value}{dry_run_text}[/bold {action_color}]")
     
     # Display results table
-    table = Table(title=f"Found {len(results)} thoughts")
+    table = Table(title=f"Found {len(results)} memory")
     table.add_column("Type", style="cyan", width=10)
     table.add_column("Title", style="green")
     table.add_column("Status", style="yellow", width=12)
@@ -951,7 +951,7 @@ def find_all_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -963,8 +963,8 @@ def find_all_new(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
 ):
-    """Find all thoughts, optionally filtered by keywords."""
-    _find_thoughts_new("all", None, keywords, limit, action, dry_run, force, verbose)
+    """Find all memory, optionally filtered by keywords."""
+    _find_memory_new("all", None, keywords, limit, action, dry_run, force, verbose)
 
 @find_app.command("plans")
 def find_plans_new(
@@ -975,7 +975,7 @@ def find_plans_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -988,7 +988,7 @@ def find_plans_new(
     )] = False
 ):
     """Find plan documents, optionally filtered by keywords."""
-    _find_thoughts_new("type", "plan", keywords, limit, action, dry_run, force, verbose)
+    _find_memory_new("type", "plan", keywords, limit, action, dry_run, force, verbose)
 
 @find_app.command("research")
 def find_research_new(
@@ -999,7 +999,7 @@ def find_research_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -1012,7 +1012,7 @@ def find_research_new(
     )] = False
 ):
     """Find research documents, optionally filtered by keywords."""
-    _find_thoughts_new("type", "research", keywords, limit, action, dry_run, force, verbose)
+    _find_memory_new("type", "research", keywords, limit, action, dry_run, force, verbose)
 
 @find_app.command("shared")
 def find_shared_new(
@@ -1023,7 +1023,7 @@ def find_shared_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -1032,8 +1032,8 @@ def find_shared_new(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
 ):
-    """Find shared thoughts, optionally filtered by keywords."""
-    _find_thoughts_new("scope", "shared", keywords, limit, action, dry_run, verbose)
+    """Find shared memory, optionally filtered by keywords."""
+    _find_memory_new("scope", "shared", keywords, limit, action, dry_run, verbose)
 
 @find_app.command("completed")
 def find_completed_new(
@@ -1044,7 +1044,7 @@ def find_completed_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -1053,21 +1053,21 @@ def find_completed_new(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
 ):
-    """Find completed thoughts, optionally filtered by keywords."""
-    _find_thoughts_new("status", "completed", keywords, limit, action, dry_run, verbose)
+    """Find completed memory, optionally filtered by keywords."""
+    _find_memory_new("status", "completed", keywords, limit, action, dry_run, verbose)
 
 
 # ============================================================================
 # Remaining Commands (Phase 3)
 # ============================================================================
 
-def _should_skip_confirmation(force: bool, non_interactive: bool, existing_thoughts: bool, existing_claude: bool, should_install_templates: bool, template_type: str) -> tuple[bool, list[str]]:
+def _should_skip_confirmation(force: bool, non_interactive: bool, existing_memory: bool, existing_claude: bool, should_install_templates: bool, template_type: str) -> tuple[bool, list[str]]:
     """Determine if we should skip confirmation and what issues exist."""
     needs_confirmation = False
     issues = []
 
-    if existing_thoughts and not force:
-        issues.append("thoughts/ directory already exists")
+    if existing_memory and not force:
+        issues.append("memory/ directory already exists")
         needs_confirmation = True
 
     if existing_claude and should_install_templates and "claude" in (template_type or "") and not force:
@@ -1154,7 +1154,7 @@ def init(
     template: Optional[str] = typer.Option(
         None,
         "--template", "-t",
-        help="Force specific template: claude-config, thoughts-repo, or full (default: auto-detect)",
+        help="Force specific template: claude-config, memory-repo, or full (default: auto-detect)",
     ),
     template_source: Annotated[Optional[str], typer.Option(
         "--template-source", help="External template source: local path, git URL, or GitHub shorthand (org/repo)"
@@ -1163,7 +1163,7 @@ def init(
         "--repos", help="Comma-separated list of repository paths to discover"
     )] = None,
     shared_dir: Annotated[Optional[Path], typer.Option(
-        "--shared-dir", help="Path to shared directory for thoughts"
+        "--shared-dir", help="Path to shared directory for memory"
     )] = None,
     web: Annotated[bool, typer.Option(
         "--web", help="Launch web UI after setup"
@@ -1239,11 +1239,11 @@ def init(
             template_type = "claude-config"  # Default for Claude projects
         
         # 3. Check for existing setup and conflicts
-        existing_thoughts = Path('thoughts').exists()
+        existing_memory = Path('memory').exists()
         existing_claude = Path('.claude').exists()
 
         needs_confirmation, issues = _should_skip_confirmation(
-            force, non_interactive, existing_thoughts, existing_claude,
+            force, non_interactive, existing_memory, existing_claude,
             should_install_templates, template_type
         )
 
@@ -1297,7 +1297,7 @@ def init(
         # Done
         console.print("\n[green]✓[/green] Setup complete")
         console.print("  mem8 status  - verify setup")
-        console.print("  mem8 search  - find thoughts")
+        console.print("  mem8 search  - find memory")
         
     except Exception as e:
         handle_command_error(e, verbose, "setup")
@@ -1341,7 +1341,7 @@ def _analyze_claude_template(workspace_dir: Path) -> Dict[str, Any]:
     
     analysis['template_agents'] = [
         'codebase-analyzer', 'codebase-locator', 'codebase-pattern-finder',
-        'github-workflow-agent', 'thoughts-analyzer', 'thoughts-locator', 
+        'github-workflow-agent', 'memory-analyzer', 'memory-locator', 
         'web-search-researcher'
     ]
     
@@ -1382,9 +1382,9 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
 
         # Map template types to directories
         template_map = {
-            "full": ["claude-dot-md-template", "shared-thoughts-template"],
+            "full": ["claude-dot-md-template", "shared-memory-template"],
             "claude-config": ["claude-dot-md-template"],
-            "thoughts-repo": ["shared-thoughts-template"],
+            "memory-repo": ["shared-memory-template"],
         }
 
         if template_type not in template_map:
@@ -1410,7 +1410,7 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                     continue
 
             # Check if target already exists
-            target_dir = ".claude" if "claude" in template_name else "thoughts"
+            target_dir = ".claude" if "claude" in template_name else "memory"
 
             # Check if target exists and handle overwrite confirmation
             should_overwrite = force
@@ -1474,8 +1474,8 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                 if "claude" in template_name:
                     analysis = _analyze_claude_template(workspace_dir)
                     console.print(f"  {len(analysis['template_commands'])} commands, {len(analysis['template_agents'])} agents installed")
-                elif "thoughts" in template_name:
-                    console.print(f"  thoughts/ structure created")
+                elif "memory" in template_name:
+                    console.print(f"  memory/ structure created")
             except Exception as e:
                 # Always show installation errors, not just in verbose mode
                 console.print(f"[red]❌ Failed to install {template_name}:[/red] {e}")

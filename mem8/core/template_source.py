@@ -12,6 +12,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlparse
+import hashlib
 import tempfile
 import shutil
 import yaml
@@ -186,8 +187,9 @@ class TemplateSource:
             return self._resolved_path
 
         if self.source_type in [TemplateSourceType.GIT, TemplateSourceType.GITHUB]:
-            # Clone to temp directory
-            self._temp_dir = Path(tempfile.mkdtemp(prefix="mem8-templates-"))
+            # Use persistent cache directory instead of temp
+            cache_dir = Path.home() / ".mem8" / "template-cache"
+            cache_dir.mkdir(parents=True, exist_ok=True)
 
             # Build git URL
             git_url = self.source_url
@@ -197,16 +199,43 @@ class TemplateSource:
                 # Remove ref and subdir annotations for cloning
                 git_url = git_url.split('@')[0].split('#')[0]
 
-            # Clone repository
-            clone_cmd = ["git", "clone"]
-            if self.git_ref:
-                clone_cmd.extend(["--branch", self.git_ref, "--single-branch"])
-            clone_cmd.extend([git_url, str(self._temp_dir)])
+            # Create cache key from git URL (sanitize for filesystem)
+            cache_key = hashlib.md5(git_url.encode()).hexdigest()[:12]
+            repo_name = git_url.split('/')[-1].replace('.git', '')
+            self._temp_dir = cache_dir / f"{repo_name}-{cache_key}"
 
-            try:
-                subprocess.run(clone_cmd, check=True, capture_output=True)
-            except subprocess.CalledProcessError as e:
-                raise ValueError(f"Failed to clone repository: {e.stderr.decode()}")
+            # Clone or update repository
+            if self._temp_dir.exists():
+                # Update existing cache
+                try:
+                    subprocess.run(
+                        ["git", "-C", str(self._temp_dir), "fetch", "--all"],
+                        check=True, capture_output=True
+                    )
+                    if self.git_ref:
+                        subprocess.run(
+                            ["git", "-C", str(self._temp_dir), "checkout", self.git_ref],
+                            check=True, capture_output=True
+                        )
+                        subprocess.run(
+                            ["git", "-C", str(self._temp_dir), "pull"],
+                            check=True, capture_output=True
+                        )
+                except subprocess.CalledProcessError:
+                    # If update fails, remove and re-clone
+                    shutil.rmtree(self._temp_dir, ignore_errors=True)
+
+            if not self._temp_dir.exists():
+                # Clone repository
+                clone_cmd = ["git", "clone"]
+                if self.git_ref:
+                    clone_cmd.extend(["--branch", self.git_ref, "--single-branch"])
+                clone_cmd.extend([git_url, str(self._temp_dir)])
+
+                try:
+                    subprocess.run(clone_cmd, check=True, capture_output=True)
+                except subprocess.CalledProcessError as e:
+                    raise ValueError(f"Failed to clone repository: {e.stderr.decode()}")
 
             # Navigate to subdir if specified
             if self.subdir:
@@ -344,13 +373,10 @@ class TemplateSource:
         return {}
 
     def cleanup(self) -> None:
-        """Clean up temporary directories."""
-        if self._temp_dir and self._temp_dir.exists():
-            try:
-                shutil.rmtree(self._temp_dir, ignore_errors=True)
-            except (OSError, PermissionError):
-                # On Windows, files might be locked
-                pass
+        """Clean up temporary directories (kept for backward compatibility, cache is persistent)."""
+        # Persistent cache is intentionally not deleted
+        # Users can manually delete ~/.mem8/template-cache/ if needed
+        pass
 
     def __enter__(self):
         """Context manager entry."""
