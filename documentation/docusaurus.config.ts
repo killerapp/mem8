@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'mem8',
-  tagline: 'Memory-First Development for Claude Code',
+  tagline: 'Context Management for AI Development',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -126,7 +126,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} killerapp. Built with Docusaurus.`,
+      copyright: `Codebase Context - Tools and techniques for managing AI context windows and development workflows`,
     },
     prism: {
       theme: prismThemes.github,

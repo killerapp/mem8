@@ -2,20 +2,23 @@
 sidebar_position: 1
 ---
 
-# Welcome to mem8
+# Welcome to Codebase Context
 
-**AI Memory Management for Team Collaboration**
+**Tools and Techniques for AI Development Workflows**
 
-mem8 is a CLI tool designed to enhance your Claude Code development workflow with structured memory management, customizable templates, and team collaboration features.
+Codebase Context is a collection of tools and approaches for managing AI context windows, memory, and development workflows. mem8 is the primary CLI tool that helps bridge the gaps between AI capabilities and developer needs.
 
 ## What is mem8?
 
-mem8 helps you:
-- 📝 **Organize thoughts** - Structure research, plans, and decisions in markdown
-- 🤖 **Customize Claude Code** - Manage agents, commands, and workflows
-- 🎨 **Use templates** - Start projects with standardized configurations
-- 🌐 **Share knowledge** - Collaborate with teams through shared thoughts
-- 🔍 **Search everything** - Find information across all your docs
+mem8 addresses common challenges in AI-assisted development:
+
+- 🧠 **Context Window Management** - Persistent memory across long development sessions
+- 📝 **Structured Thoughts** - Organize research, plans, and decisions in searchable markdown
+- 🔧 **Toolbelt Integration** - Install and manage development tools seamlessly
+- 🚢 **Port Management** - Intelligent detection and resolution of port conflicts
+- 🤖 **Claude Code Enhancement** - Custom agents, commands, and workflows
+- 🎨 **External Templates** - Start projects with team-standardized configurations
+- 🔍 **Universal Search** - Find information across all your documentation
 
 ## Quick Example
 
@@ -66,30 +69,31 @@ mem8 status
 
 ## Features at a Glance
 
-### 💻 CLI-First Design
-Powerful command-line interface for all operations. Optional web dashboard for visualization.
+### 🧠 Context Window Management
+Persistent memory system keeps AI context relevant across long development sessions. Structured thoughts capture research, plans, and decisions.
 
-### 📁 Structured Thoughts
-Organize research, plans, PRs, and decisions in a searchable markdown repository.
+### 🔧 Integrated Toolbelt
+Install and manage development tools with `mem8 toolbelt`. Handles dependencies, version conflicts, and environment setup automatically.
+
+### 🚢 Intelligent Port Management
+Automatic port conflict detection and resolution. Never waste time debugging "address already in use" errors again.
 
 ### 🎯 Claude Code Integration
-Deep integration with Claude Code's agents, commands, and custom workflows.
+Deep integration with Claude Code's agents, commands, and custom workflows. Enhance AI assistance with better memory and context.
 
 ### 🌐 External Templates
-Use templates from GitHub, local paths, or create your own. Fork and customize as needed.
-
-### 👥 Team Collaboration
-Share thoughts repositories across teams with git-based sync.
+Use templates from GitHub, local paths, or create your own. Fork and customize as needed. Share standardized setups across teams.
 
 ### 🔍 Full-Text Search
-Find information quickly across all your thoughts and documentation.
+Find information quickly across all your thoughts and documentation with powerful search capabilities.
 
-## Who is mem8 for?
+## Who is this for?
 
-- **Solo Developers** - Organize your research and decisions
-- **Development Teams** - Share knowledge and standardize workflows
-- **Claude Code Users** - Enhance your AI-assisted development
-- **Organizations** - Create custom templates and workflows
+- **AI-Assisted Developers** - Manage context windows effectively across long sessions
+- **Solo Developers** - Keep thoughts organized and tools readily available
+- **Development Teams** - Share standardized workflows and templates
+- **Claude Code Users** - Enhance your development experience with better memory and tooling
+- **Organizations** - Create custom templates and maintain consistent practices
 
 ## Get Support
 

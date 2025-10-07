@@ -32,7 +32,7 @@ function HomepageHeader() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            Memory-First Development for Claude Code
+            Context Management for AI Development
           </motion.p>
           <motion.p
             style={{fontSize: '1.1rem', maxWidth: '800px', margin: '0 auto 2rem', color: '#c9d1d9'}}
@@ -40,8 +40,8 @@ function HomepageHeader() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            Research. Plan. Implement. Commit.<br/>
-            Build features faster with parallel sub-agents and persistent memory.
+            A toolkit for managing AI context windows, memory, and development workflows.<br/>
+            Features include memory management, toolbelt integration, and intelligent port management.
           </motion.p>
         </motion.div>
 

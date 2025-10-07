@@ -11,31 +11,32 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: '🔍 Research with Parallel Sub-Agents',
+    title: '🧠 Context Window Management',
     description: (
       <>
-        <code>/research_codebase</code> spawns specialized agents to explore your code in parallel.
-        Automated codebase analysis generates structured research documents with file references and architectural insights.
+        Persistent memory system for Claude Code with structured thoughts and searchable documentation.
+        <code>/research_codebase</code> spawns parallel agents to explore your code efficiently.
+        Keep AI context focused and relevant across long development sessions.
       </>
     ),
   },
   {
-    title: '🤝 Team Collaboration with Shared Templates',
+    title: '🤝 External Templates & Team Collaboration',
     description: (
       <>
-        Share Claude Code prompts and sub-agents across your team using GitHub templates.
+        Share Claude Code prompts and workflows using <a href="/docs/external-templates">external templates</a>.
         Install from <code>killerapp/mem8-templates</code> or create your own.
-        Standardize workflows and best practices organization-wide.
+        Standardize development practices across teams and organizations.
       </>
     ),
   },
   {
-    title: '⚡ Implement with Full Context',
+    title: '🔧 Toolbelt & Port Management',
     description: (
       <>
-        <code>/implement_plan</code> executes with full context of your research and design.
-        Checkboxes track progress. <code>/commit</code> creates conventional commits.
-        Ship features faster with memory-first development.
+        Integrated toolbelt system for installing and managing development tools.
+        Intelligent port conflict detection and resolution for local services.
+        Streamline your development environment setup and maintenance.
       </>
     ),
   },
