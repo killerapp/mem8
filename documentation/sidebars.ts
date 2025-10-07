@@ -45,6 +45,18 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'external-templates',
+    {
+      type: 'category',
+      label: 'Contributing',
+      link: {
+        type: 'doc',
+        id: 'contributing/index',
+      },
+      items: [
+        'contributing/setup',
+        'contributing/architecture',
+      ],
+    },
   ],
 };
 

@@ -215,7 +215,7 @@ chore: update dependencies
 
 - **Issues:** [github.com/killerapp/mem8/issues](https://github.com/killerapp/mem8/issues)
 - **Discussions:** [github.com/killerapp/mem8/discussions](https://github.com/killerapp/mem8/discussions)
-- **Documentation:** [docs.mem8.dev](https://docs.mem8.dev)
+- **Documentation:** [docs.codebasecontext.org](https://docs.codebasecontext.org)
 
 ## Next Steps
 

@@ -57,5 +57,5 @@ jobs:
         if: github.event_name == 'push'
         run: |
           echo "🚀 Deployed to Cloudflare Pages"
-          echo "Production: https://mem8.agenticinsights.com"
+          echo "Production: https://docs.codebasecontext.org"
           echo "Cloudflare: https://mem8.pages.dev"
