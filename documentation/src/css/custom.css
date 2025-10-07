@@ -102,3 +102,52 @@
 .navbar__logo {
   margin-right: 0.75rem;
 }
+
+/* Mermaid diagram text contrast improvements */
+[data-theme='dark'] .mermaid {
+  /* Increase text contrast */
+  --mermaid-font-family: var(--ifm-font-family-base);
+}
+
+[data-theme='dark'] .mermaid .node rect,
+[data-theme='dark'] .mermaid .node circle,
+[data-theme='dark'] .mermaid .node ellipse,
+[data-theme='dark'] .mermaid .node polygon {
+  fill: #21262d !important;
+  stroke: #60a5fa !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme='dark'] .mermaid .node .label,
+[data-theme='dark'] .mermaid text,
+[data-theme='dark'] .mermaid .nodeLabel,
+[data-theme='dark'] .mermaid .edgeLabel {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+[data-theme='dark'] .mermaid .edgeLabel rect {
+  fill: #161b22 !important;
+  stroke: #30363d !important;
+}
+
+[data-theme='dark'] .mermaid .edgePath .path {
+  stroke: #60a5fa !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme='dark'] .mermaid .marker {
+  fill: #60a5fa !important;
+  stroke: #60a5fa !important;
+}
+
+/* Light mode Mermaid improvements */
+[data-theme='light'] .mermaid .node .label,
+[data-theme='light'] .mermaid text,
+[data-theme='light'] .mermaid .nodeLabel,
+[data-theme='light'] .mermaid .edgeLabel {
+  fill: #1f2937 !important;
+  color: #1f2937 !important;
+  font-weight: 500 !important;
+}

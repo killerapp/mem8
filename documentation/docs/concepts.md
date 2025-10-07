@@ -121,7 +121,7 @@ Workflow automation:
 - **`/m8-plan`** - Design implementation
 - **`/m8-implement`** - Execute with context
 - **`/m8-commit`** - Create conventional commits
-- **`/m8-describe_pr`** - Generate PR descriptions
+- **`/m8-describe-pr`** - Generate PR descriptions
 
 ### Workflow Integration
 

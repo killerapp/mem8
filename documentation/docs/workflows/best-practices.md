@@ -72,7 +72,7 @@ timeline
       14:00 : All phases complete
       14:30 : /m8-commit
     section Day 3
-      09:00 : /m8-describe_pr
+      09:00 : /m8-describe-pr
       09:30 : PR submitted
       10:00 : Team review using thoughts/
 ```
