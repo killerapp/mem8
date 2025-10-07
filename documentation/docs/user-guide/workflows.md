@@ -30,27 +30,27 @@ Understand the codebase and gather context:
 
 ```bash
 # In Claude Code
-/research_codebase "authentication system"
+/m8-research "authentication system"
 ```
 
-Creates: `thoughts/shared/research/authentication-system-YYYYMMDD.md`
+Creates: `memory/shared/research/authentication-system-YYYYMMDD.md`
 
 #### 2. Plan
 
 Design your approach:
 
 ```bash
-/create_plan "add OAuth2 support"
+/m8-plan "add OAuth2 support"
 ```
 
-Creates: `thoughts/shared/plans/add-oauth2-support.md`
+Creates: `memory/shared/plans/add-oauth2-support.md`
 
 #### 3. Implement
 
 Execute your plan with context:
 
 ```bash
-/implement_plan thoughts/shared/plans/add-oauth2-support.md
+/m8-implement memory/shared/plans/add-oauth2-support.md
 ```
 
 Claude Code loads your plan and implements step-by-step.
@@ -60,7 +60,7 @@ Claude Code loads your plan and implements step-by-step.
 Create a conventional commit:
 
 ```bash
-/commit
+/m8-commit
 ```
 
 Generates appropriate commit message based on changes.
@@ -79,7 +79,7 @@ mem8 sync
 
 Share findings with your team:
 
-1. **Research** - Document findings in `thoughts/shared/research/`
+1. **Research** - Document findings in `memory/shared/research/`
 2. **Commit** - Commit to git
 3. **Sync** - `mem8 sync --direction push`
 4. **Team pulls** - Others run `mem8 sync --direction pull`
@@ -93,13 +93,13 @@ Document PRs for future reference:
 /document_pr https://github.com/org/repo/pull/123
 ```
 
-Creates: `thoughts/shared/prs/123_description.md`
+Creates: `memory/shared/prs/123_description.md`
 
 ### Decision Records
 
 Track architectural decisions:
 
-1. Create in `thoughts/shared/decisions/`
+1. Create in `memory/shared/decisions/`
 2. Follow ADR format
 3. Link to PRs and issues
 4. Sync with team
@@ -177,14 +177,14 @@ mem8 works alongside your git workflow:
 git checkout -b feature/oauth2
 
 # Research and plan
-/research_codebase "authentication"
-/create_plan "OAuth2"
+/m8-research "authentication"
+/m8-plan "OAuth2"
 
 # Implement
-/implement_plan thoughts/shared/plans/oauth2.md
+/m8-implement memory/shared/plans/oauth2.md
 
 # Commit with context
-/commit
+/m8-commit
 ```
 
 ### CI/CD Integration

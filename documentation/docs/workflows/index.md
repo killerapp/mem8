@@ -34,7 +34,7 @@ Each phase:
 - **[Research](./research)** - Deep codebase analysis with parallel sub-agents
 - **[Plan](./plan)** - Create implementation plans from research
 - **[Implement](./implement)** - Execute plans with full context
-- **[Commit](./commit)** - Create conventional commits
+- **[Commit](./m8-commit)** - Create conventional commits
 - **[Utility Commands](./utility)** - Supporting commands for workflow management
 - **[Advanced Workflows](./advanced)** - Team collaboration and optimization
 
@@ -42,16 +42,16 @@ Each phase:
 
 ```bash
 # 1. Research the codebase
-/research_codebase "authentication system"
+/m8-research "authentication system"
 
 # 2. Create an implementation plan
-/create_plan "add OAuth2 support"
+/m8-plan "add OAuth2 support"
 
 # 3. Execute the plan
-/implement_plan
+/m8-implement
 
 # 4. Commit your changes
-/commit
+/m8-commit
 ```
 
 ## Key Benefits

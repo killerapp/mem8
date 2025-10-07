@@ -2,20 +2,20 @@
 sidebar_position: 2
 ---
 
-# Phase 2: Plan with `/create_plan`
+# Phase 2: Plan with `/m8-plan`
 Design implementation with concrete steps based on research findings.
 
 ### Planning Process
 
 ```mermaid
 graph TD
-    A[User: /create_plan 'Add OAuth2'] --> B[Claude: Review Requirements]
+    A[User: /m8-plan 'Add OAuth2'] --> B[Claude: Review Requirements]
     B --> C[Analyze Codebase Architecture]
     C --> D[Design Technical Approach]
     D --> E[Break Down into Steps]
     E --> F[Add Testing Strategy]
     F --> G[Estimate Timeline]
-    G --> H[Write to thoughts/shared/plans/]
+    G --> H[Write to memory/shared/plans/]
 
     H --> I{Review with User}
     I -->|Revisions Needed| D

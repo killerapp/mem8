@@ -99,7 +99,7 @@ mem8 init --force
 
 ```bash
 # Check if thoughts exist
-ls thoughts/shared/
+ls memory/shared/
 
 # Check search path
 mem8 search "query" --path thoughts/
@@ -119,7 +119,7 @@ mem8 search "query"
 mem8 search "query" --limit 5
 
 # Search specific path
-mem8 search "query" --path thoughts/shared/research
+mem8 search "query" --path memory/shared/research
 
 # Check for large files
 find thoughts -type f -size +1M
@@ -285,7 +285,7 @@ find thoughts -type f -size +1M
 
 # Archive old thoughts
 mkdir thoughts/archive
-mv thoughts/shared/old-* thoughts/archive/
+mv memory/shared/old-* thoughts/archive/
 ```
 
 ## Configuration Issues

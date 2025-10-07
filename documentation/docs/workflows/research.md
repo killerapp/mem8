@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Phase 1: Research with `/research_codebase`
+# Phase 1: Research with `/m8-research`
 Deep codebase analysis using parallel sub-agents to understand architecture and patterns.
 
 ### How It Works
@@ -14,9 +14,9 @@ sequenceDiagram
     participant CL as codebase-locator
     participant CA as codebase-analyzer
     participant TL as thoughts-locator
-    participant Doc as thoughts/shared/research/
+    participant Doc as memory/shared/research/
 
-    User->>Claude: /research_codebase "How does auth work?"
+    User->>Claude: /m8-research "How does auth work?"
     Claude->>Claude: Read mentioned files fully
     Claude->>CL: Find auth-related files
     Claude->>CA: Analyze authentication.py
@@ -64,6 +64,6 @@ The middleware intercepts requests and validates JWT tokens...
 
 - **Parallel sub-agents** explore different aspects simultaneously
 - **Full file context** - reads mentioned files completely before spawning agents
-- **Persistent memory** - research saved to `thoughts/shared/research/`
+- **Persistent memory** - research saved to `memory/shared/research/`
 - **Git metadata** - captures commit, branch, researcher for context
 - **File references** - clickable links to specific lines of code

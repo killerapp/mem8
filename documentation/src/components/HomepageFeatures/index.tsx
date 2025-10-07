@@ -14,8 +14,8 @@ const FeatureList: FeatureItem[] = [
     title: '🧠 Context Window Management',
     description: (
       <>
-        Persistent memory system for Claude Code with structured thoughts and searchable documentation.
-        <code>/research_codebase</code> spawns parallel agents to explore your code efficiently.
+        Persistent memory system for Claude Code with structured memory and searchable documentation.
+        <code>/m8-research</code> spawns parallel agents to explore your code efficiently.
         Keep AI context focused and relevant across long development sessions.
       </>
     ),

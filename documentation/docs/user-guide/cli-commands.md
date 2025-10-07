@@ -40,7 +40,7 @@ Search through your thoughts and documentation.
 mem8 search "authentication"
 
 # With filters
-mem8 search "OAuth" --limit 5 --path thoughts/shared/research
+mem8 search "OAuth" --limit 5 --path memory/shared/research
 ```
 
 **Options:**

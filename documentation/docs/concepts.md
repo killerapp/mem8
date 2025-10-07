@@ -41,13 +41,13 @@ thoughts/
 
 ### Shared vs Personal
 
-- **Shared** (`thoughts/shared/`) - Committed to git, visible to team
+- **Shared** (`memory/shared/`) - Committed to git, visible to team
 - **Personal** (`thoughts/{username}/`) - Your private workspace
 - **Searchable** - Automatic symlinks for unified search
 
 ### Thought Lifecycle
 
-1. **Create** - Use slash commands (`/research_codebase`, `/create_plan`)
+1. **Create** - Use slash commands (`/m8-research`, `/m8-plan`)
 2. **Edit** - Modify markdown files directly
 3. **Search** - Find with `mem8 search "query"`
 4. **Sync** - Share with team via `mem8 sync`
@@ -117,11 +117,11 @@ Specialized AI assistants for:
 ### Commands
 
 Workflow automation:
-- **`/research_codebase`** - Analyze existing code
-- **`/create_plan`** - Design implementation
-- **`/implement_plan`** - Execute with context
-- **`/commit`** - Create conventional commits
-- **`/describe_pr`** - Generate PR descriptions
+- **`/m8-research`** - Analyze existing code
+- **`/m8-plan`** - Design implementation
+- **`/m8-implement`** - Execute with context
+- **`/m8-commit`** - Create conventional commits
+- **`/m8-describe_pr`** - Generate PR descriptions
 
 ### Workflow Integration
 
@@ -236,7 +236,7 @@ mem8 search "authentication"
 mem8 search "query" --limit 10
 
 # Specific locations
-mem8 search "query" --path thoughts/shared/plans
+mem8 search "query" --path memory/shared/plans
 ```
 
 ### Search Indexing

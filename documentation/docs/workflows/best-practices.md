@@ -8,12 +8,12 @@ sidebar_position: 7
 
 ```bash
 # Don't just jump in
-❌ /create_plan "add feature"
+❌ /m8-plan "add feature"
 
 # Understand first
-✅ /research_codebase "how do similar features work?"
-✅ /browse-memories "past features like this"
-✅ /create_plan "add feature based on patterns"
+✅ /m8-research "how do similar features work?"
+✅ /m8-browse-memories "past features like this"
+✅ /m8-plan "add feature based on patterns"
 ```
 
 ### Keep Plans Updated
@@ -61,18 +61,18 @@ mem8 doctor
 timeline
     title Adding OAuth2 Support (Real Timeline)
     section Day 1
-      09:00 : /research_codebase "current auth system"
-      09:45 : /create_plan "add OAuth2"
+      09:00 : /m8-research "current auth system"
+      09:45 : /m8-plan "add OAuth2"
       10:00 : User review
-      10:15 : /implement_plan (Phase 1)
+      10:15 : /m8-implement (Phase 1)
     section Day 2
       09:00 : Continue Phase 2
       11:00 : Phase 2 tests passing
-      11:30 : /implement_plan (Phase 3)
+      11:30 : /m8-implement (Phase 3)
       14:00 : All phases complete
-      14:30 : /commit
+      14:30 : /m8-commit
     section Day 3
-      09:00 : /describe_pr
+      09:00 : /m8-describe_pr
       09:30 : PR submitted
       10:00 : Team review using thoughts/
 ```

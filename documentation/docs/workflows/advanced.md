@@ -8,14 +8,14 @@ sidebar_position: 6
 
 ```mermaid
 graph TB
-    A[Dev 1: Research] --> B[commits to thoughts/shared/research/]
+    A[Dev 1: Research] --> B[commits to memory/shared/research/]
     B --> C[Dev 2: git pull]
-    C --> D[Dev 2: /browse-memories]
+    C --> D[Dev 2: /m8-browse-memories]
     D --> E[Dev 2: Build on research]
     E --> F[Dev 2: Create plan]
-    F --> G[commits to thoughts/shared/plans/]
+    F --> G[commits to memory/shared/plans/]
     G --> H[Dev 1: git pull]
-    H --> I[Dev 1: /implement_plan]
+    H --> I[Dev 1: /m8-implement]
 
     style B fill:#e1f5ff
     style F fill:#fff4e1
@@ -165,7 +165,7 @@ sequenceDiagram
 
     Note over C: Starting implementation
     C->>M: Do we have research on auth?
-    M->>C: Yes: thoughts/shared/research/auth.md
+    M->>C: Yes: memory/shared/research/auth.md
     C->>FS: Load research doc (2KB)
 
     Note over C: Need code details

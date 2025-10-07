@@ -31,7 +31,7 @@ mem8 search "query"
 mem8 search "query" --limit 5
 
 # Specific directory
-mem8 search "query" --path thoughts/shared/research
+mem8 search "query" --path memory/shared/research
 
 # JSON output
 mem8 search "query" --format json
@@ -48,7 +48,7 @@ Keep your thoughts directory organized:
 mkdir -p thoughts/archive/$(date +%Y)
 
 # Move old files
-mv thoughts/shared/research/old-* thoughts/archive/$(date +%Y)/
+mv memory/shared/research/old-* thoughts/archive/$(date +%Y)/
 
 # Commit changes
 cd thoughts
@@ -66,10 +66,10 @@ Find and remove duplicate thoughts:
 find thoughts -type f -name "*.md" | sort | uniq -d
 
 # Review before deleting
-ls -lh thoughts/shared/research/*duplicate*
+ls -lh memory/shared/research/*duplicate*
 
 # Remove after review
-rm thoughts/shared/research/duplicate-file.md
+rm memory/shared/research/duplicate-file.md
 ```
 
 ## Template Management
@@ -152,14 +152,14 @@ Get insights about your thoughts:
 
 ```bash
 # Count thoughts by type
-find thoughts/shared -type f -name "*.md" | \
+find memory/shared -type f -name "*.md" | \
   awk -F/ '{print $(NF-1)}' | sort | uniq -c
 
 # Total thoughts
-find thoughts/shared -type f -name "*.md" | wc -l
+find memory/shared -type f -name "*.md" | wc -l
 
 # Recent activity
-find thoughts/shared -type f -name "*.md" -mtime -7
+find memory/shared -type f -name "*.md" -mtime -7
 ```
 
 ### Export Search Results
@@ -218,8 +218,8 @@ Share select thoughts with teammates:
 ```bash
 # Create shareable bundle
 tar czf research-bundle.tar.gz \
-  thoughts/shared/research/auth-*.md \
-  thoughts/shared/plans/oauth-*.md
+  memory/shared/research/auth-*.md \
+  memory/shared/plans/oauth-*.md
 
 # Send to team
 # They extract with:

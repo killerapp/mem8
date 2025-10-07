@@ -32,7 +32,7 @@ mem8 init --template-source killerapp/mem8-templates
 # Or use your team's custom templates
 mem8 init --template-source yourorg/team-templates
 
-# Search your thoughts
+# Search your memory
 mem8 search "authentication"
 
 # Check workspace status
@@ -70,7 +70,7 @@ mem8 status
 ## Features at a Glance
 
 ### 🧠 Context Window Management
-Persistent memory system keeps AI context relevant across long development sessions. Structured thoughts capture research, plans, and decisions.
+Persistent memory system keeps AI context relevant across long development sessions. Structured memory captures research, plans, and decisions.
 
 ### 🔧 Integrated Toolbelt
 Install and manage development tools with `mem8 toolbelt`. Handles dependencies, version conflicts, and environment setup automatically.
@@ -85,12 +85,12 @@ Deep integration with Claude Code's agents, commands, and custom workflows. Enha
 Use templates from GitHub, local paths, or create your own. Fork and customize as needed. Share standardized setups across teams.
 
 ### 🔍 Full-Text Search
-Find information quickly across all your thoughts and documentation with powerful search capabilities.
+Find information quickly across all your memory and documentation with powerful search capabilities.
 
 ## Who is this for?
 
 - **AI-Assisted Developers** - Manage context windows effectively across long sessions
-- **Solo Developers** - Keep thoughts organized and tools readily available
+- **Solo Developers** - Keep memory organized and tools readily available
 - **Development Teams** - Share standardized workflows and templates
 - **Claude Code Users** - Enhance your development experience with better memory and tooling
 - **Organizations** - Create custom templates and maintain consistent practices
