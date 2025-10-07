@@ -85,3 +85,20 @@
   padding: 2px 6px;
   border-radius: 4px;
 }
+
+/* Navbar logo sizing - ensure legibility */
+.navbar__logo img {
+  height: 48px;
+  width: auto;
+  max-width: none;
+}
+
+.navbar__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Add spacing between logo and title */
+.navbar__logo {
+  margin-right: 0.75rem;
+}

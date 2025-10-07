@@ -80,7 +80,9 @@ const config: Config = {
       title: 'mem8',
       logo: {
         alt: 'mem8 Logo',
-        src: 'img/logo-icon.png',
+        src: 'img/logo-navbar.png',
+        width: 52,
+        height: 48,
       },
       items: [
         {
