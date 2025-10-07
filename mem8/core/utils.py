@@ -325,13 +325,13 @@ def verify_templates() -> bool:
         
         # Check for both templates
         claude_template = template_base / "claude-dot-md-template"
-        thoughts_template = template_base / "shared-thoughts-template"
+        memory_template = template_base / "shared-memory-template"
         
         # Try to list files in templates
         claude_exists = (claude_template / "cookiecutter.json").exists()
-        thoughts_exists = (thoughts_template / "cookiecutter.json").exists()
+        memory_exists = (memory_template / "cookiecutter.json").exists()
         
-        return claude_exists and thoughts_exists
+        return claude_exists and memory_exists
         
     except Exception:
         return False

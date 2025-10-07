@@ -74,7 +74,7 @@ class IntelligentQueryEngine:
         
     def execute_query(self, intent: QueryIntent) -> List[ThoughtEntity]:
         """Execute parsed query intent against thought entities."""
-        entities = self.thought_discovery.discover_all_thoughts()
+        entities = self.thought_discovery.discover_all_memory()
         
         results = entities
         
@@ -115,9 +115,9 @@ class IntelligentQueryEngine:
             
         return results
     
-    def find_similar_thoughts(self, entity: ThoughtEntity, limit: int = 5) -> List[ThoughtEntity]:
-        """Find thoughts similar to the given entity."""
-        all_entities = self.thought_discovery.discover_all_thoughts()
+    def find_similar_memory(self, entity: ThoughtEntity, limit: int = 5) -> List[ThoughtEntity]:
+        """Find memory similar to the given entity."""
+        all_entities = self.thought_discovery.discover_all_memory()
         
         # Remove the entity itself
         candidates = [e for e in all_entities if e.path != entity.path]
@@ -167,8 +167,8 @@ class IntelligentQueryEngine:
         
         return min(1.0, score)
     
-    def get_related_thoughts(self, query: str, limit: int = 10) -> Dict[str, List[ThoughtEntity]]:
-        """Get thoughts related to query, grouped by relationship type."""
+    def get_related_memory(self, query: str, limit: int = 10) -> Dict[str, List[ThoughtEntity]]:
+        """Get memory related to query, grouped by relationship type."""
         intent = self.parse_query(query)
         results = self.execute_query(intent)
         
@@ -180,9 +180,9 @@ class IntelligentQueryEngine:
             'related_decisions': []
         }
         
-        # Find related thoughts based on content similarity
+        # Find related memory based on content similarity
         for result in results[:3]:  # Limit to avoid too many API calls
-            similar = self.find_similar_thoughts(result, limit=3)
+            similar = self.find_similar_memory(result, limit=3)
             for similar_entity in similar:
                 if similar_entity.type == 'plan' and similar_entity not in grouped_results['related_plans']:
                     grouped_results['related_plans'].append(similar_entity)
@@ -208,21 +208,21 @@ class IntelligentQueryEngine:
         if completed_count > 0:
             suggestions.append({
                 'action': 'archive',
-                'description': f'Archive {completed_count} completed thoughts',
+                'description': f'Archive {completed_count} completed memory',
                 'confidence': 'high'
             })
         
         if obsolete_count > 0:
             suggestions.append({
                 'action': 'delete',
-                'description': f'Delete {obsolete_count} obsolete thoughts',
+                'description': f'Delete {obsolete_count} obsolete memory',
                 'confidence': 'medium'
             })
         
         if draft_count > 2:
             suggestions.append({
                 'action': 'review',
-                'description': f'Review {draft_count} draft thoughts for completion',
+                'description': f'Review {draft_count} draft memory for completion',
                 'confidence': 'low'
             })
         

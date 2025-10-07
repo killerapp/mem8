@@ -21,24 +21,24 @@ cookiecutter shared-thoughts-template --config-file example-configs/shared-thoug
 ### default.yaml
 Standard configuration with basic features:
 - All agents and commands included
+- GitHub Issues workflow integration
 - Web search enabled
-- No Linear/Ralph workflows
-- Suitable for individual developers
+- Suitable for individual developers and small teams
 
 ### minimal.yaml
 Bare minimum configuration:
 - Core agents and commands only
 - No web search
-- No integrations
-- Lightweight setup
+- No GitHub integration
+- Lightweight setup for personal use
 
 ### enterprise-full.yaml
 Complete enterprise configuration:
 - All features enabled
-- Linear ticket integration
-- Ralph workflows (plan, research, implement)
+- Advanced GitHub workflow automation
 - Web search capabilities
 - Team collaboration features
+- GitHub Issues as primary task tracker
 
 ## Shared Thoughts Configurations
 
@@ -95,5 +95,5 @@ cookiecutter claude-dot-md-template \
   --config-file example-configs/claude-dot-md/default.yaml \
   --no-input \
   organization_name="My Company" \
-  include_linear_integration=true
+  github_org="my-company"
 ```

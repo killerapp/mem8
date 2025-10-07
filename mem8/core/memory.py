@@ -50,9 +50,9 @@ class MemoryManager:
             
             # Check if workspace already exists
             claude_dir = workspace_dir / ".claude"
-            thoughts_dir = workspace_dir / "thoughts"
+            memory_dir = workspace_dir / "memory"
             
-            if (claude_dir.exists() or thoughts_dir.exists()) and not force:
+            if (claude_dir.exists() or memory_dir.exists()) and not force:
                 return {
                     'success': False,
                     'error': 'Workspace already exists. Use --force to reinitialize.'
@@ -109,16 +109,16 @@ class MemoryManager:
             if not claude_md.exists():
                 self._create_claude_md(claude_md, template_config)
             
-            # Create thoughts directory structure
-            thoughts_dir = workspace_dir / "thoughts"
-            shared_thoughts_dir = shared_dir / "thoughts"
+            # Create memory directory structure
+            memory_dir = workspace_dir / "memory"
+            shared_memory_dir = shared_dir / "memory"
             
-            # Initialize shared thoughts if needed
-            if not shared_thoughts_dir.exists():
-                self._initialize_shared_thoughts(shared_thoughts_dir, template_config)
+            # Initialize shared memory if needed
+            if not shared_memory_dir.exists():
+                self._initialize_shared_memory(shared_memory_dir, template_config)
             
-            # Create local thoughts structure and link to shared
-            self._setup_thoughts_directory(thoughts_dir, shared_thoughts_dir)
+            # Create local memory structure and link to shared
+            self._setup_memory_directory(memory_dir, shared_memory_dir)
             
             # Copy agents and commands if requested
             if template_config.get('include_agents', True):
@@ -141,17 +141,17 @@ class MemoryManager:
             'minimal': {
                 'include_agents': False,
                 'include_commands': False,
-                'thoughts_structure': 'basic',
+                'memory_structure': 'basic',
             },
             'default': {
                 'include_agents': True,
                 'include_commands': True,
-                'thoughts_structure': 'full',
+                'memory_structure': 'full',
             },
             'team': {
                 'include_agents': True,
                 'include_commands': True,
-                'thoughts_structure': 'collaborative',
+                'memory_structure': 'collaborative',
                 'shared_focus': True,
             }
         }
@@ -180,8 +180,8 @@ class MemoryManager:
 - Use `mem8 status` to check workspace status
 - Use `mem8 search` to find content across memory
 
-## Shared Thoughts
-Access team thoughts via: @thoughts/shared/
+## Shared Memory
+Access team memory via: @memory/shared/
 
 ## Import Additional Instructions
 # Individual preferences (not tracked in git)
@@ -192,13 +192,13 @@ Access team thoughts via: @thoughts/shared/
         with open(claude_md, 'w', encoding='utf-8') as f:
             f.write(content)
     
-    def _initialize_shared_thoughts(
+    def _initialize_shared_memory(
         self, 
-        shared_thoughts_dir: Path, 
+        shared_memory_dir: Path, 
         config: Dict[str, Any]
     ) -> None:
-        """Initialize shared thoughts directory structure."""
-        ensure_directory_exists(shared_thoughts_dir)
+        """Initialize shared memory directory structure."""
+        ensure_directory_exists(shared_memory_dir)
         
         # Create standard directories
         directories = [
@@ -212,16 +212,16 @@ Access team thoughts via: @thoughts/shared/
         ]
         
         for directory in directories:
-            ensure_directory_exists(shared_thoughts_dir / directory)
+            ensure_directory_exists(shared_memory_dir / directory)
         
         # Create README
         readme_content = """# Shared AI Memory
 
-This directory contains shared thoughts and memory for the team.
+This directory contains shared memory and memory for the team.
 
 ## Structure
 
-- `shared/` - Team-shared thoughts and decisions
+- `shared/` - Team-shared memory and decisions
   - `decisions/` - Architecture and design decisions
   - `plans/` - Implementation plans and strategies  
   - `research/` - Research notes and findings
@@ -236,38 +236,38 @@ Use `mem8 sync` to keep your local workspace in sync with shared memory.
 Use `mem8 search` to find relevant content across all memories.
 """
         
-        readme_path = shared_thoughts_dir / "README.md"
+        readme_path = shared_memory_dir / "README.md"
         if not readme_path.exists():
             with open(readme_path, 'w', encoding='utf-8') as f:
                 f.write(readme_content)
     
-    def _setup_thoughts_directory(
+    def _setup_memory_directory(
         self, 
-        thoughts_dir: Path, 
-        shared_thoughts_dir: Path
+        memory_dir: Path, 
+        shared_memory_dir: Path
     ) -> None:
-        """Set up local thoughts directory with shared integration."""
-        ensure_directory_exists(thoughts_dir)
+        """Set up local memory directory with shared integration."""
+        ensure_directory_exists(memory_dir)
         
         # Create user-specific directory
         username = os.environ.get('USERNAME', os.environ.get('USER', 'user'))
-        user_dir = thoughts_dir / username
+        user_dir = memory_dir / username
         ensure_directory_exists(user_dir)
         ensure_directory_exists(user_dir / "notes")
         ensure_directory_exists(user_dir / "tickets")
         ensure_directory_exists(user_dir / "archive")
         
         # Link or copy shared directory
-        shared_link = thoughts_dir / "shared"
+        shared_link = memory_dir / "shared"
         if not shared_link.exists():
-            if create_symlink(shared_thoughts_dir, shared_link):
+            if create_symlink(shared_memory_dir, shared_link):
                 pass  # Symlink created successfully
             else:
                 # Fallback: create directory and note in README
                 ensure_directory_exists(shared_link)
                 note_file = shared_link / "README.md"
                 with open(note_file, 'w', encoding='utf-8') as f:
-                    f.write(f"# Shared Memory\\n\\nShared directory: {shared_thoughts_dir}\\n\\nUse `mem8 sync` to synchronize.")
+                    f.write(f"# Shared Memory\\n\\nShared directory: {shared_memory_dir}\\n\\nUse `mem8 sync` to synchronize.")
     
     def _setup_agents(self, claude_dir: Path) -> None:
         """Set up AI agents from template."""
@@ -316,9 +316,9 @@ Use `mem8 search` to find relevant content across all memories.
                 'path': workspace_dir / ".claude",
                 'exists': (workspace_dir / ".claude").exists(),
             },
-            'thoughts_directory': {
-                'path': workspace_dir / "thoughts", 
-                'exists': (workspace_dir / "thoughts").exists(),
+            'memory_directory': {
+                'path': workspace_dir / "memory", 
+                'exists': (workspace_dir / "memory").exists(),
             },
             'shared_directory': {
                 'path': self.config.shared_dir,
@@ -355,9 +355,9 @@ Use `mem8 search` to find relevant content across all memories.
             
             # Count pending changes (simplified)
             pending_changes = 0
-            thoughts_dir = self.config.thoughts_dir
-            if thoughts_dir.exists():
-                for file_path in thoughts_dir.rglob("*.md"):
+            memory_dir = self.config.memory_dir
+            if memory_dir.exists():
+                for file_path in memory_dir.rglob("*.md"):
                     if file_path.is_file():
                         # Check if file is newer than last sync
                         if not sync_file.exists() or file_path.stat().st_mtime > sync_file.stat().st_mtime:
@@ -398,15 +398,15 @@ Use `mem8 search` to find relevant content across all memories.
     
     def get_thought_entities(self, force_rescan: bool = False) -> List[ThoughtEntity]:
         """Get all thought entities with semantic understanding.""" 
-        return self.thought_discovery.discover_all_thoughts(force_rescan)
+        return self.thought_discovery.discover_all_memory(force_rescan)
     
-    def find_thoughts_by_type(self, thought_type: str) -> List[ThoughtEntity]:
-        """Find thoughts by semantic type."""
+    def find_memory_by_type(self, thought_type: str) -> List[ThoughtEntity]:
+        """Find memory by semantic type."""
         entities = self.get_thought_entities()
         return [e for e in entities if e.type == thought_type]
         
-    def find_thoughts_by_status(self, status: str) -> List[ThoughtEntity]:
-        """Find thoughts by lifecycle status."""
+    def find_memory_by_status(self, status: str) -> List[ThoughtEntity]:
+        """Find memory by lifecycle status."""
         entities = self.get_thought_entities()
         return [e for e in entities if e.lifecycle_state == status]
     
@@ -434,25 +434,25 @@ Use `mem8 search` to find relevant content across all memories.
             if path_filter.startswith("/") or (len(path_filter) > 1 and path_filter[1] == ":"):
                 raise ValueError(f"Invalid path_filter: absolute paths not allowed")
 
-        # Search in thoughts directory
-        thoughts_dir = self.config.thoughts_dir
-        if thoughts_dir.exists() and content_type in ['all', 'thoughts']:
-            search_dir = Path(thoughts_dir) / path_filter if path_filter else thoughts_dir
+        # Search in memory directory
+        memory_dir = self.config.memory_dir
+        if memory_dir.exists() and content_type in ['all', 'memory']:
+            search_dir = Path(memory_dir) / path_filter if path_filter else memory_dir
 
             # Ensure search_dir is within workspace boundaries (defense in depth)
             try:
                 search_dir_resolved = search_dir.resolve()
-                thoughts_dir_resolved = thoughts_dir.resolve()
-                # Check if search_dir is relative to thoughts_dir
-                search_dir_resolved.relative_to(thoughts_dir_resolved)
+                memory_dir_resolved = memory_dir.resolve()
+                # Check if search_dir is relative to memory_dir
+                search_dir_resolved.relative_to(memory_dir_resolved)
             except ValueError:
                 raise ValueError(f"Invalid path_filter: escapes workspace boundary")
 
             if search_dir.exists():
                 if search_method == 'semantic':
-                    results.extend(self._semantic_search_directory(search_dir, query, 'thoughts'))
+                    results.extend(self._semantic_search_directory(search_dir, query, 'memory'))
                 else:
-                    results.extend(self._search_directory(search_dir, query, 'thoughts'))
+                    results.extend(self._search_directory(search_dir, query, 'memory'))
         
         # Search in Claude memory files
         if content_type in ['all', 'memories']:
@@ -646,6 +646,106 @@ Use `mem8 search` to find relevant content across all memories.
         from shutil import which
         return which(command) is not None
 
+    def _get_command_version(self, command: str) -> Optional[str]:
+        """Get the version of a command if available."""
+        import subprocess
+        import re
+
+        try:
+            # Try common version flags
+            for flag in ['--version', '-v', 'version']:
+                try:
+                    result = subprocess.run(
+                        [command, flag],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+                    output = result.stdout + result.stderr
+
+                    # Extract version number (e.g., "2.60.1", "v1.2.3")
+                    version_match = re.search(r'v?(\d+\.\d+(?:\.\d+)?)', output)
+                    if version_match:
+                        return version_match.group(1)
+                except (subprocess.TimeoutExpired, FileNotFoundError):
+                    continue
+        except Exception:
+            pass
+
+        return None
+
+    def _compare_versions(self, current: str, required: str) -> bool:
+        """
+        Compare version strings.
+
+        Args:
+            current: Current version (e.g., "2.60.1")
+            required: Required version with operator (e.g., ">=2.60", "==1.0.0")
+
+        Returns:
+            True if requirement is satisfied
+        """
+        import re
+        from packaging import version
+
+        try:
+            # Parse operator and version from required string
+            match = re.match(r'([><=!]+)?\s*v?(\d+\.\d+(?:\.\d+)?)', required)
+            if not match:
+                return True  # Can't parse requirement, assume OK
+
+            operator = match.group(1) or '>='
+            required_ver = match.group(2)
+
+            current_ver = version.parse(current)
+            required_ver = version.parse(required_ver)
+
+            if operator == '>=':
+                return current_ver >= required_ver
+            elif operator == '>':
+                return current_ver > required_ver
+            elif operator == '==':
+                return current_ver == required_ver
+            elif operator == '<=':
+                return current_ver <= required_ver
+            elif operator == '<':
+                return current_ver < required_ver
+            elif operator == '!=':
+                return current_ver != required_ver
+
+            return False
+        except Exception:
+            # If comparison fails, assume version is OK
+            return True
+
+    def _install_tool(self, tool_name: str, install_cmd: str) -> tuple[bool, str]:
+        """
+        Attempt to install a tool using the provided command.
+
+        Returns:
+            (success: bool, message: str)
+        """
+        import subprocess
+
+        try:
+            # Run install command
+            result = subprocess.run(
+                install_cmd,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minute timeout
+            )
+
+            if result.returncode == 0:
+                return True, f"Successfully installed {tool_name}"
+            else:
+                return False, f"Installation failed: {result.stderr[:200]}"
+        except subprocess.TimeoutExpired:
+            return False, f"Installation timed out after 5 minutes"
+        except Exception as e:
+            return False, f"Installation failed: {str(e)}"
+
     def _get_platform_key(self) -> str:
         """Get platform key for install commands (windows, macos, linux)."""
         system = platform.system().lower()
@@ -655,8 +755,13 @@ Use `mem8 search` to find relevant content across all memories.
             return system
         return 'linux'  # fallback
 
-    def diagnose_workspace(self, auto_fix: bool = False) -> Dict[str, Any]:
-        """Diagnose workspace health and optionally fix issues."""
+    def diagnose_workspace(self, auto_fix: bool = False, template_source: Optional[str] = None) -> Dict[str, Any]:
+        """Diagnose workspace health and optionally fix issues.
+
+        Args:
+            auto_fix: If True, attempt to fix issues automatically
+            template_source: Optional external template source (local path, git URL, or GitHub shorthand)
+        """
         issues = []
         fixes_applied = []
         recommendations = []
@@ -675,16 +780,16 @@ Use `mem8 search` to find relevant content across all memories.
                 ensure_directory_exists(claude_dir)
                 fixes_applied.append('Created .claude directory')
 
-        thoughts_dir = workspace_dir / "thoughts"
-        if not thoughts_dir.exists():
+        memory_dir = workspace_dir / "memory"
+        if not memory_dir.exists():
             issues.append({
                 'severity': 'warning',
-                'description': 'thoughts directory missing',
-                'fix': 'Create thoughts directory'
+                'description': 'memory directory missing',
+                'fix': 'Create memory directory'
             })
             if auto_fix:
-                ensure_directory_exists(thoughts_dir)
-                fixes_applied.append('Created thoughts directory')
+                ensure_directory_exists(memory_dir)
+                fixes_applied.append('Created memory directory')
 
         # Check shared directory connectivity
         shared_dir = self.config.shared_dir
@@ -696,7 +801,11 @@ Use `mem8 search` to find relevant content across all memories.
             })
 
         # Check CLI toolbelt
-        toolbelt_issues = self._check_toolbelt()
+        toolbelt_issues = self._check_toolbelt(
+            auto_fix=auto_fix,
+            fixes_applied=fixes_applied,
+            template_source=template_source
+        )
         issues.extend(toolbelt_issues)
 
         # Calculate health score
@@ -713,14 +822,24 @@ Use `mem8 search` to find relevant content across all memories.
             'recommendations': recommendations,
         }
 
-    def _check_toolbelt(self) -> List[Dict[str, Any]]:
-        """Check CLI toolbelt availability and return issues."""
-        issues = []
+    def _check_toolbelt(self, auto_fix: bool = False, fixes_applied: List[str] = None, template_source: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Check CLI toolbelt availability and return issues.
 
-        # Load toolbelt definition from builtin templates
+        Args:
+            auto_fix: If True, attempt to install missing tools
+            fixes_applied: List to append fix messages to
+            template_source: Optional external template source (local path, git URL, or GitHub shorthand)
+        """
+        issues = []
+        if fixes_applied is None:
+            fixes_applied = []
+
+        # Load toolbelt definition from template source
         try:
-            template_source = TemplateSource(None)  # builtin
-            manifest = template_source.load_manifest()
+            from .template_source import create_template_source
+            source = create_template_source(template_source)  # None = builtin
+            manifest = source.load_manifest()
 
             if not manifest or not manifest.toolbelt:
                 return issues
@@ -730,14 +849,39 @@ Use `mem8 search` to find relevant content across all memories.
             # Check required tools
             missing_required = []
             for tool in manifest.toolbelt.required:
-                if not self._check_command_available(tool.command):
-                    install_cmd = tool.install.get(platform_key, 'See documentation')
-                    missing_required.append({
+                is_available = self._check_command_available(tool.command)
+                current_version = None
+                version_ok = True
+
+                if is_available:
+                    # Check version if required
+                    if tool.version:
+                        current_version = self._get_command_version(tool.command)
+                        if current_version:
+                            version_ok = self._compare_versions(current_version, tool.version)
+                        else:
+                            version_ok = False  # Can't verify version
+
+                if not is_available or not version_ok:
+                    install_cmd = tool.install.get(platform_key, tool.install.get('all', 'See documentation'))
+                    tool_info = {
                         'name': tool.name,
                         'command': tool.command,
                         'description': tool.description,
-                        'install': install_cmd
-                    })
+                        'install': install_cmd,
+                        'version': tool.version,
+                        'current_version': current_version
+                    }
+
+                    # Attempt auto-fix if requested
+                    if auto_fix and install_cmd != 'See documentation':
+                        success, message = self._install_tool(tool.name, install_cmd)
+                        if success:
+                            fixes_applied.append(message)
+                            tool_info['fixed'] = True
+                            continue  # Don't add to missing list if fixed
+
+                    missing_required.append(tool_info)
 
             if missing_required:
                 issues.append({
@@ -749,14 +893,39 @@ Use `mem8 search` to find relevant content across all memories.
             # Check optional tools
             missing_optional = []
             for tool in manifest.toolbelt.optional:
-                if not self._check_command_available(tool.command):
-                    install_cmd = tool.install.get(platform_key, 'See documentation')
-                    missing_optional.append({
+                is_available = self._check_command_available(tool.command)
+                current_version = None
+                version_ok = True
+
+                if is_available:
+                    # Check version if specified
+                    if tool.version:
+                        current_version = self._get_command_version(tool.command)
+                        if current_version:
+                            version_ok = self._compare_versions(current_version, tool.version)
+                        else:
+                            version_ok = False
+
+                if not is_available or not version_ok:
+                    install_cmd = tool.install.get(platform_key, tool.install.get('all', 'See documentation'))
+                    tool_info = {
                         'name': tool.name,
                         'command': tool.command,
                         'description': tool.description,
-                        'install': install_cmd
-                    })
+                        'install': install_cmd,
+                        'version': tool.version,
+                        'current_version': current_version
+                    }
+
+                    # Auto-fix optional tools too if requested
+                    if auto_fix and install_cmd != 'See documentation':
+                        success, message = self._install_tool(tool.name, install_cmd)
+                        if success:
+                            fixes_applied.append(message)
+                            tool_info['fixed'] = True
+                            continue
+
+                    missing_optional.append(tool_info)
 
             if missing_optional:
                 issues.append({

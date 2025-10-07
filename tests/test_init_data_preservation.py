@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Test suite for mem8 CLI init command data preservation.
-Tests that init command properly protects existing thoughts/shared data.
+Tests that init command properly protects existing memory/shared data.
 """
 
 import os
@@ -24,8 +24,8 @@ class TestInitDataPreservation:
         os.chdir(self.test_dir)
         
         # Create some important user data
-        self.thoughts_dir = self.test_dir / "thoughts"
-        self.shared_dir = self.thoughts_dir / "shared"
+        self.memory_dir = self.test_dir / "memory"
+        self.shared_dir = self.memory_dir / "shared"
         self.shared_dir.mkdir(parents=True, exist_ok=True)
         
         # Create test files that should be preserved
@@ -68,12 +68,12 @@ class TestInitDataPreservation:
         
         return result
     
-    def test_init_detects_existing_thoughts_shared(self):
-        """Test that init command detects existing thoughts/shared directory."""
-        result = self.run_mem8(["init", "--template", "thoughts-repo", "--non-interactive"], expect_success=False)
+    def test_init_detects_existing_memory_shared(self):
+        """Test that init command detects existing memory/shared directory."""
+        result = self.run_mem8(["init", "--template", "memory-repo", "--non-interactive"], expect_success=False)
 
         assert "Existing directories detected:" in result.stdout
-        assert "thoughts/ directory already exists" in result.stdout
+        assert "memory/ directory already exists" in result.stdout
         assert "--force" in result.stdout
     
     def test_init_detects_existing_claude_directory(self):
@@ -89,7 +89,7 @@ class TestInitDataPreservation:
         assert ".claude/ directory already exists" in result.stdout
     
     def test_init_full_template_detection(self):
-        """Test detection with full template (both claude and thoughts).""" 
+        """Test detection with full template (both claude and memory).""" 
         # Create .claude directory too
         claude_dir = self.test_dir / ".claude"
         claude_dir.mkdir()
@@ -99,11 +99,11 @@ class TestInitDataPreservation:
 
         # Should detect at least one of the existing directories
         assert "Existing directories detected:" in result.stdout
-        assert ("thoughts/ directory already exists" in result.stdout or
+        assert ("memory/ directory already exists" in result.stdout or
                 ".claude/ directory already exists" in result.stdout)
     
     def test_preserves_data_with_force_flag(self):
-        """Test that --force preserves thoughts/shared data."""
+        """Test that --force preserves memory/shared data."""
         # Record original data
         original_important = self.important_file.read_text()
         original_project = (self.user_plans / "my_project.md").read_text()
@@ -111,7 +111,7 @@ class TestInitDataPreservation:
         
         # Run init with force flag
         result = self.run_mem8([
-            "init", "--template", "thoughts-repo", "--force"
+            "init", "--template", "memory-repo", "--force"
         ])
 
         # Check that init succeeded with force flag
@@ -135,13 +135,13 @@ class TestInitDataPreservation:
         os.chdir(clean_dir)
         
         # This should not show any warnings
-        result = self.run_mem8(["init", "--template", "thoughts-repo", "--non-interactive"], expect_success=False)
+        result = self.run_mem8(["init", "--template", "memory-repo", "--non-interactive"], expect_success=False)
         
         # Should fail due to cookiecutter prompts, but no warnings about existing files
         assert "Existing workspace components found" not in result.stdout
         assert "WARNING:" not in result.stdout
         # Should start cookiecutter process
-        assert "project_name" in result.stdout or "Creating" in result.stdout
+        assert "mem8 init" in result.stdout or "Installing" in result.stdout or "Setup complete" in result.stdout
     
     def test_force_flag_suggestions(self):
         """Test that helpful suggestions are provided."""
@@ -154,37 +154,37 @@ class TestInitDataPreservation:
     
     def test_specific_template_only_checks_relevant_dirs(self):
         """Test that claude-config template only checks .claude directory."""
-        # Only create .claude directory, not thoughts
+        # Only create .claude directory, not memory
         claude_dir = self.test_dir / ".claude"
         claude_dir.mkdir()
         
-        # Remove the thoughts directory we created in setup
-        shutil.rmtree(self.thoughts_dir)
+        # Remove the memory directory we created in setup
+        shutil.rmtree(self.memory_dir)
         
         result = self.run_mem8(["init", "--template", "claude-config", "--non-interactive"], expect_success=False)
         
         assert ".claude/ directory already exists" in result.stdout
-        assert "thoughts" not in result.stdout  # Should not mention thoughts for claude-config
+        assert "memory" not in result.stdout  # Should not mention memory for claude-config
     
-    def test_thoughts_repo_template_only_checks_thoughts(self):
-        """Test that thoughts-repo template only checks thoughts directory."""
+    def test_memory_repo_template_only_checks_memory(self):
+        """Test that memory-repo template only checks memory directory."""
         # Create separate test without .claude
-        clean_test_dir = Path(tempfile.mkdtemp(prefix="mem8-thoughts-only-"))
+        clean_test_dir = Path(tempfile.mkdtemp(prefix="mem8-memory-only-"))
         old_test_dir = self.test_dir
         self.test_dir = clean_test_dir
         os.chdir(clean_test_dir)
         
         try:
-            # Create only thoughts directory
-            thoughts_dir = clean_test_dir / "thoughts" 
-            shared_dir = thoughts_dir / "shared"
+            # Create only memory directory
+            memory_dir = clean_test_dir / "memory" 
+            shared_dir = memory_dir / "shared"
             shared_dir.mkdir(parents=True)
             (shared_dir / "test.md").write_text("test data")
             
-            result = self.run_mem8(["init", "--template", "thoughts-repo", "--non-interactive"], expect_success=False)
+            result = self.run_mem8(["init", "--template", "memory-repo", "--non-interactive"], expect_success=False)
             
-            assert "thoughts/ directory already exists" in result.stdout
-            assert ".claude" not in result.stdout  # Should not mention .claude for thoughts-repo
+            assert "memory/ directory already exists" in result.stdout
+            assert ".claude" not in result.stdout  # Should not mention .claude for memory-repo
             
         finally:
             # Restore original test environment
@@ -206,7 +206,7 @@ class TestInitDataPreservation:
         (self.shared_dir / "script.py").write_text("# Important script\nprint('preserve me')")
         
         result = self.run_mem8([
-            "init", "--template", "thoughts-repo", "--force"  
+            "init", "--template", "memory-repo", "--force"  
         ], expect_success=False)
         
         # Verify complex structure is preserved
@@ -234,8 +234,8 @@ def run_manual_preservation_test():
         print(f"Test directory: {test_dir}")
         
         # Create important user data
-        thoughts_dir = test_dir / "thoughts"
-        shared_dir = thoughts_dir / "shared"
+        memory_dir = test_dir / "memory"
+        shared_dir = memory_dir / "shared"
         shared_dir.mkdir(parents=True)
         
         important_file = shared_dir / "my_important_work.md"
@@ -265,7 +265,7 @@ This represents months of important work that must never be lost!
         decisions_dir.mkdir()
         (decisions_dir / "tech_stack.md").write_text("# Technology Stack Decision")
         
-        print("✅ Created important user data in thoughts/shared/")
+        print("✅ Created important user data in memory/shared/")
         print(f"   - {important_file}")
         print(f"   - {plans_dir / 'project_alpha.md'}")
         print(f"   - {decisions_dir / 'tech_stack.md'}")
@@ -273,8 +273,10 @@ This represents months of important work that must never be lost!
         # Test 1: Show warning without --force
         print("\\n🔍 Test 1: Running init without --force (should warn and abort)")
         result = subprocess.run(
-            ["mem8", "init", "--template", "thoughts-repo", "--non-interactive"],
-            capture_output=True, text=True
+            ["mem8", "init", "--template", "memory-repo", "--non-interactive"],
+            capture_output=True, text=True,
+            encoding='utf-8',
+            errors='replace'
         )
         print("Result:")
         print(result.stdout)
@@ -283,7 +285,7 @@ This represents months of important work that must never be lost!
         print("\\n🛡️ Test 2: Running init with --force (should preserve data)")
         # Note: This will fail at cookiecutter prompts, but will show preservation
         result = subprocess.run(
-            ["mem8", "init", "--template", "thoughts-repo", "--force"],
+            ["mem8", "init", "--template", "memory-repo", "--force"],
             capture_output=True, text=True, input="\\n" * 10  # Skip cookiecutter prompts
         )
         print("Result:")

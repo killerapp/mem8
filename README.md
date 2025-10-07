@@ -1,39 +1,47 @@
 # mem8 - Claude Code Workspace Manager
 
-A streamlined CLI tool for managing Claude Code customizations and documentation workflows. Create standardized project templates, manage thoughts/research documents, and enhance your Claude Code development experience.
+A streamlined CLI tool for managing Claude Code customizations and documentation workflows. Create standardized project templates, manage memory/research documents, and enhance your Claude Code development experience.
 
 ## 🎯 Overview
 
 mem8 is designed to work seamlessly with Claude Code, providing:
 - **💻 Rich CLI Interface** - Manage Claude Code customizations and project templates  
-- **📝 Thoughts Management** - Organize research, plans, and documentation in markdown
-- **🎨 Dashboard** - Optional web interface to browse your workspace and thoughts
+- **📝 Memory Management** - Organize research, plans, and documentation in markdown
+- **🎨 Dashboard** - Optional web interface to browse your workspace and memory
 - **🏗️ Template System** - Cookiecutter templates for Claude Code configurations
 
 ## ✨ Core Features
 
 ### 💻 CLI Commands
 ```bash
-mem8 init --template claude-config   # Initialize Claude Code workspace  
+mem8 init --template claude-config   # Initialize Claude Code workspace
 mem8 status                          # Check workspace health
-mem8 search "query"                 # Search across all thoughts
+mem8 doctor                          # Diagnose issues and check CLI toolbelt
+mem8 doctor --fix                    # Auto-fix missing tools (where possible)
+mem8 doctor --json                   # Machine-readable output for agents
+mem8 tools                           # List toolbelt CLI tools and versions
+mem8 tools --save                    # Save toolbelt to .mem8/tools.md
+mem8 ports --lease                   # Lease port range for project
+mem8 ports                           # Show current project's port assignments
+mem8 ports --kill <port>             # Kill process on port (safe mode)
+mem8 search "query"                  # Search across all memory
 mem8 serve                           # Start the API server (port 8000)
 ```
 
 ### 📁 Template System
 - **claude-dot-md-template** - Generate `.claude/[agents,commands]` configurations
-- **shared-thoughts-template** - Create structured thoughts repositories
+- **shared-memory-template** - Create structured memory repositories
 - **Cookiecutter integration** - Flexible, customizable project generation
 
-### 🔍 Thoughts Organization
+### 🔍 Memory Organization
 ```
-thoughts/
+memory/
 ├── shared/
 │   ├── research/      # Research documents
 │   ├── plans/         # Implementation plans  
 │   ├── prs/          # PR descriptions
 │   └── decisions/     # Technical decisions
-└── {project}/         # Project-specific thoughts
+└── {project}/         # Project-specific memory
 ```
 
 ## 🚀 Quick Start
@@ -54,8 +62,8 @@ uv tool install --editable .
 # Create Claude Code configuration
 mem8 init --template claude-config
 
-# Create thoughts repository
-mem8 init --template thoughts-repo
+# Create memory repository
+mem8 init --template memory-repo
 
 # Check everything is working
 mem8 status
@@ -84,6 +92,232 @@ cd frontend && npm install && npm run dev
 
 **Note:** The `mem8 serve` command requires Docker for the database. See [DOCKER.md](DOCKER.md) for details.
 
+## 🔧 CLI Toolbelt Management
+
+mem8 includes a CLI toolbelt verification system to ensure you have all necessary tools for AI-assisted development workflows.
+
+### Quick Check
+```bash
+# Check for missing tools
+mem8 doctor
+
+# Auto-install missing tools (where supported)
+mem8 doctor --fix
+
+# JSON output for agents/CI
+mem8 doctor --json
+```
+
+### Verified Tools
+
+The toolbelt checks for essential CLI tools that enhance AI workflows:
+
+**Required Tools:**
+- **ripgrep** (`rg`) - Fast recursive search, better than grep
+- **fd** (`fd`) - Fast file finder, better than find
+- **jq** - JSON processor for parsing API responses
+- **gh** - GitHub CLI for PR/issue management
+- **git** - Version control system
+
+**Optional Tools:**
+- **bat** - Syntax-highlighted file viewer
+- **delta** - Beautiful git diff viewer
+- **yq** - YAML/XML processor
+- **fzf** - Fuzzy finder for interactive selection
+- **sd** - Simpler sed alternative for text replacement
+- **ast-grep** - AST-based code search and refactoring
+
+### Version Requirements
+
+Tools with version requirements are automatically checked:
+```bash
+$ mem8 doctor
+⚠️  Missing 1 required CLI tools
+  • gh (gh) (requires >=2.60) - GitHub CLI
+    Install: winget install GitHub.cli
+    Current: 2.53.0
+```
+
+### Platform Support
+
+Install commands are automatically selected for your platform:
+- **Windows** - Uses `winget` package manager
+- **macOS** - Uses `brew` (Homebrew)
+- **Linux** - Uses `apt` or distro-specific managers
+
+### CI Integration
+
+The `--json` flag and exit codes make it CI-friendly:
+```bash
+mem8 doctor --json > toolbelt-status.json
+# Exit code 0 if all tools present, 1 if any missing
+```
+
+### External Template Sources
+
+Doctor can use custom toolbelt definitions from external template sources:
+
+**Priority Order:**
+1. CLI flag: `--template-source`
+2. Project config: `.mem8/config.yaml`
+3. User config: `~/.config/mem8/config.yaml`
+4. Builtin templates (default)
+
+**Project-Level Configuration** (`.mem8/config.yaml`):
+```yaml
+templates:
+  # Dedicated template repo (root-level)
+  default_source: "my-org/templates"
+
+  # Fork of killerapp/mem8-templates
+  default_source: "acme-corp/mem8-templates"
+
+  # Monorepo with templates in subdirectory
+  default_source: "my-org/monorepo#subdir=mem8/templates"
+
+  # Specific version/tag
+  default_source: "my-org/templates@v1.0.0"
+
+  # Local development path
+  default_source: "/path/to/templates"
+```
+
+**User-Level Configuration** (`~/.config/mem8/config.yaml`):
+```bash
+# Set default for all projects
+mem8 templates set-default "org/repo"
+
+# Or edit manually at ~/.config/mem8/config.yaml
+```
+
+**CLI Override:**
+```bash
+# Dedicated template repo (cleanest for organizations)
+mem8 doctor --template-source "acme-corp/mem8-templates"
+
+# Fork of official templates with customizations
+mem8 doctor --template-source "my-org/mem8-templates"
+
+# Monorepo with templates in subdirectory
+mem8 doctor --template-source "my-org/monorepo#subdir=tools/templates"
+
+# Use specific version/branch
+mem8 doctor --template-source "my-org/templates@v2.0.0"
+
+# Local development version
+mem8 doctor --template-source "/path/to/local/templates"
+```
+
+**Template Repo Patterns:**
+
+1. **Dedicated Repo (Recommended for Organizations)**
+   - Fork `killerapp/mem8-templates` → `acme-corp/mem8-templates`
+   - Customize toolbelt for your org's standards
+   - Reference directly: `acme-corp/mem8-templates`
+   - No `#subdir=` needed - manifest at root
+
+2. **Monorepo with Templates**
+   - Keep templates alongside code
+   - Use `#subdir=path/to/templates`
+   - Example: `my-org/platform#subdir=config/mem8-templates`
+
+3. **Local Development**
+   - Test changes before pushing
+   - Use absolute or relative paths
+   - Example: `--template-source ./my-templates`
+
+### Custom Toolbelts
+
+Projects can define custom tool requirements in `manifest.yaml`:
+```yaml
+toolbelt:
+  required:
+    - name: "custom-tool"
+      command: "tool"
+      description: "Custom build tool"
+      version: ">=1.0"
+      install:
+        windows: "winget install tool"
+        macos: "brew install tool"
+        linux: "apt install tool"
+```
+
+## 🔌 Port Management
+
+mem8 includes a global port leasing system to prevent port conflicts when AI agents create multiple projects on the same machine.
+
+### Quick Start
+```bash
+# Lease port range for current project
+mem8 ports --lease
+
+# View assigned ports
+mem8 ports
+
+# Kill process on a port (safe - only kills ports in your range)
+mem8 ports --kill 20000
+
+# List all port leases across all projects
+mem8 ports --list-all
+
+# Release ports when done
+mem8 ports --release
+```
+
+### Key Features
+
+**Global Registry:** `~/.mem8/port_leases.yaml` tracks all port leases across projects
+- Prevents Next.js/React dev servers from conflicting (3000, 3001...)
+- AI agents reference `.mem8/ports.md` for assigned port ranges
+- Cross-platform port killing with `psutil` (no npx kill-port needed)
+
+**Project-Specific Config:** `.mem8/ports.md` documents port assignments
+- Simple range-based system (e.g., 20000-20004)
+- AI agents choose any port within the range
+- Instructions for Next.js, FastAPI, Docker, etc.
+
+**Safe Port Killing:**
+- By default, only kills ports within project's leased range
+- Use `--force` to override safety check
+- Cross-platform support (Windows, Mac, Linux)
+
+### Example Workflow
+```bash
+# Project A
+cd ~/projects/nextjs-app
+mem8 ports --lease               # Gets 20000-20004
+PORT=20000 npm run dev          # Uses assigned port
+
+# Project B
+cd ~/projects/api-server
+mem8 ports --lease               # Gets 20005-20009
+uvicorn main:app --port 20005   # No conflicts!
+```
+
+### Configuration Files
+
+**`.mem8/ports.md`** - Project-specific port documentation
+- Auto-generated with port range and usage examples
+- Editable markdown section preserved on regeneration
+- AI agents read this for port assignments
+
+**`~/.mem8/port_leases.yaml`** - Global port registry
+```yaml
+leases:
+  /path/to/project-a:
+    project_name: nextjs-app
+    start_port: 20000
+    port_count: 5
+    leased_at: '2025-10-07 01:28:43'
+last_updated: '2025-10-07 01:28:43'
+```
+
+**`.mem8/config.yaml`** - Project configuration
+```yaml
+templates:
+  default_source: "killerapp/mem8#subdir=mem8/templates"
+```
+
 ## 🔄 Development Workflow
 
 mem8 provides a structured inner loop for effective development:
@@ -93,7 +327,7 @@ mem8 provides a structured inner loop for effective development:
 1. **Research** (`/research_codebase`) - Understand existing patterns and architecture
    - Uses parallel sub-agents for comprehensive codebase analysis
    - Creates timestamped research documents with metadata
-   - Integrates findings from both code and thoughts repository
+   - Integrates findings from both code and memory repository
 
 2. **Plan** (`/create_plan`) - Design your approach with concrete steps
    - Structured implementation plans with technical details
@@ -139,7 +373,7 @@ mem8 init --template claude-config
 # Creates: .claude/CLAUDE.md, commands/, agents/
 ```
 
-### Thoughts Repository (`thoughts-repo`)  
+### Memory Repository (`memory-repo`)  
 Creates structured documentation with:
 - Research document templates
 - Planning frameworks
@@ -148,8 +382,8 @@ Creates structured documentation with:
 
 **Example Usage:**
 ```bash
-mem8 init --template thoughts-repo  
-# Creates: thoughts/shared/, thoughts/research/, etc.
+mem8 init --template memory-repo  
+# Creates: memory/shared/, memory/research/, etc.
 ```
 
 ## 🎛️ Configuration
@@ -169,8 +403,8 @@ mem8 init --template claude-config
 # Use custom cookiecutter configs
 mem8 init --template claude-config --config-file custom-config.yaml
 
-# Link shared thoughts across projects
-mem8 sync --link-shared ~/shared-thoughts
+# Link shared memory across projects
+mem8 sync --link-shared ~/shared-memory
 ```
 
 ## 💻 Web Interface (Optional)
@@ -213,7 +447,7 @@ your-project/
 │   ├── CLAUDE.md          # Main Claude Code configuration
 │   ├── commands/          # Custom commands
 │   └── agents/           # Custom agent definitions
-├── thoughts/
+├── memory/
 │   ├── shared/           # Shared documentation
 │   ├── research/         # Research documents
 │   └── plans/           # Implementation plans
@@ -238,7 +472,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed de
 mem8 search "authentication"
 
 # Search in specific directories
-mem8 search "API" --path thoughts/shared/research
+mem8 search "API" --path memory/shared/research
 
 # Search with filters
 mem8 search "bug" --tags "urgent" --type "plans"
@@ -249,8 +483,8 @@ mem8 search "bug" --tags "urgent" --type "plans"
 # Sync with shared directory
 mem8 sync
 
-# Create symlinks to shared thoughts
-mem8 sync --link ~/team-shared-thoughts
+# Create symlinks to shared memory
+mem8 sync --link ~/team-shared-memory
 
 # Check sync status
 mem8 status --verbose
@@ -286,9 +520,9 @@ echo "Analyzing codebase structure..."
 Configure in `.claude/CLAUDE.md`:
 ```markdown
 # Project Context
-- Use `thoughts/research/` for background research
-- Store implementation plans in `thoughts/plans/`
-- Document decisions in `thoughts/decisions/`
+- Use `memory/research/` for background research
+- Store implementation plans in `memory/plans/`
+- Document decisions in `memory/decisions/`
 ```
 
 ## 🚀 Production Deployment
@@ -324,7 +558,7 @@ docker-compose --env-file .env.dev up -d backend db
 ```
 
 **Why Docker is required:**
-- Backend needs PostgreSQL database for teams, thoughts, and authentication
+- Backend needs PostgreSQL database for teams, memory, and authentication
 - Docker Compose provides the full stack (backend + database + optional frontend)
 - See [DOCKER.md](DOCKER.md) for all deployment options
 
@@ -358,7 +592,7 @@ docker-compose --env-file .env.dev up -d --build
 ### Architecture
 The production deployment uses:
 - **mem8 serve**: FastAPI backend with unified CLI entry point
-- **PostgreSQL**: Primary database for storing thoughts and metadata
+- **PostgreSQL**: Primary database for storing memory and metadata
 - **Redis**: Cache layer and websocket support
 - **Next.js**: Frontend application on port 22211
 
@@ -374,8 +608,8 @@ The production deployment uses:
 ### Research & Planning
 ```bash
 # Start new research
-mem8 init --template thoughts-repo
-cd thoughts/research
+mem8 init --template memory-repo
+cd memory/research
 # Create research-topic.md
 
 # Plan implementation  
@@ -410,7 +644,7 @@ MIT License - see LICENSE file for details.
 Contributions welcome! Focus areas:
 1. **New Templates** - Create templates for different project types
 2. **CLI Enhancements** - Improve search and sync functionality
-3. **Web Interface** - Enhance the thoughts file viewer
+3. **Web Interface** - Enhance the memory file viewer
 4. **Documentation** - Improve setup and usage guides
 
 ---

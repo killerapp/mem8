@@ -41,7 +41,7 @@ class SearchMethod(str, Enum):
 
 
 class ContentType(str, Enum):
-    THOUGHTS = "thoughts"
+    MEMORY = "memory"
     MEMORIES = "memories"
     ALL = "all"
 
@@ -278,19 +278,65 @@ def status(
 
 @typer_app.command()
 def doctor(
-    auto_fix: Annotated[bool, typer.Option("--auto-fix", help="Attempt to automatically fix issues")] = False,
+    fix: Annotated[bool, typer.Option("--fix", help="Attempt to automatically fix issues")] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output results as JSON for agent consumption")] = False,
+    template_source: Annotated[Optional[str], typer.Option(
+        "--template-source", help="Template source for toolbelt definition: local path, git URL, or GitHub shorthand (org/repo)"
+    )] = None,
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
     """Diagnose and fix mem8 workspace issues."""
+    import json
+    import sys
+
     set_app_state(verbose=verbose)
     state = get_state()
     memory_manager = state.memory_manager
-    
-    console.print("[bold blue]Running mem8 diagnostics...[/bold blue]")
-    
+
+    # Resolve template source from: CLI flag > project config > user config > builtin
+    if template_source is None:
+        from .core.config import Config
+
+        # Check project-level config first
+        project_config_file = Path.cwd() / ".mem8" / "config.yaml"
+        if project_config_file.exists():
+            import yaml
+            try:
+                with open(project_config_file, 'r') as f:
+                    project_config = yaml.safe_load(f) or {}
+                    template_source = project_config.get('templates', {}).get('default_source')
+            except Exception:
+                pass
+
+        # Fall back to user-level config
+        if template_source is None:
+            config = Config()
+            template_source = config.get('templates.default_source')
+
+    if not json_output:
+        console.print("[bold blue]Running mem8 diagnostics...[/bold blue]")
+        if template_source:
+            console.print(f"[dim]Using template source: {template_source}[/dim]")
+
     try:
-        diagnosis = memory_manager.diagnose_workspace(auto_fix=auto_fix)
-        
+        diagnosis = memory_manager.diagnose_workspace(auto_fix=fix, template_source=template_source)
+
+        # JSON output mode
+        if json_output:
+            json_output_data = {
+                "status": "healthy" if not diagnosis['issues'] else "unhealthy",
+                "health_score": diagnosis['health_score'],
+                "issues": diagnosis['issues'],
+                "fixes_applied": diagnosis['fixes_applied'],
+                "recommendations": diagnosis.get('recommendations', [])
+            }
+            print(json.dumps(json_output_data, indent=2))
+            # Exit with non-zero if there are issues
+            if diagnosis['issues']:
+                sys.exit(1)
+            return
+
+        # Human-readable output mode
         # Show issues
         if diagnosis['issues']:
             console.print("\n⚠️  [bold yellow]Issues found:[/bold yellow]")
@@ -301,35 +347,54 @@ def doctor(
                     'info': 'ℹ️'
                 }.get(issue['severity'], '•')
                 console.print(f"  {severity_icon} {issue['description']}")
-                if auto_fix and issue.get('fixed'):
+                if fix and issue.get('fixed'):
                     console.print(f"    ✅ [green]Fixed automatically[/green]")
 
                 # Show missing tools with install commands
                 if 'missing_tools' in issue:
                     for tool in issue['missing_tools']:
-                        console.print(f"    • [cyan]{tool['name']}[/cyan] ({tool['command']}) - {tool['description']}")
+                        version_info = f" (requires {tool['version']})" if tool.get('version') else ""
+                        console.print(f"    • [cyan]{tool['name']}[/cyan] ({tool['command']}){version_info} - {tool['description']}")
                         console.print(f"      Install: [yellow]{tool['install']}[/yellow]")
-        
+
+                        # Show current version if available
+                        if tool.get('current_version'):
+                            console.print(f"      Current: [yellow]{tool['current_version']}[/yellow]")
+
         # Show fixes applied
-        if auto_fix and diagnosis['fixes_applied']:
+        if fix and diagnosis['fixes_applied']:
             console.print("\n✅ [bold green]Fixes applied:[/bold green]")
-            for fix in diagnosis['fixes_applied']:
-                console.print(f"  • {fix}")
-        
+            for fix_msg in diagnosis['fixes_applied']:
+                console.print(f"  • {fix_msg}")
+
         # Show recommendations
         if diagnosis.get('recommendations'):
             console.print("\n💡 [bold blue]Recommendations:[/bold blue]")
             for rec in diagnosis['recommendations']:
                 console.print(f"  • {rec}")
-        
+
         # Overall health
         if not diagnosis['issues']:
             console.print("\n✅ [bold green]All checks passed! Your mem8 workspace is healthy.[/bold green]")
-        elif auto_fix:
+
+            # Save toolbelt when healthy
+            try:
+                from .core.toolbelt import save_toolbelt
+                output_file = save_toolbelt()
+                if verbose:
+                    console.print(f"[dim]Saved toolbelt to {output_file}[/dim]")
+            except Exception:
+                pass  # Non-critical, don't fail on this
+
+        elif fix:
             console.print(f"\n🔧 [blue]Fixed {len(diagnosis['fixes_applied'])} of {len(diagnosis['issues'])} issues.[/blue]")
         else:
-            console.print(f"\n⚠️  [yellow]Found {len(diagnosis['issues'])} issues. Run with --auto-fix to attempt repairs.[/yellow]")
-            
+            console.print(f"\n⚠️  [yellow]Found {len(diagnosis['issues'])} issues. Run with --fix to attempt repairs.[/yellow]")
+
+        # Exit with non-zero code if issues remain (CI-friendly)
+        if diagnosis['issues']:
+            sys.exit(1)
+
     except Exception as e:
         handle_command_error(e, verbose, "diagnostics")
 
@@ -437,7 +502,7 @@ def search(
     Full-text content search with context snippets.
 
     Use 'search' to find specific text/keywords within file contents.
-    Use 'find' to browse/filter thoughts by type, status, or metadata.
+    Use 'find' to browse/filter memory by type, status, or metadata.
 
     Examples:
       mem8 search "docker"                    # Search everywhere
@@ -472,16 +537,16 @@ def search(
     path_filter = path
 
     if category:
-        content_type = ContentType.THOUGHTS
+        content_type = ContentType.MEMORY
         if not path:
             # Map category to path
             category_paths = {
-                'plans': 'thoughts/shared/plans',
-                'research': 'thoughts/shared/research',
-                'decisions': 'thoughts/shared/decisions',
-                'tickets': 'thoughts/shared/tickets',
-                'prs': 'thoughts/shared/prs',
-                'shared': 'thoughts/shared',
+                'plans': 'memory/shared/plans',
+                'research': 'memory/shared/research',
+                'decisions': 'memory/shared/decisions',
+                'tickets': 'memory/shared/tickets',
+                'prs': 'memory/shared/prs',
+                'shared': 'memory/shared',
             }
             path_filter = category_paths.get(category)
 
@@ -623,27 +688,27 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         })
 
     # Template selection
-    existing_thoughts = Path('thoughts').exists()
-    default_template = 'claude-config' if existing_thoughts else defaults.get('template', 'full')
-    template_choices = ["full", "claude-config", "thoughts-repo", "none"]
+    existing_memory = Path('memory').exists()
+    default_template = 'claude-config' if existing_memory else defaults.get('template', 'full')
+    template_choices = ["full", "claude-config", "memory-repo", "none"]
 
     console.print("\n[cyan]Template[/cyan]")
-    console.print("  full           - Commands + thoughts structure")
+    console.print("  full           - Commands + memory structure")
     console.print("  claude-config  - Commands only")
-    console.print("  thoughts-repo  - Thoughts structure only")
+    console.print("  memory-repo  - Memory structure only")
     console.print("  none           - Skip templates")
     console.print("")
     
     template = typer.prompt("Template", default=default_template)
     while template not in template_choices:
-        console.print("[red]Choose: full, claude-config, thoughts-repo, or none[/red]")
+        console.print("[red]Choose: full, claude-config, memory-repo, or none[/red]")
         template = typer.prompt("Template", default=default_template)
 
     interactive_config["template"] = template if template != "none" else None
 
     # Username
     default_username = gh_context["username"] or get_git_username() or "user"
-    interactive_username = typer.prompt("\nUsername for thoughts", default=default_username)
+    interactive_username = typer.prompt("\nUsername for memory", default=default_username)
     interactive_config["username"] = interactive_username
 
     # Workflow automation (only if GitHub + templates)
@@ -659,7 +724,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
             workflow_automation = typer.prompt("Workflow automation", default="standard")
         interactive_config["workflow_automation"] = workflow_automation
     
-    # Skip repo discovery and shared thoughts - keep it simple
+    # Skip repo discovery and shared memory - keep it simple
     interactive_config["include_repos"] = False
     interactive_config["shared_enabled"] = False
     
@@ -681,7 +746,7 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _execute_action(action: str, results: list, force: bool, verbose: bool):
-    """Execute action on found thoughts."""
+    """Execute action on found memory."""
     # Enhanced confirmation for destructive actions
     if action in ['delete', 'archive']:
         # Show what will be affected
@@ -720,7 +785,7 @@ def _execute_action(action: str, results: list, force: bool, verbose: bool):
                 console.print()
         elif action == 'delete':
             # Use the bulk delete method
-            result = action_engine.delete_thoughts(results, dry_run=False)
+            result = action_engine.delete_memory(results, dry_run=False)
             console.print(f"\n✅ [green]Deleted {len(result['success'])} file(s)[/green]")
             for success_path in result['success']:
                 console.print(f"  🗑️  [dim]{Path(success_path).name}[/dim]")
@@ -744,7 +809,7 @@ def _preview_action(action: str, results: list):
     """Preview what action would do without executing."""
     from rich.table import Table
     
-    table = Table(title=f"Would {action} {len(results)} thoughts (dry run)")
+    table = Table(title=f"Would {action} {len(results)} memory (dry run)")
     table.add_column("Action", style="cyan", width=10)
     table.add_column("Type", style="blue", width=10)
     table.add_column("Path", style="dim")
@@ -770,11 +835,11 @@ def _preview_action(action: str, results: list):
 # Create find subcommand app
 find_app = typer.Typer(
     name="find",
-    help="Browse/filter thoughts by type, status, or metadata. For content search, use 'mem8 search <query>' instead."
+    help="Browse/filter memory by type, status, or metadata. For content search, use 'mem8 search <query>' instead."
 )
 typer_app.add_typer(find_app, name="find")
 
-def _find_thoughts_new(
+def _find_memory_new(
     filter_type: str = "all",
     filter_value: str = None,
     keywords: Optional[str] = None,
@@ -793,7 +858,7 @@ def _find_thoughts_new(
     state = get_state()
     discovery = state.memory_manager.thought_discovery
     
-    # Get filtered thoughts using existing methods
+    # Get filtered memory using existing methods
     if filter_type == "type":
         results = discovery.find_by_type(filter_value)
     elif filter_type == "scope":
@@ -801,7 +866,7 @@ def _find_thoughts_new(
     elif filter_type == "status":
         results = discovery.find_by_status(filter_value)
     else:
-        results = discovery.discover_all_thoughts()
+        results = discovery.discover_all_memory()
     
     # Apply keyword filter if provided
     if keywords and keywords.strip():
@@ -827,7 +892,7 @@ def _find_thoughts_new(
     results = results[:limit]
     
     if not results:
-        console.print("[yellow]❌ No thoughts found[/yellow]")
+        console.print("[yellow]❌ No memory found[/yellow]")
         return
     
     # Show what we're finding
@@ -842,7 +907,7 @@ def _find_thoughts_new(
         console.print(f"[bold {action_color}]Action: {action.value}{dry_run_text}[/bold {action_color}]")
     
     # Display results table
-    table = Table(title=f"Found {len(results)} thoughts")
+    table = Table(title=f"Found {len(results)} memory")
     table.add_column("Type", style="cyan", width=10)
     table.add_column("Title", style="green")
     table.add_column("Status", style="yellow", width=12)
@@ -886,7 +951,7 @@ def find_all_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -898,8 +963,8 @@ def find_all_new(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
 ):
-    """Find all thoughts, optionally filtered by keywords."""
-    _find_thoughts_new("all", None, keywords, limit, action, dry_run, force, verbose)
+    """Find all memory, optionally filtered by keywords."""
+    _find_memory_new("all", None, keywords, limit, action, dry_run, force, verbose)
 
 @find_app.command("plans")
 def find_plans_new(
@@ -910,7 +975,7 @@ def find_plans_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -923,7 +988,7 @@ def find_plans_new(
     )] = False
 ):
     """Find plan documents, optionally filtered by keywords."""
-    _find_thoughts_new("type", "plan", keywords, limit, action, dry_run, force, verbose)
+    _find_memory_new("type", "plan", keywords, limit, action, dry_run, force, verbose)
 
 @find_app.command("research")
 def find_research_new(
@@ -934,7 +999,7 @@ def find_research_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -947,7 +1012,7 @@ def find_research_new(
     )] = False
 ):
     """Find research documents, optionally filtered by keywords."""
-    _find_thoughts_new("type", "research", keywords, limit, action, dry_run, force, verbose)
+    _find_memory_new("type", "research", keywords, limit, action, dry_run, force, verbose)
 
 @find_app.command("shared")
 def find_shared_new(
@@ -958,7 +1023,7 @@ def find_shared_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -967,8 +1032,8 @@ def find_shared_new(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
 ):
-    """Find shared thoughts, optionally filtered by keywords."""
-    _find_thoughts_new("scope", "shared", keywords, limit, action, dry_run, verbose)
+    """Find shared memory, optionally filtered by keywords."""
+    _find_memory_new("scope", "shared", keywords, limit, action, dry_run, verbose)
 
 @find_app.command("completed")
 def find_completed_new(
@@ -979,7 +1044,7 @@ def find_completed_new(
         "--limit", help="Maximum results to return"
     )] = 20,
     action: Annotated[Optional[ActionType], typer.Option(
-        "--action", help="Action to perform on found thoughts"
+        "--action", help="Action to perform on found memory"
     )] = None,
     dry_run: Annotated[bool, typer.Option(
         "--dry-run", help="Show what would be done without executing"
@@ -988,21 +1053,21 @@ def find_completed_new(
         "--verbose", "-v", help="Enable verbose output"
     )] = False
 ):
-    """Find completed thoughts, optionally filtered by keywords."""
-    _find_thoughts_new("status", "completed", keywords, limit, action, dry_run, verbose)
+    """Find completed memory, optionally filtered by keywords."""
+    _find_memory_new("status", "completed", keywords, limit, action, dry_run, verbose)
 
 
 # ============================================================================
 # Remaining Commands (Phase 3)
 # ============================================================================
 
-def _should_skip_confirmation(force: bool, non_interactive: bool, existing_thoughts: bool, existing_claude: bool, should_install_templates: bool, template_type: str) -> tuple[bool, list[str]]:
+def _should_skip_confirmation(force: bool, non_interactive: bool, existing_memory: bool, existing_claude: bool, should_install_templates: bool, template_type: str) -> tuple[bool, list[str]]:
     """Determine if we should skip confirmation and what issues exist."""
     needs_confirmation = False
     issues = []
 
-    if existing_thoughts and not force:
-        issues.append("thoughts/ directory already exists")
+    if existing_memory and not force:
+        issues.append("memory/ directory already exists")
         needs_confirmation = True
 
     if existing_claude and should_install_templates and "claude" in (template_type or "") and not force:
@@ -1089,7 +1154,7 @@ def init(
     template: Optional[str] = typer.Option(
         None,
         "--template", "-t",
-        help="Force specific template: claude-config, thoughts-repo, or full (default: auto-detect)",
+        help="Force specific template: claude-config, memory-repo, or full (default: auto-detect)",
     ),
     template_source: Annotated[Optional[str], typer.Option(
         "--template-source", help="External template source: local path, git URL, or GitHub shorthand (org/repo)"
@@ -1098,7 +1163,7 @@ def init(
         "--repos", help="Comma-separated list of repository paths to discover"
     )] = None,
     shared_dir: Annotated[Optional[Path], typer.Option(
-        "--shared-dir", help="Path to shared directory for thoughts"
+        "--shared-dir", help="Path to shared directory for memory"
     )] = None,
     web: Annotated[bool, typer.Option(
         "--web", help="Launch web UI after setup"
@@ -1174,11 +1239,11 @@ def init(
             template_type = "claude-config"  # Default for Claude projects
         
         # 3. Check for existing setup and conflicts
-        existing_thoughts = Path('thoughts').exists()
+        existing_memory = Path('memory').exists()
         existing_claude = Path('.claude').exists()
 
         needs_confirmation, issues = _should_skip_confirmation(
-            force, non_interactive, existing_thoughts, existing_claude,
+            force, non_interactive, existing_memory, existing_claude,
             should_install_templates, template_type
         )
 
@@ -1220,10 +1285,19 @@ def init(
         config_manager = Config()
         config_manager.create_home_shortcut()
 
+        # Save toolbelt
+        try:
+            from .core.toolbelt import save_toolbelt
+            output_file = save_toolbelt()
+            if verbose:
+                console.print(f"[dim]Saved toolbelt to {output_file}[/dim]")
+        except Exception:
+            pass  # Non-critical, don't fail on this
+
         # Done
         console.print("\n[green]✓[/green] Setup complete")
         console.print("  mem8 status  - verify setup")
-        console.print("  mem8 search  - find thoughts")
+        console.print("  mem8 search  - find memory")
         
     except Exception as e:
         handle_command_error(e, verbose, "setup")
@@ -1267,7 +1341,7 @@ def _analyze_claude_template(workspace_dir: Path) -> Dict[str, Any]:
     
     analysis['template_agents'] = [
         'codebase-analyzer', 'codebase-locator', 'codebase-pattern-finder',
-        'github-workflow-agent', 'thoughts-analyzer', 'thoughts-locator', 
+        'github-workflow-agent', 'memory-analyzer', 'memory-locator', 
         'web-search-researcher'
     ]
     
@@ -1308,9 +1382,9 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
 
         # Map template types to directories
         template_map = {
-            "full": ["claude-dot-md-template", "shared-thoughts-template"],
+            "full": ["claude-dot-md-template", "shared-memory-template"],
             "claude-config": ["claude-dot-md-template"],
-            "thoughts-repo": ["shared-thoughts-template"],
+            "memory-repo": ["shared-memory-template"],
         }
 
         if template_type not in template_map:
@@ -1336,7 +1410,7 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                     continue
 
             # Check if target already exists
-            target_dir = ".claude" if "claude" in template_name else "thoughts"
+            target_dir = ".claude" if "claude" in template_name else "memory"
 
             # Check if target exists and handle overwrite confirmation
             should_overwrite = force
@@ -1400,8 +1474,8 @@ def _install_templates(template_type: str, force: bool, verbose: bool, interacti
                 if "claude" in template_name:
                     analysis = _analyze_claude_template(workspace_dir)
                     console.print(f"  {len(analysis['template_commands'])} commands, {len(analysis['template_agents'])} agents installed")
-                elif "thoughts" in template_name:
-                    console.print(f"  thoughts/ structure created")
+                elif "memory" in template_name:
+                    console.print(f"  memory/ structure created")
             except Exception as e:
                 # Always show installation errors, not just in verbose mode
                 console.print(f"[red]❌ Failed to install {template_name}:[/red] {e}")
@@ -1904,7 +1978,7 @@ def templates_validate(
                 return
 
             # Check for manifest
-            manifest_path = resolved_path / "mem8-templates.yaml"
+            manifest_path = resolved_path / "manifest.yaml"
             if manifest_path.exists():
                 console.print("✅ [green]Manifest file found[/green]")
 
@@ -2030,3 +2104,152 @@ def gh_whoami(
             console.print("[dim]No repository detected in current directory[/dim]")
     else:
         console.print("[yellow]gh not detected or no active login for this host[/yellow]")
+
+
+@typer_app.command()
+def tools(
+    save: Annotated[bool, typer.Option("--save", help="Save toolbelt to .mem8/tools.md")] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
+):
+    """List toolbelt CLI tools and OS details for AI system prompts."""
+    from .core.toolbelt import check_toolbelt, save_toolbelt as save_tools_to_file
+    from rich.table import Table
+
+    set_app_state(verbose=verbose)
+
+    # Check tools
+    output_data = check_toolbelt()
+    os_info = output_data['os']
+    verified = output_data['tools']
+
+    # Display to user
+    console.print("[bold blue]System Environment[/bold blue]")
+    console.print(f"OS: {os_info['system']} {os_info['release']} ({os_info['machine']})")
+    console.print(f"Python: {os_info['python_version']}")
+
+    console.print("\n[bold blue]Verified Tools[/bold blue]")
+    if verified:
+        table = Table()
+        table.add_column("Tool", style="cyan")
+        table.add_column("Version", style="green")
+
+        for tool, version in sorted(verified.items()):
+            table.add_row(tool, version)
+        console.print(table)
+    else:
+        console.print("[yellow]No tools verified[/yellow]")
+
+    # Save if requested
+    if save:
+        output_file = save_tools_to_file()
+        console.print(f"\n✅ [green]Saved to {output_file}[/green]")
+    else:
+        console.print("\n💡 [dim]Use --save to write to .mem8/tools.md[/dim]")
+
+
+@typer_app.command()
+def ports(
+    lease: Annotated[bool, typer.Option("--lease", help="Lease new ports for this project")] = False,
+    start: Annotated[Optional[int], typer.Option("--start", help="Starting port number (auto-assign if not specified)")] = None,
+    count: Annotated[int, typer.Option("--count", help="Number of ports to lease")] = 5,
+    release: Annotated[bool, typer.Option("--release", help="Release this project's port lease")] = False,
+    list_all: Annotated[bool, typer.Option("--list-all", help="List all port leases across all projects")] = False,
+    check_conflicts: Annotated[bool, typer.Option("--check-conflicts", help="Check for port conflicts")] = False,
+    kill: Annotated[Optional[int], typer.Option("--kill", help="Kill process using specified port")] = None,
+    force: Annotated[bool, typer.Option("--force", help="Force kill port outside project range")] = False,
+    show: Annotated[bool, typer.Option("--show", help="Show current project's port assignments")] = True,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
+):
+    """Manage project port assignments to prevent conflicts across projects."""
+    from .core.ports import PortManager, save_ports_file
+
+    set_app_state(verbose=verbose)
+
+    manager = PortManager()
+
+    # Kill port process
+    if kill:
+        console.print(f"[yellow]Attempting to kill process on port {kill}...[/yellow]")
+        success, message = manager.kill_port(kill, force=force)
+        if success:
+            console.print(f"[green]✓ {message}[/green]")
+        else:
+            console.print(f"[red]✗ {message}[/red]")
+            if not force and "outside project's range" in message:
+                console.print(f"[dim]Use --force to kill ports outside your range[/dim]")
+        return
+
+    # Release lease
+    if release:
+        if manager.release_lease():
+            console.print("[green]✓ Port lease released[/green]")
+            # Remove ports.md
+            ports_file = Path.cwd() / ".mem8" / "ports.md"
+            if ports_file.exists():
+                ports_file.unlink()
+                console.print(f"[dim]Removed {ports_file}[/dim]")
+        else:
+            console.print("[yellow]No active lease for this project[/yellow]")
+        return
+
+    # Check conflicts
+    if check_conflicts:
+        conflicts = manager.check_conflicts()
+        if conflicts:
+            console.print(f"[red]Found {len(conflicts)} port conflicts:[/red]")
+            for conflict in conflicts:
+                console.print(f"  Port {conflict['port']}: {conflict['project1']} ⚠️  {conflict['project2']}")
+        else:
+            console.print("[green]✓ No port conflicts detected[/green]")
+        return
+
+    # List all leases
+    if list_all:
+        leases = manager.list_all_leases()
+        if not leases:
+            console.print("[yellow]No port leases found[/yellow]")
+            return
+
+        console.print(f"\n[bold]Global Port Leases[/bold] ({len(leases)} projects)\n")
+
+        for project_path, lease in leases.items():
+            console.print(f"[cyan]{lease['project_name']}[/cyan]")
+            console.print(f"  Path: {project_path}")
+            console.print(f"  Ports: {lease['port_range']}")
+            console.print(f"  Leased: {lease['leased_at']}\n")
+
+        console.print(f"[dim]Registry: {manager.registry_file}[/dim]")
+        return
+
+    # Lease new ports
+    if lease:
+        try:
+            lease_info = manager.lease_ports(start=start, count=count)
+            console.print(f"[green]✓ Leased ports {lease_info['port_range']}[/green]")
+            console.print(f"[dim]{lease_info['port_count']} ports available for your services[/dim]")
+
+            # Save ports.md
+            output_file = save_ports_file(lease_info)
+            console.print(f"[dim]Created {output_file}[/dim]")
+
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            return
+
+    # Show current lease (default)
+    elif show:
+        lease_info = manager.get_lease()
+        if not lease_info:
+            console.print("[yellow]No port lease for this project[/yellow]")
+            console.print("\n[dim]Lease ports with:[/dim] mem8 ports --lease")
+            console.print("[dim]Or specify a range:[/dim] mem8 ports --lease --start 20000 --count 5")
+            return
+
+        console.print(f"\n[bold]{lease_info['project_name']}[/bold]")
+        console.print(f"Port Range: [cyan]{lease_info['port_range']}[/cyan]")
+        console.print(f"Port Count: {lease_info['port_count']}")
+        console.print(f"Leased: {lease_info['leased_at']}\n")
+
+        console.print("[dim]Config file:[/dim] .mem8/ports.md")
+        console.print("[dim]Global registry:[/dim] ~/.mem8/port_leases.yaml")
+        console.print(f"\n[dim]Use any port in range {lease_info['port_range']} for your services[/dim]")

@@ -1,4 +1,4 @@
-"""Metadata generation for thoughts and research documents."""
+"""Metadata generation for memory and research documents."""
 
 import datetime
 import subprocess
@@ -127,8 +127,8 @@ def _detect_project_type() -> str:
         return "java"
     elif (current_dir / ".claude").exists():
         return "claude-code"
-    elif (current_dir / "thoughts").exists():
-        return "thoughts-repo"
+    elif (current_dir / "memory").exists():
+        return "memory-repo"
     else:
         return "unknown"
 

@@ -123,17 +123,17 @@ def analyze_git_repository(repo_path: Path) -> Optional[Dict[str, Any]]:
         except subprocess.CalledProcessError:
             remote_url = None
         
-        # Check for thoughts directories
-        thoughts_paths = []
+        # Check for memory directories
+        memory_paths = []
         candidate_paths = [
-            repo_root / 'thoughts',
-            repo_root / 'docs' / 'thoughts', 
-            repo_root / 'thoughts' / 'shared'
+            repo_root / 'memory',
+            repo_root / 'docs' / 'memory', 
+            repo_root / 'memory' / 'shared'
         ]
         
         for candidate in candidate_paths:
             if candidate.exists() and candidate.is_dir():
-                thoughts_paths.append(str(candidate))
+                memory_paths.append(str(candidate))
         
         # Check if it's an mem8 project
         is_ai_mem_project = (repo_root / 'ai_mem').exists() or repo_name == 'mem8'
@@ -145,10 +145,10 @@ def analyze_git_repository(repo_path: Path) -> Optional[Dict[str, Any]]:
             'name': repo_name,
             'path': str(repo_root),
             'remote_url': remote_url,
-            'thoughts_paths': thoughts_paths,
+            'memory_paths': memory_paths,
             'is_ai_mem_project': is_ai_mem_project,
             'is_claude_project': is_claude_project,
-            'has_thoughts': len(thoughts_paths) > 0,
+            'has_memory': len(memory_paths) > 0,
         }
         
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -170,7 +170,7 @@ def infer_project_type() -> str:
         return 'go'
     elif (cwd / '.claude').exists():
         return 'claude-code'
-    elif (cwd / 'thoughts').exists():
+    elif (cwd / 'memory').exists():
         return 'mem8'
     else:
         return 'general'
@@ -269,18 +269,18 @@ def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
     """Create minimal mem8 structure with smart defaults."""
     results = {'created': [], 'linked': [], 'errors': []}
     
-    # Create thoughts directory
-    thoughts_dir = Path('thoughts')
-    if ensure_directory_exists(thoughts_dir):
-        results['created'].append(str(thoughts_dir))
+    # Create memory directory
+    memory_dir = Path('memory')
+    if ensure_directory_exists(memory_dir):
+        results['created'].append(str(memory_dir))
     else:
-        results['errors'].append(f"Failed to create {thoughts_dir}")
+        results['errors'].append(f"Failed to create {memory_dir}")
         return results
     
     # Shared integration is optional and disabled by default.
     # Only set up shared when explicitly enabled and a shared_location provided.
     if config.get('shared_enabled') and config.get('shared_location'):
-        shared_dir_link = thoughts_dir / 'shared'
+        shared_dir_link = memory_dir / 'shared'
         if not shared_dir_link.exists():
             base = Path(config['shared_location'])
 
@@ -294,39 +294,39 @@ def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
                 results['errors'].append(f"Cannot write to shared location {base}: {e}")
                 return results
 
-            # Create shared base structure at <shared_location>/thoughts
-            shared_thoughts_root = base / 'thoughts'
-            if ensure_directory_exists(shared_thoughts_root):
-                results['created'].append(str(shared_thoughts_root))
+            # Create shared base structure at <shared_location>/memory
+            shared_memory_root = base / 'memory'
+            if ensure_directory_exists(shared_memory_root):
+                results['created'].append(str(shared_memory_root))
             # Standard directories under shared root (aligned with MemoryManager)
             for rel in [
                 'shared/decisions', 'shared/plans', 'shared/research', 'shared/tickets', 'shared/prs',
                 'global/shared', 'searchable',
             ]:
-                ensure_directory_exists(shared_thoughts_root / rel)
+                ensure_directory_exists(shared_memory_root / rel)
             # Create README if missing
-            readme = shared_thoughts_root / 'README.md'
+            readme = shared_memory_root / 'README.md'
             if not readme.exists():
                 readme.write_text(
-                    "# Shared AI Memory\n\nThis directory contains shared thoughts and memory for the team.\n",
+                    "# Shared AI Memory\n\nThis directory contains shared memory and memory for the team.\n",
                     encoding='utf-8'
                 )
-            # Link local thoughts/shared -> <shared_location>/thoughts
-            success, link_type = create_shared_link(shared_dir_link, shared_thoughts_root)
+            # Link local memory/shared -> <shared_location>/memory
+            success, link_type = create_shared_link(shared_dir_link, shared_memory_root)
             if success:
                 link_type_desc = {
                     "junction": "Windows junction",
                     "symlink": "symbolic link",
                     "directory": "directory (fallback)"
                 }.get(link_type, link_type)
-                results['linked'].append(f"{shared_dir_link} -> {shared_thoughts_root} ({link_type_desc})")
+                results['linked'].append(f"{shared_dir_link} -> {shared_memory_root} ({link_type_desc})")
             else:
                 results['errors'].append(
-                    f"Failed to create link {shared_dir_link} -> {shared_thoughts_root}"
+                    f"Failed to create link {shared_dir_link} -> {shared_memory_root}"
                 )
 
     # Create user directory
-    user_dir = thoughts_dir / config['username']
+    user_dir = memory_dir / config['username']
     if ensure_directory_exists(user_dir):
         results['created'].append(str(user_dir))
     else:

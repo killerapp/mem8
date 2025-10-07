@@ -33,14 +33,14 @@ class SyncManager:
                     'error': 'Shared directory not configured or not accessible'
                 }
             
-            local_thoughts = self.config.thoughts_dir
-            shared_thoughts = self.config.shared_dir / "thoughts"
+            local_memory = self.config.memory_dir
+            shared_memory = self.config.shared_dir / "memory"
             
-            if not local_thoughts.exists():
-                ensure_directory_exists(local_thoughts)
+            if not local_memory.exists():
+                ensure_directory_exists(local_memory)
             
-            if not shared_thoughts.exists():
-                ensure_directory_exists(shared_thoughts)
+            if not shared_memory.exists():
+                ensure_directory_exists(shared_memory)
             
             summary = {
                 'pulled': 0,
@@ -52,7 +52,7 @@ class SyncManager:
             # Perform sync based on direction
             if direction in ['pull', 'both']:
                 pull_result = self._sync_direction(
-                    shared_thoughts, local_thoughts, 'pull', dry_run
+                    shared_memory, local_memory, 'pull', dry_run
                 )
                 summary['pulled'] = pull_result['count']
                 summary['conflicts'] += pull_result['conflicts']
@@ -60,7 +60,7 @@ class SyncManager:
             
             if direction in ['push', 'both']:
                 push_result = self._sync_direction(
-                    local_thoughts, shared_thoughts, 'push', dry_run
+                    local_memory, shared_memory, 'push', dry_run
                 )
                 summary['pushed'] = push_result['count']
                 summary['conflicts'] += push_result['conflicts']
@@ -292,23 +292,23 @@ class SyncManager:
         if not self.config.shared_dir or not self.config.shared_dir.exists():
             return conflicts
         
-        local_thoughts = self.config.thoughts_dir
-        shared_thoughts = self.config.shared_dir / "thoughts"
+        local_memory = self.config.memory_dir
+        shared_memory = self.config.shared_dir / "memory"
         
-        if not local_thoughts.exists() or not shared_thoughts.exists():
+        if not local_memory.exists() or not shared_memory.exists():
             return conflicts
         
         # Check for conflicting files
         exclude_patterns = self.config.get('sync.exclude_patterns', [])
         
-        for local_file in local_thoughts.rglob("*.md"):
+        for local_file in local_memory.rglob("*.md"):
             if local_file.is_file():
-                relative_path = local_file.relative_to(local_thoughts)
+                relative_path = local_file.relative_to(local_memory)
                 
                 if self._should_exclude_file(relative_path, exclude_patterns):
                     continue
                 
-                shared_file = shared_thoughts / relative_path
+                shared_file = shared_memory / relative_path
                 
                 if shared_file.exists():
                     if not filecmp.cmp(local_file, shared_file, shallow=False):

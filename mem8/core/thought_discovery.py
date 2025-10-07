@@ -16,24 +16,24 @@ class ThoughtDiscoveryService:
         self._last_scan = None
         self._cache_ttl = 300  # 5 minutes
         
-    def discover_all_thoughts(self, force_rescan: bool = False) -> List[ThoughtEntity]:
+    def discover_all_memory(self, force_rescan: bool = False) -> List[ThoughtEntity]:
         """Discover all thought entities across all configured repositories."""
         if not force_rescan and self._entity_cache and self._is_cache_fresh():
             return list(self._entity_cache.values())
             
         entities = []
         
-        # Scan local thoughts
-        thoughts_dir = self.config.thoughts_dir
-        if thoughts_dir and thoughts_dir.exists():
-            entities.extend(self._scan_directory(thoughts_dir))
+        # Scan local memory
+        memory_dir = self.config.memory_dir
+        if memory_dir and memory_dir.exists():
+            entities.extend(self._scan_directory(memory_dir))
             
-        # Scan cross-repository thoughts  
+        # Scan cross-repository memory  
         discovered_repos = self._discover_repositories()
         for repo_path in discovered_repos:
-            repo_thoughts_dir = repo_path / 'thoughts'
-            if repo_thoughts_dir.exists():
-                entities.extend(self._scan_directory(repo_thoughts_dir, repo_name=repo_path.name))
+            repo_memory_dir = repo_path / 'memory'
+            if repo_memory_dir.exists():
+                entities.extend(self._scan_directory(repo_memory_dir, repo_name=repo_path.name))
         
         # Update cache
         self._entity_cache = {str(entity.path): entity for entity in entities}
@@ -78,7 +78,7 @@ class ThoughtDiscoveryService:
         return any(pattern in file_str for pattern in skip_patterns)
     
     def _discover_repositories(self) -> List[Path]:
-        """Discover repositories that might contain thoughts."""
+        """Discover repositories that might contain memory."""
         # Respect configuration: default to single-repo only
         if not self.config.get('discovery.cross_repo', False):
             return []
@@ -104,31 +104,31 @@ class ThoughtDiscoveryService:
         return repos
     
     def find_by_type(self, thought_type: str, force_rescan: bool = False) -> List[ThoughtEntity]:
-        """Find thoughts by semantic type."""
-        entities = self.discover_all_thoughts(force_rescan)
+        """Find memory by semantic type."""
+        entities = self.discover_all_memory(force_rescan)
         return [e for e in entities if e.type == thought_type]
         
     def find_by_status(self, status: str, force_rescan: bool = False) -> List[ThoughtEntity]:
-        """Find thoughts by lifecycle status."""
-        entities = self.discover_all_thoughts(force_rescan)
+        """Find memory by lifecycle status."""
+        entities = self.discover_all_memory(force_rescan)
         return [e for e in entities if e.lifecycle_state == status]
     
     def find_by_scope(self, scope: str, force_rescan: bool = False) -> List[ThoughtEntity]:
-        """Find thoughts by sharing scope."""
-        entities = self.discover_all_thoughts(force_rescan)
+        """Find memory by sharing scope."""
+        entities = self.discover_all_memory(force_rescan)
         return [e for e in entities if e.scope == scope]
     
     def find_by_path_pattern(self, pattern: str, force_rescan: bool = False) -> List[ThoughtEntity]:
-        """Find thoughts matching path pattern."""
-        entities = self.discover_all_thoughts(force_rescan)
+        """Find memory matching path pattern."""
+        entities = self.discover_all_memory(force_rescan)
         return [e for e in entities if pattern.lower() in str(e.path).lower()]
     
     def get_statistics(self, force_rescan: bool = False) -> Dict[str, any]:
-        """Get statistics about discovered thoughts."""
-        entities = self.discover_all_thoughts(force_rescan)
+        """Get statistics about discovered memory."""
+        entities = self.discover_all_memory(force_rescan)
         
         stats = {
-            'total_thoughts': len(entities),
+            'total_memory': len(entities),
             'by_type': {},
             'by_scope': {},
             'by_status': {},

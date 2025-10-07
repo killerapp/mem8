@@ -9,7 +9,7 @@ def generate_claude_memory_integration(config: Dict[str, Any]) -> str:
     repos_config = ""
     if config.get('repositories'):
         repos_config = "\n".join([
-            f"- {repo['name']}: {repo.get('thoughts_paths', ['No thoughts found'])[0] if repo.get('thoughts_paths') else 'No thoughts found'}" 
+            f"- {repo['name']}: {repo.get('memory_paths', ['No memory found'])[0] if repo.get('memory_paths') else 'No memory found'}" 
             for repo in config.get('repositories', [])
         ])
     else:
@@ -25,18 +25,18 @@ This project uses mem8 for memory management across repositories.
 
 ## Memory Commands
 - `/setup-memory` - Configure AI memory for this project
-- `/browse-memories` - Search and explore thoughts across repositories
+- `/browse-memories` - Search and explore memory across repositories
 - `mem8 search "query"` - Full-text search across all memories
 - `mem8 init` - Initialize mem8 workspace with templates
 
-## Shared Thoughts Location
-Shared thoughts: `{config.get('shared_location', 'thoughts/shared/')}`
+## Shared Memory Location
+Shared memory: `{config.get('shared_location', 'memory/shared/')}`
 
 ## Workflow Integration  
-- Research documents: `thoughts/shared/research/`
-- Implementation plans: `thoughts/shared/plans/` 
-- PR discussions: `thoughts/shared/prs/`
-- User notes: `thoughts/{config.get('username', 'user')}/`
+- Research documents: `memory/shared/research/`
+- Implementation plans: `memory/shared/plans/` 
+- PR discussions: `memory/shared/prs/`
+- User notes: `memory/{config.get('username', 'user')}/`
 
 ## Quick Start
 Run `mem8 init` to set up your mem8 workspace with Claude Code templates.
