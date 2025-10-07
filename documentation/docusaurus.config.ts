@@ -77,7 +77,6 @@ const config: Config = {
       theme: {light: 'neutral', dark: 'dark'},
     },
     navbar: {
-      title: 'mem8',
       logo: {
         alt: 'mem8 Logo',
         src: 'img/logo-navbar.png',
@@ -90,6 +89,25 @@ const config: Config = {
           sidebarId: 'tutorialSidebar',
           position: 'left',
           label: 'Docs',
+        },
+        {
+          type: 'dropdown',
+          label: 'Codebase Context',
+          position: 'left',
+          items: [
+            {
+              label: 'Specification',
+              href: 'https://github.com/codebase-context-spec/codebase-context-spec',
+            },
+            {
+              label: 'YouTube Videos',
+              href: 'https://www.youtube.com/@codebasecontext',
+            },
+            {
+              label: 'Agentic Insights',
+              href: 'https://agenticinsights.substack.com',
+            },
+          ],
         },
         {
           href: 'https://github.com/killerapp/mem8',
