@@ -315,7 +315,7 @@ last_updated: '2025-10-07 01:28:43'
 **`.mem8/config.yaml`** - Project configuration
 ```yaml
 templates:
-  default_source: "killerapp/mem8#subdir=mem8/templates"
+  default_source: "killerapp/mem8-templates"
 ```
 
 ## 🔄 Development Workflow

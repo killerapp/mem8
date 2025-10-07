@@ -52,7 +52,7 @@ class Config:
                 'sync_interval': 300,  # 5 minutes
             },
             'templates': {
-                'default_source': 'killerapp/mem8-templates@feature/toolbelt-manifest',  # External template repo (cached at ~/.mem8/template-cache/)
+                'default_source': 'killerapp/mem8-templates',  # External template repo
             },
             'discovery': {
                 'cross_repo': False,  # default to single-repo discovery
