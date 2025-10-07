@@ -15,9 +15,8 @@ const FeatureList: FeatureItem[] = [
     title: '🧠 Context Window Management',
     description: (
       <>
-        Persistent memory system for Claude Code with structured memory and searchable documentation.
-        <code>/m8-research</code> spawns parallel agents to explore your code efficiently.
-        Keep AI context focused and relevant across long development sessions.
+        A memory system for Claude Code to help manage context, with structured memory and searchable documentation.
+        <code>/m8-research</code> helps agents explore your code. As a new feature, we're actively improving it and welcome contributions!
       </>
     ),
     link: '/docs/workflows/research',
@@ -37,9 +36,9 @@ const FeatureList: FeatureItem[] = [
     title: '🔧 Toolbelt & Port Management',
     description: (
       <>
-        Integrated toolbelt system for installing and managing development tools.
-        Intelligent port conflict detection and resolution for local services.
-        Streamline your development environment setup and maintenance.
+        A toolbelt system for installing and managing development tools.
+        Includes port conflict detection to help manage local services.
+        Aims to streamline your development environment setup.
       </>
     ),
     link: '/docs/user-guide/cli-commands',

@@ -99,7 +99,7 @@ const config: Config = {
           items: [
             {
               label: 'Specification (Archived)',
-              href: 'https://github.com/codebase-context-spec/codebase-context-spec',
+              href: 'https://github.com/killerapp/codebase-context-spec',
             },
             {
               label: 'YouTube Videos',
