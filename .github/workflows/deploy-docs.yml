@@ -48,7 +48,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npx wrangler pages deploy ./build \
-            --project-name=mem8 \
+            --project-name=codebase-context-site \
             --commit-hash=${{ github.sha }} \
             --commit-message="${{ github.event.head_commit.message }}" \
             --branch=${{ github.ref_name }}
@@ -57,5 +57,5 @@ jobs:
         if: github.event_name == 'push'
         run: |
           echo "🚀 Deployed to Cloudflare Pages"
-          echo "Production: https://docs.codebasecontext.org"
-          echo "Cloudflare: https://mem8.pages.dev"
+          echo "Production: https://codebasecontext.org"
+          echo "Cloudflare: https://codebase-context-site.pages.dev"
