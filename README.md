@@ -19,7 +19,12 @@ mem8 status                          # Check workspace health
 mem8 doctor                          # Diagnose issues and check CLI toolbelt
 mem8 doctor --fix                    # Auto-fix missing tools (where possible)
 mem8 doctor --json                   # Machine-readable output for agents
-mem8 search "query"                 # Search across all thoughts
+mem8 tools                           # List toolbelt CLI tools and versions
+mem8 tools --save                    # Save toolbelt to .mem8/tools.md
+mem8 ports --lease                   # Lease port range for project
+mem8 ports                           # Show current project's port assignments
+mem8 ports --kill <port>             # Kill process on port (safe mode)
+mem8 search "query"                  # Search across all thoughts
 mem8 serve                           # Start the API server (port 8000)
 ```
 
@@ -235,6 +240,82 @@ toolbelt:
         windows: "winget install tool"
         macos: "brew install tool"
         linux: "apt install tool"
+```
+
+## 🔌 Port Management
+
+mem8 includes a global port leasing system to prevent port conflicts when AI agents create multiple projects on the same machine.
+
+### Quick Start
+```bash
+# Lease port range for current project
+mem8 ports --lease
+
+# View assigned ports
+mem8 ports
+
+# Kill process on a port (safe - only kills ports in your range)
+mem8 ports --kill 20000
+
+# List all port leases across all projects
+mem8 ports --list-all
+
+# Release ports when done
+mem8 ports --release
+```
+
+### Key Features
+
+**Global Registry:** `~/.mem8/port_leases.yaml` tracks all port leases across projects
+- Prevents Next.js/React dev servers from conflicting (3000, 3001...)
+- AI agents reference `.mem8/ports.md` for assigned port ranges
+- Cross-platform port killing with `psutil` (no npx kill-port needed)
+
+**Project-Specific Config:** `.mem8/ports.md` documents port assignments
+- Simple range-based system (e.g., 20000-20004)
+- AI agents choose any port within the range
+- Instructions for Next.js, FastAPI, Docker, etc.
+
+**Safe Port Killing:**
+- By default, only kills ports within project's leased range
+- Use `--force` to override safety check
+- Cross-platform support (Windows, Mac, Linux)
+
+### Example Workflow
+```bash
+# Project A
+cd ~/projects/nextjs-app
+mem8 ports --lease               # Gets 20000-20004
+PORT=20000 npm run dev          # Uses assigned port
+
+# Project B
+cd ~/projects/api-server
+mem8 ports --lease               # Gets 20005-20009
+uvicorn main:app --port 20005   # No conflicts!
+```
+
+### Configuration Files
+
+**`.mem8/ports.md`** - Project-specific port documentation
+- Auto-generated with port range and usage examples
+- Editable markdown section preserved on regeneration
+- AI agents read this for port assignments
+
+**`~/.mem8/port_leases.yaml`** - Global port registry
+```yaml
+leases:
+  /path/to/project-a:
+    project_name: nextjs-app
+    start_port: 20000
+    port_count: 5
+    leased_at: '2025-10-07 01:28:43'
+last_updated: '2025-10-07 01:28:43'
+```
+
+**`.mem8/config.yaml`** - Project configuration
+```yaml
+templates:
+  default_source: "killerapp/mem8#subdir=mem8/templates"
 ```
 
 ## 🔄 Development Workflow
