@@ -8,9 +8,8 @@ Get mem8 installed and running on your system.
 
 ## Prerequisites
 
-- **Python 3.12+** - mem8 is built with Python
 - **uv** - Fast Python package installer (recommended)
-- **Git** - For template cloning and version control
+- **Git** - For template cloning, version control, and shared memory features
 
 ## Install with uv (Recommended)
 
@@ -60,6 +59,67 @@ mem8 doctor
 ```
 
 If your project template includes a `.mem8/toolbelt.json` file, `mem8 doctor` will also confirm that the declared core CLI tools are installed for your operating system and suggest installs for any missing recommendations.
+
+## Shared Memory (Git Submodules)
+
+mem8 supports **shared organizational memory** through git submodules. This allows teams to maintain a centralized knowledge base that multiple projects can reference.
+
+### Setup
+
+When you initialize a project with `mem8 init`, the CLI automatically detects if `memory/` is a git submodule and preserves it. You can add a shared memory repository in two ways:
+
+```bash
+# Option 1: Add submodule before running mem8 init
+git submodule add https://github.com/your-org/shared-memory.git memory
+git submodule update --init --recursive
+mem8 init  # Automatically detects and preserves the submodule
+
+# Option 2: Add submodule after initialization
+mem8 init
+git submodule add https://github.com/your-org/shared-memory.git memory
+git submodule update --init --recursive
+```
+
+### Working with Shared Memory
+
+All mem8 commands automatically work with the `memory/` directory, whether it's a regular directory or a git submodule:
+
+```bash
+# Search works across all memory including submodules
+mem8 search "authentication"
+
+# Find commands discover all memory
+mem8 find plans
+mem8 find research
+
+# Sync operations respect git submodule structure
+mem8 sync
+```
+
+### Updating Shared Memory
+
+Use standard git submodule commands to update the shared memory:
+
+```bash
+# Update to latest from remote
+cd memory
+git pull origin main
+cd ..
+git add memory
+git commit -m "chore: update shared memory"
+
+# Or update all submodules
+git submodule update --remote --merge
+```
+
+**Benefits:**
+- Share organizational knowledge across projects
+- Version-controlled team memory with git history
+- Searchable with `mem8 search` and `mem8 find`
+- Automatic detection by mem8 commands
+- Standard git workflow for updates
+
+**Note:** The shared memory is stored as a git submodule in the `memory/` directory at your project root. mem8 automatically detects and preserves git submodules during initialization.
 
 ## Optional: GitHub CLI
 
