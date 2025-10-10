@@ -72,4 +72,4 @@ Before testing CLI changes:
 - When updating commands or agents, **always modify the cookiecutter template** in `mem8\templates\claude-dot-md-template\{{cookiecutter.project_slug}}\`
 - Changes to the template will be applied to new projects when users run `mem8 init`
 - The local `.claude` directory is just for testing the mem8 CLI itself - it will be regenerated from templates
-- Same applies to the `memory` directory structure which comes from `mem8\templates\shared-memory-template`
+- The `memory` directory is a git submodule pointing to `killerapp/mem8-memory` for shared organizational knowledge
