@@ -12,6 +12,17 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
+    title: '🎯 Interactive Command Visualizer',
+    description: (
+      <>
+        Explore mem8's command ecosystem through interactive visualizations.
+        See complexity pyramids, workflow patterns, dependency matrices, and scatter plots.
+        Understand how commands chain together and which ones fit your development workflow.
+      </>
+    ),
+    link: '/docs/workflows/visualizer',
+  },
+  {
     title: '🧠 Context Window Management',
     description: (
       <>
@@ -31,17 +42,6 @@ const FeatureList: FeatureItem[] = [
       </>
     ),
     link: 'https://github.com/killerapp/mem8-templates',
-  },
-  {
-    title: '🔧 Toolbelt & Port Management',
-    description: (
-      <>
-        A toolbelt system for installing and managing development tools.
-        Includes port conflict detection to help manage local services.
-        Aims to streamline your development environment setup.
-      </>
-    ),
-    link: '/docs/user-guide/cli-commands',
   },
 ];
 
