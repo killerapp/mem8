@@ -40,7 +40,7 @@ dependencies = [
 ]
 
 [project.scripts]
-mem8 = "mem8.cli:main"
+mem8 = "mem8.cli_entry:main"
 
 [project.urls]
 Homepage = "https://github.com/killerapp/mem8"

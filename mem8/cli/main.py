@@ -6,23 +6,26 @@ Modern CLI framework with enhanced type safety and developer experience.
 
 import typer
 from typing import Annotated, Optional, Dict, Any
-from enum import Enum
 from pathlib import Path
 
-from rich.console import Console
+from .. import __version__
 
-from . import __version__
-from .core.config import Config
-from .core.memory import MemoryManager
-from .core.sync import SyncManager
-from .core.utils import setup_logging, detect_gh_active_login
-from .core.intelligent_query import IntelligentQueryEngine
-from .core.thought_actions import ThoughtActionEngine
-from .core.templates import TemplateManager
-from .cli.types import SearchMethod, ContentType, ActionType, SyncDirection, DeployEnvironment
+# Import types and utils from CLI package
+from .types import SearchMethod, ContentType, ActionType, SyncDirection, DeployEnvironment
+from .utils import get_console
+
+# Import state management and actions
+from .state import (
+    get_state, set_app_state, handle_command_error,
+    get_memory_manager, get_config
+)
+from .actions import execute_action as _execute_action, preview_action as _preview_action
+
+# Import template management
+from ..core.templates import TemplateManager
 
 # Create console instance
-console = Console(force_terminal=True, legacy_windows=None)
+console = get_console()
 
 # Create Typer app
 typer_app = typer.Typer(
@@ -31,114 +34,6 @@ typer_app = typer.Typer(
     add_completion=False,  # We'll manage this ourselves
     rich_markup_mode="rich"
 )
-
-
-
-
-
-# Enhanced state management with lazy initialization (Phase 2)
-class AppState:
-    def __init__(self):
-        self._config = None
-        self._memory_manager = None
-        self._sync_manager = None
-        self._query_engine = None
-        self._action_engine = None
-        self._initialized = False
-
-    def initialize(self, verbose: bool = False, config_dir: Optional[Path] = None):
-        """Initialize state with parameters. Only initializes once."""
-        if self._initialized:
-            return  # Already initialized, skip re-initialization
-
-        if verbose:
-            setup_logging(True)
-
-        # Initialize components
-        self._config = Config(config_dir)
-        self._memory_manager = MemoryManager(self._config)
-        self._sync_manager = SyncManager(self._config)
-        self._query_engine = IntelligentQueryEngine(self._memory_manager.thought_discovery)
-        self._action_engine = ThoughtActionEngine(self._config)
-        self._initialized = True
-    
-    @property
-    def config(self) -> Config:
-        if not self._config:
-            self.initialize()
-        return self._config
-        
-    @property
-    def memory_manager(self) -> MemoryManager:
-        if not self._memory_manager:
-            self.initialize()
-        return self._memory_manager
-        
-    @property
-    def sync_manager(self) -> SyncManager:
-        if not self._sync_manager:
-            self.initialize()
-        return self._sync_manager
-        
-    @property
-    def query_engine(self) -> IntelligentQueryEngine:
-        if not self._query_engine:
-            self.initialize()
-        return self._query_engine
-        
-    @property
-    def action_engine(self) -> ThoughtActionEngine:
-        if not self._action_engine:
-            self.initialize()
-        return self._action_engine
-
-
-# Global app state instance
-app_state = AppState()
-
-
-def get_state() -> AppState:
-    """Dependency injection helper for accessing app state."""
-    return app_state
-
-
-# Dependency injection helpers
-def get_memory_manager() -> MemoryManager:
-    """Get memory manager instance."""
-    return app_state.memory_manager
-
-
-def get_query_engine() -> IntelligentQueryEngine:
-    """Get query engine instance."""
-    return app_state.query_engine
-
-
-def get_action_engine() -> ThoughtActionEngine:
-    """Get action engine instance."""
-    return app_state.action_engine
-
-
-def get_sync_manager() -> SyncManager:
-    """Get sync manager instance."""
-    return app_state.sync_manager
-
-
-def get_config() -> Config:
-    """Get configuration instance."""
-    return app_state.config
-
-
-def set_app_state(verbose: bool = False, config_dir: Optional[Path] = None):
-    """Initialize app state with parameters."""
-    app_state.initialize(verbose=verbose, config_dir=config_dir)
-
-
-def handle_command_error(e: Exception, verbose: bool, context: str = "command") -> None:
-    """Standardized error handling for all commands."""
-    console.print(f"❌ [bold red]Error during {context}: {e}[/bold red]")
-    if verbose:
-        console.print_exception()
-
 
 # ============================================================================
 # Simple Commands (Phase 1)
@@ -267,7 +162,7 @@ def doctor(
 
     # Resolve template source from: CLI flag > project config > user config > builtin
     if template_source is None:
-        from .core.config import Config
+        from ..core.config import Config
 
         # Check project-level config first
         project_config_file = Path.cwd() / ".mem8" / "config.yaml"
@@ -351,7 +246,7 @@ def doctor(
 
             # Save toolbelt when healthy
             try:
-                from .core.toolbelt import save_toolbelt
+                from ..core.toolbelt import save_toolbelt
                 output_file = save_toolbelt()
                 if verbose:
                     console.print(f"[dim]Saved toolbelt to {output_file}[/dim]")
@@ -489,7 +384,7 @@ def search(
         console.print(f"🌐 [bold blue]Opening search for '{query}' in web UI...[/bold blue]")
         search_url = f'http://localhost:20040?search={urllib.parse.quote(query)}'
 
-        from .core.smart_setup import launch_web_ui, show_setup_instructions
+        from ..core.smart_setup import launch_web_ui, show_setup_instructions
         if launch_web_ui():
             webbrowser.open(search_url)
             console.print("✅ [green]Search opened in web browser![/green]")
@@ -602,9 +497,9 @@ def search(
 def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
     """Interactive prompts for init command configuration."""
     import typer
-    from .core.config import Config
-    from .core.smart_setup import get_git_username
-    from .integrations.github import get_consistent_github_context
+    from ..core.config import Config
+    from ..core.smart_setup import get_git_username
+    from ..integrations.github import get_consistent_github_context
     
     # Load saved preferences
     config = Config()
@@ -700,89 +595,6 @@ def _interactive_prompt_for_init(context: Dict[str, Any]) -> Dict[str, Any]:
         console.print("\n[dim]💾 Saved preferences for future init commands[/dim]")
     
     return interactive_config
-
-
-def _execute_action(action: str, results: list, force: bool, verbose: bool):
-    """Execute action on found memory."""
-    # Enhanced confirmation for destructive actions
-    if action in ['delete', 'archive']:
-        # Show what will be affected
-        console.print(f"\n[yellow]⚠️  About to {action} {len(results)} file(s):[/yellow]")
-        for idx, entity in enumerate(results[:5]):  # Show first 5
-            console.print(f"  • {entity.path.name}")
-        if len(results) > 5:
-            console.print(f"  • ... and {len(results) - 5} more")
-
-        if not force:
-            # Require explicit typed confirmation for destructive actions
-            import typer
-            confirmation_text = "DELETE" if action == "delete" else "ARCHIVE"
-            console.print(f"\n[red]⚠️  This action cannot be easily undone![/red]")
-            console.print(f"[dim]Backups will be created in: {get_state().action_engine.backup_dir}[/dim]\n")
-
-            user_input = typer.prompt(
-                f"Type '{confirmation_text}' to confirm (or press Ctrl+C to cancel)",
-                default="",
-                show_default=False
-            )
-            if user_input.strip() != confirmation_text:
-                console.print("❌ [yellow]Action cancelled - confirmation text did not match[/yellow]")
-                return
-
-    # Get action engine for execution
-    state = get_state()
-    action_engine = state.action_engine
-
-    try:
-        if action == 'show':
-            for entity in results:
-                console.print(f"📄 [bold]{entity.path}[/bold]")
-                content = entity.path.read_text(encoding='utf-8')
-                console.print(content[:500] + "..." if len(content) > 500 else content)
-                console.print()
-        elif action == 'delete':
-            # Use the bulk delete method
-            result = action_engine.delete_memory(results, dry_run=False)
-            console.print(f"\n✅ [green]Deleted {len(result['success'])} file(s)[/green]")
-            for success_path in result['success']:
-                console.print(f"  🗑️  [dim]{Path(success_path).name}[/dim]")
-            if result['backups']:
-                console.print(f"\n💾 [blue]Backups created in: {action_engine.backup_dir}[/blue]")
-            for error in result['errors']:
-                console.print(f"❌ [red]Error deleting: {error}[/red]")
-        elif action == 'archive':
-            # For now, just show that archive isn't fully implemented
-            console.print(f"❌ [yellow]Archive action not yet fully implemented[/yellow]")
-        elif action == 'promote':
-            # For now, just show that promote isn't fully implemented
-            console.print(f"❌ [yellow]Promote action not yet fully implemented[/yellow]")
-    except Exception as e:
-        console.print(f"❌ [red]Error executing {action}: {e}[/red]")
-        if verbose:
-            console.print_exception()
-
-
-def _preview_action(action: str, results: list):
-    """Preview what action would do without executing."""
-    from rich.table import Table
-    
-    table = Table(title=f"Would {action} {len(results)} memory (dry run)")
-    table.add_column("Action", style="cyan", width=10)
-    table.add_column("Type", style="blue", width=10)
-    table.add_column("Path", style="dim")
-    
-    for entity in results:
-        # Format relative path for display
-        try:
-            # If path is not relative to current directory, use absolute path or just filename
-            rel_path = entity.path.relative_to(Path.cwd())
-        except ValueError:
-            # If path is not relative to current directory, use absolute path or just filename
-            rel_path = entity.path.name
-        table.add_row(action.title(), entity.type, str(rel_path))
-        
-    console.print(table)
-    console.print(f"[dim]Run without --dry-run to execute[/dim]")
 
 
 # ============================================================================
@@ -1067,7 +879,7 @@ def _handle_init_confirmation(needs_confirmation: bool, issues: list[str], force
 
 def _validate_init_workspace_location(force: bool, non_interactive: bool = False) -> Path:
     """Validate workspace location for init command only."""
-    from .core.utils import get_git_info
+    from ..core.utils import get_git_info
     import typer
     
     current_dir = Path.cwd()
@@ -1136,11 +948,11 @@ def init(
     )] = False
 ):
     """Initialize mem8 workspace with interactive guided setup (default) or auto-detected defaults."""
-    from .core.smart_setup import (
+    from ..core.smart_setup import (
         detect_project_context, generate_smart_config, setup_minimal_structure,
         launch_web_ui, show_setup_instructions
     )
-    from .claude_integration import update_claude_md_integration
+    from ..claude_integration import update_claude_md_integration
     
     set_app_state(verbose=verbose)
 
@@ -1225,13 +1037,8 @@ def init(
             console.print(f"\nInstalling {template_name} template...")
             template_manager = TemplateManager()
             template_manager.install_templates(
-                template_name,
-                validated_workspace_dir,
-                force,
-                verbose,
-                interactive_config,
-                template_source,
-                console
+                template_name, Path.cwd(), force, verbose,
+                interactive_config, template_source, console
             )
         
         if setup_result['errors']:
@@ -1247,13 +1054,13 @@ def init(
                 console.print(f"  {created}")
 
         # Create ~/.mem8 shortcut
-        from .core.config import Config
+        from ..core.config import Config
         config_manager = Config()
         config_manager.create_home_shortcut()
 
         # Save toolbelt
         try:
-            from .core.toolbelt import save_toolbelt
+            from ..core.toolbelt import save_toolbelt
             output_file = save_toolbelt()
             if verbose:
                 console.print(f"[dim]Saved toolbelt to {output_file}[/dim]")
@@ -1415,8 +1222,8 @@ def worktree_create(
     )] = False
 ):
     """Create a git worktree for ticket implementation (replaces hack/create_worktree.sh)."""
-    from .core.worktree import create_worktree
-    
+    from ..core.worktree import create_worktree
+
     set_app_state(verbose=verbose)
     
     try:
@@ -1446,7 +1253,7 @@ def worktree_list(
     )] = False
 ):
     """List existing worktrees."""
-    from .core.worktree import list_worktrees
+    from ..core.worktree import list_worktrees
     from rich.table import Table
     
     set_app_state(verbose=verbose)
@@ -1496,8 +1303,8 @@ def worktree_remove(
     )] = False
 ):
     """Remove a worktree."""
-    from .core.worktree import remove_worktree
-    
+    from ..core.worktree import remove_worktree
+
     set_app_state(verbose=verbose)
     
     if not force:
@@ -1535,8 +1342,8 @@ def metadata_git(
     )] = False
 ):
     """Get git repository metadata."""
-    from .core.metadata import get_git_metadata
-    
+    from ..core.metadata import get_git_metadata
+
     set_app_state(verbose=verbose)
     
     try:
@@ -1574,8 +1381,8 @@ def metadata_research(
     # Use default topic if none provided
     if not topic:
         topic = "research"
-    from .core.metadata import generate_research_metadata, format_frontmatter
-    
+    from ..core.metadata import generate_research_metadata, format_frontmatter
+
     set_app_state(verbose=verbose)
     
     try:
@@ -1613,8 +1420,8 @@ def metadata_project(
     )] = False
 ):
     """Get project metadata and statistics."""
-    from .core.metadata import generate_project_metadata
-    
+    from ..core.metadata import generate_project_metadata
+
     set_app_state(verbose=verbose)
     
     try:
@@ -1663,8 +1470,8 @@ def templates_list(
     )] = False
 ):
     """List available templates from a source."""
-    from .core.template_source import create_template_source
-    from .core.config import Config
+    from ..core.template_source import create_template_source
+    from ..core.config import Config
     from rich.table import Table
 
     set_app_state(verbose=verbose)
@@ -1728,8 +1535,8 @@ def templates_validate(
     )] = False
 ):
     """Validate a template source and its manifest."""
-    from .core.template_source import create_template_source
-    from .core.config import Config
+    from ..core.template_source import create_template_source
+    from ..core.config import Config
 
     set_app_state(verbose=verbose)
 
@@ -1843,7 +1650,7 @@ def templates_set_default(
     )] = False
 ):
     """Set the default template source for init commands."""
-    from .core.config import Config
+    from ..core.config import Config
 
     set_app_state(verbose=verbose)
     config = Config()
@@ -1869,7 +1676,7 @@ def gh_whoami(
 ):
     """Show active GitHub CLI login and current repository context."""
     set_app_state()
-    from .integrations.github import get_consistent_github_context
+    from ..integrations.github import get_consistent_github_context
 
     gh_context = get_consistent_github_context()
 
@@ -1893,7 +1700,7 @@ def tools(
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
     """List toolbelt CLI tools and OS details for AI system prompts."""
-    from .core.toolbelt import check_toolbelt, save_toolbelt as save_tools_to_file
+    from ..core.toolbelt import check_toolbelt, save_toolbelt as save_tools_to_file
     from rich.table import Table
 
     set_app_state(verbose=verbose)
@@ -1942,7 +1749,7 @@ def ports(
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
 ):
     """Manage project port assignments to prevent conflicts across projects."""
-    from .core.ports import PortManager, save_ports_file
+    from ..core.ports import PortManager, save_ports_file
 
     set_app_state(verbose=verbose)
 

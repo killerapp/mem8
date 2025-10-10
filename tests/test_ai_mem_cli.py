@@ -46,7 +46,7 @@ class Testmem8CLI:
     def run_mem8(self, args, expect_success=True):
         """Run mem8 command and return result."""
         env = os.environ.copy()
-        env['PYTHONPATH'] = str(Path(__file__).parent.parent)
+        env['PYTHONPATH'] = str(Path(__file__).parent.parent.parent)
         result = subprocess.run(
             [sys.executable, "-m", "mem8.cli"] + args,
             capture_output=True,
