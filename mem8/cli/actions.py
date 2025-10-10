@@ -4,7 +4,6 @@ CLI action execution handlers.
 """
 
 import typer
-from typing import List
 from pathlib import Path
 from rich.table import Table
 
@@ -29,7 +28,7 @@ def execute_action(action: str, results: list, force: bool, verbose: bool):
         if not force:
             # Require explicit typed confirmation for destructive actions
             confirmation_text = "DELETE" if action == "delete" else "ARCHIVE"
-            console.print(f"\n[red]⚠️  This action cannot be easily undone![/red]")
+            console.print("\n[red]⚠️  This action cannot be easily undone![/red]")
             console.print(f"[dim]Backups will be created in: {get_state().action_engine.backup_dir}[/dim]\n")
 
             user_input = typer.prompt(
@@ -64,10 +63,10 @@ def execute_action(action: str, results: list, force: bool, verbose: bool):
                 console.print(f"❌ [red]Error deleting: {error}[/red]")
         elif action == 'archive':
             # For now, just show that archive isn't fully implemented
-            console.print(f"❌ [yellow]Archive action not yet fully implemented[/yellow]")
+            console.print("❌ [yellow]Archive action not yet fully implemented[/yellow]")
         elif action == 'promote':
             # For now, just show that promote isn't fully implemented
-            console.print(f"❌ [yellow]Promote action not yet fully implemented[/yellow]")
+            console.print("❌ [yellow]Promote action not yet fully implemented[/yellow]")
     except Exception as e:
         console.print(f"❌ [red]Error executing {action}: {e}[/red]")
         if verbose:
@@ -92,4 +91,4 @@ def preview_action(action: str, results: list):
         table.add_row(action.title(), entity.type, str(rel_path))
 
     console.print(table)
-    console.print(f"[dim]Run without --dry-run to execute[/dim]")
+    console.print("[dim]Run without --dry-run to execute[/dim]")

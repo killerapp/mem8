@@ -241,17 +241,15 @@ def register_init_command(app: typer.Typer):
     ):
         """Initialize mem8 workspace with interactive guided setup (default) or auto-detected defaults."""
         from ...core.smart_setup import (
-            detect_project_context, generate_smart_config, setup_minimal_structure,
-            launch_web_ui, show_setup_instructions
+            detect_project_context, generate_smart_config, setup_minimal_structure
         )
-        from ...claude_integration import update_claude_md_integration
 
         set_app_state(verbose=verbose)
 
         console.print("[bold]mem8 init[/bold]")
 
         # INIT-SPECIFIC workspace validation - check git repository before setup
-        validated_workspace_dir = _validate_init_workspace_location(force, non_interactive)
+        _validate_init_workspace_location(force, non_interactive)
 
         try:
             # 1. Auto-detect project context

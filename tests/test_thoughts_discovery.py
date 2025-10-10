@@ -3,9 +3,7 @@
 Tests for memory discovery behavior in single-repo and multi-repo setups.
 """
 
-from pathlib import Path
 
-import os
 import pytest
 
 from mem8.core.config import Config

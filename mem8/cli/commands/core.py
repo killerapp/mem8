@@ -175,7 +175,7 @@ def register_core_commands(app: typer.Typer):
                     }.get(issue['severity'], '•')
                     console.print(f"  {severity_icon} {issue['description']}")
                     if fix and issue.get('fixed'):
-                        console.print(f"    ✅ [green]Fixed automatically[/green]")
+                        console.print("    ✅ [green]Fixed automatically[/green]")
 
                     # Show missing tools with install commands
                     if 'missing_tools' in issue:
@@ -379,7 +379,9 @@ def register_core_commands(app: typer.Typer):
 
         if method == SearchMethod.SEMANTIC:
             try:
-                import sentence_transformers
+                import importlib.util
+                if importlib.util.find_spec("sentence_transformers") is None:
+                    raise ImportError("sentence_transformers not found")
             except ImportError:
                 console.print("[yellow]⚠️  Semantic search requires sentence-transformers library[/yellow]")
                 console.print("Install with: [dim]pip install 'mem8[semantic]'[/dim]")
@@ -415,7 +417,7 @@ def register_core_commands(app: typer.Typer):
 
                     # Snippet if available
                     if 'snippet' in match and match['snippet']:
-                        console.print(f"   [dim]Context:[/dim]")
+                        console.print("   [dim]Context:[/dim]")
                         # Indent snippet lines
                         snippet_lines = match['snippet'].split('\n')
                         for line in snippet_lines:

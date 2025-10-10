@@ -4,8 +4,7 @@ Template management for mem8 workspaces.
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional, Any
-import shutil
+from typing import Dict, Optional, Any
 
 
 class TemplateManager:
@@ -137,7 +136,7 @@ class TemplateManager:
                             analysis = self.analyze_claude_template(workspace_dir)
                             console.print(f"  {len(analysis['template_commands'])} commands, {len(analysis['template_agents'])} agents installed")
                         elif "memory" in template_name:
-                            console.print(f"  memory/ structure created")
+                            console.print("  memory/ structure created")
                 except Exception as e:
                     # Always show installation errors, not just in verbose mode
                     if console:

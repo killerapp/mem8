@@ -3,15 +3,12 @@
 import os
 import shutil
 import time
-import sys
 import platform
 from importlib import resources
 from pathlib import Path
 from typing import Dict, List, Any, Optional
-from cookiecutter.main import cookiecutter
 
 from .config import Config
-from .template_source import TemplateSource
 from .utils import (
     get_shared_directory, 
     find_claude_code_workspace,
@@ -428,11 +425,11 @@ Use `mem8 search` to find relevant content across all memories.
 
             # Check for path traversal patterns
             if ".." in normalized_filter:
-                raise ValueError(f"Invalid path_filter: path traversal detected (contains '..')")
+                raise ValueError("Invalid path_filter: path traversal detected (contains '..')")
 
             # Check for absolute paths
             if path_filter.startswith("/") or (len(path_filter) > 1 and path_filter[1] == ":"):
-                raise ValueError(f"Invalid path_filter: absolute paths not allowed")
+                raise ValueError("Invalid path_filter: absolute paths not allowed")
 
         # Search in memory directory
         memory_dir = self.config.memory_dir
@@ -446,7 +443,7 @@ Use `mem8 search` to find relevant content across all memories.
                 # Check if search_dir is relative to memory_dir
                 search_dir_resolved.relative_to(memory_dir_resolved)
             except ValueError:
-                raise ValueError(f"Invalid path_filter: escapes workspace boundary")
+                raise ValueError("Invalid path_filter: escapes workspace boundary")
 
             if search_dir.exists():
                 if search_method == 'semantic':
@@ -742,7 +739,7 @@ Use `mem8 search` to find relevant content across all memories.
             else:
                 return False, f"Installation failed: {result.stderr[:200]}"
         except subprocess.TimeoutExpired:
-            return False, f"Installation timed out after 5 minutes"
+            return False, "Installation timed out after 5 minutes"
         except Exception as e:
             return False, f"Installation failed: {str(e)}"
 
@@ -809,7 +806,6 @@ Use `mem8 search` to find relevant content across all memories.
         issues.extend(toolbelt_issues)
 
         # Calculate health score
-        total_checks = 4
         critical_issues = len([i for i in issues if i['severity'] == 'error'])
         warning_issues = len([i for i in issues if i['severity'] == 'warning'])
 

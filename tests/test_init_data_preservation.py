@@ -9,9 +9,7 @@ import sys
 import subprocess
 import tempfile
 import shutil
-import json
 from pathlib import Path
-import pytest
 
 
 class TestInitDataPreservation:
@@ -205,7 +203,7 @@ class TestInitDataPreservation:
         (self.shared_dir / "data.json").write_text('{"key": "important_value"}')
         (self.shared_dir / "script.py").write_text("# Important script\nprint('preserve me')")
         
-        result = self.run_mem8([
+        self.run_mem8([
             "init", "--template", "memory-repo", "--force"  
         ], expect_success=False)
         

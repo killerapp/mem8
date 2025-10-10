@@ -10,7 +10,6 @@ import requests
 from .utils import (
     get_git_info,
     get_shared_directory,
-    create_symlink,
     create_symlink_with_info,
     ensure_directory_exists,
     detect_gh_active_login,
@@ -247,7 +246,7 @@ def generate_smart_config(context: Dict[str, Any], repos_arg: Optional[str] = No
         repo_names = [name.strip() for name in repos_arg.split(',')]
         repos = [repo for repo in repos if repo['name'] in repo_names or repo['path'] in repo_names]
     # Only include repos if explicitly requested in interactive mode
-    elif context.get('interactive_config', {}).get('include_repos') == False:
+    elif not context.get('interactive_config', {}).get('include_repos'):
         repos = []
     
     config = {

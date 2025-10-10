@@ -59,7 +59,7 @@ def templates_list(
                 console.print(table)
 
                 if manifest.metadata:
-                    console.print(f"\n[dim]Source metadata:[/dim]")
+                    console.print("\n[dim]Source metadata:[/dim]")
                     for key, value in manifest.metadata.items():
                         console.print(f"  {key}: {value}")
             else:
@@ -150,11 +150,11 @@ def templates_validate(
                         # Check for cookiecutter.json
                         cookiecutter_json = template_path / "cookiecutter.json"
                         if cookiecutter_json.exists():
-                            console.print(f"    ✅ cookiecutter.json found")
+                            console.print("    ✅ cookiecutter.json found")
                         else:
                             warning = f"No cookiecutter.json in template: {name}"
                             warnings.append(warning)
-                            console.print(f"    ⚠️  [yellow]No cookiecutter.json found[/yellow]")
+                            console.print("    ⚠️  [yellow]No cookiecutter.json found[/yellow]")
 
                         if template_def.description:
                             console.print(f"    [dim]{template_def.description}[/dim]")
@@ -166,7 +166,7 @@ def templates_validate(
             else:
                 warnings.append("No manifest file (will fallback to directory discovery)")
                 console.print("⚠️  [yellow]No manifest file found[/yellow]")
-                console.print(f"    [dim]Templates will be discovered from directory structure[/dim]")
+                console.print("    [dim]Templates will be discovered from directory structure[/dim]")
 
                 # Try to list templates anyway
                 templates = template_source.list_templates()

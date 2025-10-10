@@ -1,7 +1,7 @@
 """Claude Code integration functionality for mem8."""
 
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 
 def generate_claude_memory_integration(config: Dict[str, Any]) -> str:

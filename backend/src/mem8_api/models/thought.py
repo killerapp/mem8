@@ -3,11 +3,8 @@
 import uuid
 from typing import Dict, Optional, Any
 
-from sqlalchemy import ForeignKey, Index, String, Text, JSON
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PostgresUUID
+from sqlalchemy import ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import event
-from sqlalchemy.engine import Engine
 
 from ..database import Base
 from .base import TimestampMixin, UUIDMixin

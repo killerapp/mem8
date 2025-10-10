@@ -70,6 +70,22 @@ const config: Config = {
   themeConfig: {
     // Social card for sharing
     image: 'img/mem8-social-card.jpg',
+    metadata: [
+      {name: 'description', content: 'mem8 - Context Management for AI Development. A CLI tool that enables AI assistants to maintain shared context across projects, teams, and conversations.'},
+      {name: 'keywords', content: 'AI development, context management, Claude Code, AI memory, CLI tool, developer tools, AI assistants'},
+      {property: 'og:title', content: 'mem8 - Context Management for AI Development'},
+      {property: 'og:description', content: 'A CLI tool that enables AI assistants to maintain shared context across projects, teams, and conversations.'},
+      {property: 'og:type', content: 'website'},
+      {property: 'og:url', content: 'https://codebasecontext.org'},
+      {property: 'og:image', content: 'https://codebasecontext.org/img/mem8-social-card.jpg'},
+      {property: 'og:image:width', content: '1200'},
+      {property: 'og:image:height', content: '630'},
+      {property: 'og:site_name', content: 'mem8'},
+      {name: 'twitter:card', content: 'summary_large_image'},
+      {name: 'twitter:title', content: 'mem8 - Context Management for AI Development'},
+      {name: 'twitter:description', content: 'A CLI tool that enables AI assistants to maintain shared context across projects, teams, and conversations.'},
+      {name: 'twitter:image', content: 'https://codebasecontext.org/img/mem8-social-card.jpg'},
+    ],
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: false,

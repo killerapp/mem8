@@ -2,7 +2,7 @@
 
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 from .config import Config
 from .thought_entity import ThoughtEntity
 

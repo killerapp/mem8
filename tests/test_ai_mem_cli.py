@@ -9,7 +9,6 @@ import sys
 import subprocess
 import tempfile
 import shutil
-import json
 from pathlib import Path
 import pytest
 

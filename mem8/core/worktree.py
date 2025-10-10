@@ -2,7 +2,7 @@
 
 import subprocess
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 
 def _validate_branch_name(branch_name: str) -> None:
     """Validate branch name to prevent command injection and invalid git refs.

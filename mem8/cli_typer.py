@@ -6,7 +6,6 @@ Modern CLI framework with enhanced type safety and developer experience.
 
 import typer
 from typing import Annotated, Optional, Dict, Any
-from enum import Enum
 from pathlib import Path
 
 from rich.console import Console
@@ -15,7 +14,7 @@ from . import __version__
 from .core.config import Config
 from .core.memory import MemoryManager
 from .core.sync import SyncManager
-from .core.utils import setup_logging, detect_gh_active_login
+from .core.utils import setup_logging
 from .core.intelligent_query import IntelligentQueryEngine
 from .core.thought_actions import ThoughtActionEngine
 from .core.templates import TemplateManager
@@ -320,7 +319,7 @@ def doctor(
                 }.get(issue['severity'], '•')
                 console.print(f"  {severity_icon} {issue['description']}")
                 if fix and issue.get('fixed'):
-                    console.print(f"    ✅ [green]Fixed automatically[/green]")
+                    console.print("    ✅ [green]Fixed automatically[/green]")
 
                 # Show missing tools with install commands
                 if 'missing_tools' in issue:
@@ -528,7 +527,9 @@ def search(
 
     if method == SearchMethod.SEMANTIC:
         try:
-            import sentence_transformers
+            import importlib.util
+            if importlib.util.find_spec("sentence_transformers") is None:
+                raise ImportError("sentence_transformers not found")
         except ImportError:
             console.print("[yellow]⚠️  Semantic search requires sentence-transformers library[/yellow]")
             console.print("Install with: [dim]pip install 'mem8[semantic]'[/dim]")
@@ -564,7 +565,7 @@ def search(
 
                 # Snippet if available
                 if 'snippet' in match and match['snippet']:
-                    console.print(f"   [dim]Context:[/dim]")
+                    console.print("   [dim]Context:[/dim]")
                     # Indent snippet lines
                     snippet_lines = match['snippet'].split('\n')
                     for line in snippet_lines:
@@ -717,7 +718,7 @@ def _execute_action(action: str, results: list, force: bool, verbose: bool):
             # Require explicit typed confirmation for destructive actions
             import typer
             confirmation_text = "DELETE" if action == "delete" else "ARCHIVE"
-            console.print(f"\n[red]⚠️  This action cannot be easily undone![/red]")
+            console.print("\n[red]⚠️  This action cannot be easily undone![/red]")
             console.print(f"[dim]Backups will be created in: {get_state().action_engine.backup_dir}[/dim]\n")
 
             user_input = typer.prompt(
@@ -752,10 +753,10 @@ def _execute_action(action: str, results: list, force: bool, verbose: bool):
                 console.print(f"❌ [red]Error deleting: {error}[/red]")
         elif action == 'archive':
             # For now, just show that archive isn't fully implemented
-            console.print(f"❌ [yellow]Archive action not yet fully implemented[/yellow]")
+            console.print("❌ [yellow]Archive action not yet fully implemented[/yellow]")
         elif action == 'promote':
             # For now, just show that promote isn't fully implemented
-            console.print(f"❌ [yellow]Promote action not yet fully implemented[/yellow]")
+            console.print("❌ [yellow]Promote action not yet fully implemented[/yellow]")
     except Exception as e:
         console.print(f"❌ [red]Error executing {action}: {e}[/red]")
         if verbose:
@@ -782,7 +783,7 @@ def _preview_action(action: str, results: list):
         table.add_row(action.title(), entity.type, str(rel_path))
         
     console.print(table)
-    console.print(f"[dim]Run without --dry-run to execute[/dim]")
+    console.print("[dim]Run without --dry-run to execute[/dim]")
 
 
 # ============================================================================
@@ -1137,10 +1138,8 @@ def init(
 ):
     """Initialize mem8 workspace with interactive guided setup (default) or auto-detected defaults."""
     from .core.smart_setup import (
-        detect_project_context, generate_smart_config, setup_minimal_structure,
-        launch_web_ui, show_setup_instructions
+        detect_project_context, generate_smart_config, setup_minimal_structure
     )
-    from .claude_integration import update_claude_md_integration
     
     set_app_state(verbose=verbose)
 
@@ -1429,10 +1428,10 @@ def worktree_create(
             import shutil
             
             if shutil.which("code"):
-                console.print(f"🚀 [cyan]Opening worktree in VS Code[/cyan]")
+                console.print("🚀 [cyan]Opening worktree in VS Code[/cyan]")
                 subprocess.run(["code", str(worktree_path)], shell=False)
             else:
-                console.print(f"💡 [dim]Install VS Code to auto-open worktrees[/dim]")
+                console.print("💡 [dim]Install VS Code to auto-open worktrees[/dim]")
             
     except Exception as e:
         console.print(f"❌ [bold red]Error creating worktree: {e}[/bold red]")
@@ -1696,7 +1695,7 @@ def templates_list(
                 console.print(table)
 
                 if manifest.metadata:
-                    console.print(f"\n[dim]Source metadata:[/dim]")
+                    console.print("\n[dim]Source metadata:[/dim]")
                     for key, value in manifest.metadata.items():
                         console.print(f"  {key}: {value}")
             else:
@@ -1787,11 +1786,11 @@ def templates_validate(
                         # Check for cookiecutter.json
                         cookiecutter_json = template_path / "cookiecutter.json"
                         if cookiecutter_json.exists():
-                            console.print(f"    ✅ cookiecutter.json found")
+                            console.print("    ✅ cookiecutter.json found")
                         else:
                             warning = f"No cookiecutter.json in template: {name}"
                             warnings.append(warning)
-                            console.print(f"    ⚠️  [yellow]No cookiecutter.json found[/yellow]")
+                            console.print("    ⚠️  [yellow]No cookiecutter.json found[/yellow]")
 
                         if template_def.description:
                             console.print(f"    [dim]{template_def.description}[/dim]")
@@ -1803,7 +1802,7 @@ def templates_validate(
             else:
                 warnings.append("No manifest file (will fallback to directory discovery)")
                 console.print("⚠️  [yellow]No manifest file found[/yellow]")
-                console.print(f"    [dim]Templates will be discovered from directory structure[/dim]")
+                console.print("    [dim]Templates will be discovered from directory structure[/dim]")
 
                 # Try to list templates anyway
                 templates = template_source.list_templates()
@@ -1957,7 +1956,7 @@ def ports(
         else:
             console.print(f"[red]✗ {message}[/red]")
             if not force and "outside project's range" in message:
-                console.print(f"[dim]Use --force to kill ports outside your range[/dim]")
+                console.print("[dim]Use --force to kill ports outside your range[/dim]")
         return
 
     # Release lease

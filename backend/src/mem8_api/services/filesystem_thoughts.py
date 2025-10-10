@@ -1,11 +1,9 @@
 """Filesystem-based thoughts service."""
 
 import hashlib
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-import re
 
 
 def extract_title_from_content(content: str, filename: str) -> str:

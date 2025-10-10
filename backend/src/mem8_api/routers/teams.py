@@ -28,7 +28,7 @@ async def list_teams(
 ) -> List[TeamResponse]:
     """List all teams."""
     
-    query = select(Team).where(Team.is_active == True)
+    query = select(Team).where(Team.is_active)
     
     if include_members:
         query = query.options(
@@ -182,7 +182,7 @@ async def list_team_members(
         .where(
             and_(
                 TeamMember.team_id == team_id,
-                TeamMember.is_active == True
+                TeamMember.is_active
             )
         )
         .options(selectinload(TeamMember.user))
@@ -268,7 +268,7 @@ async def update_team_member(
             and_(
                 TeamMember.team_id == team_id,
                 TeamMember.user_id == user_id,
-                TeamMember.is_active == True
+                TeamMember.is_active
             )
         )
     )
@@ -302,7 +302,7 @@ async def remove_team_member(
             and_(
                 TeamMember.team_id == team_id,
                 TeamMember.user_id == user_id,
-                TeamMember.is_active == True
+                TeamMember.is_active
             )
         )
     )
@@ -330,7 +330,7 @@ async def get_team_by_slug(
     query = select(Team).where(
         and_(
             Team.slug == slug,
-            Team.is_active == True
+            Team.is_active
         )
     )
     

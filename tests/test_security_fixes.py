@@ -1,7 +1,6 @@
 """Security tests for mem8 CLI hardening."""
 
 import pytest
-from pathlib import Path
 from mem8.core.memory import MemoryManager
 from mem8.core.config import Config
 from mem8.core.worktree import _validate_branch_name
