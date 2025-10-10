@@ -127,10 +127,9 @@ def analyze_git_repository(repo_path: Path) -> Optional[Dict[str, Any]]:
         memory_paths = []
         candidate_paths = [
             repo_root / 'memory',
-            repo_root / 'docs' / 'memory', 
-            repo_root / 'memory' / 'shared'
+            repo_root / 'docs' / 'memory'
         ]
-        
+
         for candidate in candidate_paths:
             if candidate.exists() and candidate.is_dir():
                 memory_paths.append(str(candidate))
@@ -266,81 +265,51 @@ def generate_smart_config(context: Dict[str, Any], repos_arg: Optional[str] = No
 
 
 def setup_minimal_structure(config: Dict[str, Any]) -> Dict[str, Any]:
-    """Create minimal mem8 structure with smart defaults."""
+    """Create minimal mem8 structure with flat memory directory."""
     results = {'created': [], 'linked': [], 'errors': []}
-    
-    # Create memory directory
+
+    # Check if memory directory exists as git submodule
     memory_dir = Path('memory')
-    if ensure_directory_exists(memory_dir):
-        results['created'].append(str(memory_dir))
-    else:
-        results['errors'].append(f"Failed to create {memory_dir}")
-        return results
-    
-    # Shared integration is optional and disabled by default.
-    # Only set up shared when explicitly enabled and a shared_location provided.
-    if config.get('shared_enabled') and config.get('shared_location'):
-        shared_dir_link = memory_dir / 'shared'
-        if not shared_dir_link.exists():
-            base = Path(config['shared_location'])
+    gitmodules_file = Path('.gitmodules')
 
-            # Validate write permissions before attempting setup
-            try:
-                test_file = base / '.mem8_test'
-                test_file.parent.mkdir(parents=True, exist_ok=True)
-                test_file.touch()
-                test_file.unlink()
-            except (OSError, PermissionError) as e:
-                results['errors'].append(f"Cannot write to shared location {base}: {e}")
-                return results
+    # If memory is already a submodule, don't create structure
+    if gitmodules_file.exists():
+        gitmodules_content = gitmodules_file.read_text()
+        if 'path = memory' in gitmodules_content:
+            results['linked'].append('memory/ (git submodule already configured)')
+            return results
 
-            # Create shared base structure at <shared_location>/memory
-            shared_memory_root = base / 'memory'
-            if ensure_directory_exists(shared_memory_root):
-                results['created'].append(str(shared_memory_root))
-            # Standard directories under shared root (aligned with MemoryManager)
-            for rel in [
-                'shared/decisions', 'shared/plans', 'shared/research', 'shared/tickets', 'shared/prs',
-                'global/shared', 'searchable',
-            ]:
-                ensure_directory_exists(shared_memory_root / rel)
-            # Create README if missing
-            readme = shared_memory_root / 'README.md'
-            if not readme.exists():
-                readme.write_text(
-                    "# Shared AI Memory\n\nThis directory contains shared memory and memory for the team.\n",
-                    encoding='utf-8'
-                )
-            # Link local memory/shared -> <shared_location>/memory
-            success, link_type = create_shared_link(shared_dir_link, shared_memory_root)
-            if success:
-                link_type_desc = {
-                    "junction": "Windows junction",
-                    "symlink": "symbolic link",
-                    "directory": "directory (fallback)"
-                }.get(link_type, link_type)
-                results['linked'].append(f"{shared_dir_link} -> {shared_memory_root} ({link_type_desc})")
-            else:
-                results['errors'].append(
-                    f"Failed to create link {shared_dir_link} -> {shared_memory_root}"
-                )
-
-    # Create user directory
-    user_dir = memory_dir / config['username']
-    if ensure_directory_exists(user_dir):
-        results['created'].append(str(user_dir))
-    else:
-        results['errors'].append(f"Failed to create user directory {user_dir}")
-    
-    # Create basic structure
-    subdirs = ['research', 'plans', 'tickets', 'notes']
-    for subdir_name in subdirs:
-        subdir = user_dir / subdir_name
-        if ensure_directory_exists(subdir):
-            results['created'].append(str(subdir))
+    # Create memory directory if it doesn't exist
+    if not memory_dir.exists():
+        if ensure_directory_exists(memory_dir):
+            results['created'].append(str(memory_dir))
         else:
-            results['errors'].append(f"Failed to create {subdir}")
-    
+            results['errors'].append(f"Failed to create {memory_dir}")
+            return results
+
+    # Create flat structure - no shared/ or username subdirectories
+    # Memory is now all at root level: plans/, research/, prs/
+    subdirs = ['plans', 'research', 'prs']
+    for subdir_name in subdirs:
+        subdir = memory_dir / subdir_name
+        if not subdir.exists():
+            if ensure_directory_exists(subdir):
+                results['created'].append(str(subdir))
+            else:
+                results['errors'].append(f"Failed to create {subdir}")
+
+    # Create README if missing
+    readme = memory_dir / 'README.md'
+    if not readme.exists():
+        readme.write_text(
+            "# Memory\n\nOrganizational memory for development context and knowledge.\n\n"
+            "- `plans/` - Implementation plans and architecture\n"
+            "- `research/` - Research notes and analysis\n"
+            "- `prs/` - Pull request descriptions\n",
+            encoding='utf-8'
+        )
+        results['created'].append(str(readme))
+
     return results
 
 
