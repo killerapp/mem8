@@ -348,8 +348,8 @@ export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title="mem8 - Context Management for AI Development"
+      description="A CLI tool that enables AI assistants to maintain shared context across projects, teams, and conversations. Features include memory management, external templates, and intelligent port management.">
       <HomepageHeader />
       <main>
         <FeatureSection1 />
