@@ -140,7 +140,7 @@ function FeatureSection1() {
                   <span className={styles.codeComment}>// Found 12 relevant contexts</span>
                   <span>✓ auth/middleware.py</span>
                   <span>✓ docs/security.md</span>
-                  <span>✓ thoughts/auth-strategy.md</span>
+                  <span>✓ memory/auth-strategy.md</span>
                 </div>
               </div>
             </div>

@@ -41,7 +41,7 @@ mem8 search "query" --category plans
 
 ### Archive Old Thoughts
 
-Keep your thoughts directory organized:
+Keep your memory directory organized:
 
 ```bash
 # Create archive structure
