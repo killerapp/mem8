@@ -9,7 +9,6 @@ Validates that doctor can load toolbelt definitions from:
 """
 import subprocess
 import tempfile
-import shutil
 from pathlib import Path
 import pytest
 import yaml

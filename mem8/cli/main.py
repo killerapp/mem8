@@ -5,24 +5,15 @@ Modern CLI framework with enhanced type safety and developer experience.
 """
 
 import typer
-from typing import Annotated, Optional, Dict, Any
-from pathlib import Path
 
 from .. import __version__
 
 # Import types and utils from CLI package
-from .types import SearchMethod, ContentType, ActionType, SyncDirection, DeployEnvironment
 from .utils import get_console
 
 # Import state management and actions
-from .state import (
-    get_state, set_app_state, handle_command_error,
-    get_memory_manager, get_config
-)
-from .actions import execute_action as _execute_action, preview_action as _preview_action
 
 # Import template management
-from ..core.templates import TemplateManager
 
 # Import command modules
 from .commands import (

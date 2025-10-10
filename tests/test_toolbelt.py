@@ -3,14 +3,12 @@ Tests for CLI toolbelt management functionality.
 
 Tests version checking, tool detection, and auto-fix features.
 """
-import json
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
+from unittest.mock import Mock, patch
 
 from mem8.core.memory import MemoryManager
 from mem8.core.config import Config
-from mem8.core.template_source import ToolbeltTool, ToolbeltDefinition, TemplateManifest
+from mem8.core.template_source import ToolbeltTool, ToolbeltDefinition
 
 
 class TestVersionChecking:

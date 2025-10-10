@@ -4,7 +4,7 @@ import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
@@ -60,8 +60,8 @@ async def _fulltext_search(
     
     # Build base query
     query = select(Thought).where(
-        Thought.is_published == True,
-        Thought.is_archived == False,
+        Thought.is_published,
+        not Thought.is_archived,
     )
     
     # Apply team filter
@@ -210,8 +210,8 @@ async def get_search_suggestions(
         select(Thought.title)
         .where(
             query_filter,
-            Thought.is_published == True,
-            Thought.is_archived == False,
+            Thought.is_published,
+            not Thought.is_archived,
         )
         .limit(limit)
     )

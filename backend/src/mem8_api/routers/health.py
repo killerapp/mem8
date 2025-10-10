@@ -60,7 +60,7 @@ async def system_stats(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
         
         # Get active teams count  
         teams_result = await db.execute(
-            select(func.count(Team.id)).where(Team.is_active == True)
+            select(func.count(Team.id)).where(Team.is_active)
         )
         active_teams = teams_result.scalar()
         

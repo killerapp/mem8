@@ -1,14 +1,10 @@
 """Sync router for WebSocket real-time synchronization."""
 
 import json
-import uuid
 from typing import Dict, Set
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from ..database import get_db
-from ..models.thought import Thought
 
 router = APIRouter()
 

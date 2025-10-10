@@ -6,7 +6,6 @@ are properly loaded and used during diagnosis.
 """
 import subprocess
 import json
-from pathlib import Path
 import pytest
 
 
@@ -147,8 +146,6 @@ class TestDoctorManifestIntegration:
     def test_doctor_reports_version_mismatches(self):
         """Test that doctor reports when installed version doesn't meet requirements."""
         from mem8.core.template_source import TemplateSource
-        from mem8.core.memory import MemoryManager
-        from mem8.core.config import Config
 
         source = TemplateSource(None)
         manifest = source.load_manifest()
@@ -189,7 +186,7 @@ class TestDoctorManifestIntegration:
         )
 
         if "Install:" in result.stdout:
-            system = platform.system().lower()
+            platform.system().lower()
 
             # Load manifest to check install commands
             from mem8.core.template_source import TemplateSource

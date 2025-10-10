@@ -67,7 +67,7 @@ def split_workflows():
     if utility_match:
         utility_path = workflows_dir / "utility.md"
         with open(utility_path, 'w', encoding='utf-8') as f:
-            f.write(f"---\nsidebar_position: 5\n---\n\n")
+            f.write("---\nsidebar_position: 5\n---\n\n")
             f.write(utility_match.group(0))
         print("✓ Created utility.md")
 
@@ -75,7 +75,7 @@ def split_workflows():
     if advanced_match:
         advanced_path = workflows_dir / "advanced.md"
         with open(advanced_path, 'w', encoding='utf-8') as f:
-            f.write(f"---\nsidebar_position: 6\n---\n\n")
+            f.write("---\nsidebar_position: 6\n---\n\n")
             f.write(advanced_match.group(0))
         print("✓ Created advanced.md")
 
@@ -83,7 +83,7 @@ def split_workflows():
     if best_practices_match:
         practices_path = workflows_dir / "best-practices.md"
         with open(practices_path, 'w', encoding='utf-8') as f:
-            f.write(f"---\nsidebar_position: 7\n---\n\n")
+            f.write("---\nsidebar_position: 7\n---\n\n")
             f.write(best_practices_match.group(0))
         print("✓ Created best-practices.md")
 

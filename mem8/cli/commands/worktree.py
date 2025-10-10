@@ -46,10 +46,10 @@ def worktree_create(
             import shutil
 
             if shutil.which("code"):
-                console.print(f"🚀 [cyan]Opening worktree in VS Code[/cyan]")
+                console.print("🚀 [cyan]Opening worktree in VS Code[/cyan]")
                 subprocess.run(["code", str(worktree_path)], shell=False)
             else:
-                console.print(f"💡 [dim]Install VS Code to auto-open worktrees[/dim]")
+                console.print("💡 [dim]Install VS Code to auto-open worktrees[/dim]")
 
     except Exception as e:
         console.print(f"❌ [bold red]Error creating worktree: {e}[/bold red]")

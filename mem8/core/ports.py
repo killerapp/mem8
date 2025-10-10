@@ -231,7 +231,7 @@ class PortManager:
             if lease:
                 return False, f"Port {port} is outside project's range ({lease['port_range']}). Use --force to override."
             else:
-                return False, f"No port lease for this project. Use --force to kill anyway."
+                return False, "No port lease for this project. Use --force to kill anyway."
 
         # Find and kill process using psutil
         try:
@@ -253,7 +253,7 @@ class PortManager:
 
             return False, f"No process found listening on port {port}"
         except (psutil.AccessDenied, PermissionError):
-            return False, f"Permission denied. Try running with administrator/sudo privileges."
+            return False, "Permission denied. Try running with administrator/sudo privileges."
         except Exception as e:
             return False, f"Error: {e}"
 
@@ -265,7 +265,7 @@ def generate_ports_markdown(lease: Dict[str, Any]) -> str:
     """
     start_port = lease['start_port']
     port_count = lease['port_count']
-    end_port = lease['end_port']  # Calculated field
+    lease['end_port']  # Calculated field
     port_range = lease['port_range']  # Calculated field
 
     content = f"""---

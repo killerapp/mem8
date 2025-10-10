@@ -2,7 +2,6 @@
 """Generate logo variants for mem8 documentation and branding."""
 
 from PIL import Image
-import os
 from pathlib import Path
 
 def generate_logos():
@@ -80,23 +79,23 @@ def generate_logos():
     # Generate multi-size .ico
     icon_images = [icon_square.resize((s, s), Image.Resampling.LANCZOS) for s in [16, 32, 48, 64]]
     icon_images[0].save(docs_static / "favicon.ico", format='ICO', sizes=[(16,16), (32,32), (48,48), (64,64)])
-    print(f"✓ Saved: favicon.ico")
+    print("✓ Saved: favicon.ico")
 
     # Generate apple-touch-icon
     apple_icon = icon_square.resize((180, 180), Image.Resampling.LANCZOS)
     apple_icon.save(docs_static / "apple-touch-icon.png")
-    print(f"✓ Saved: apple-touch-icon.png")
+    print("✓ Saved: apple-touch-icon.png")
 
     # Copy to frontend
     print("\nGenerating frontend assets...")
 
     # Copy full logo with text for frontend
     cropped.save(frontend_public / "logo_transparent_with_words.png")
-    print(f"✓ Saved: frontend/public/logo_transparent_with_words.png")
+    print("✓ Saved: frontend/public/logo_transparent_with_words.png")
 
     # Copy icon (just infinity symbol) for frontend
     icon_square.save(frontend_public / "logo_mark.png")
-    print(f"✓ Saved: frontend/public/logo_mark.png")
+    print("✓ Saved: frontend/public/logo_mark.png")
 
     # Generate frontend favicons
     for size in favicon_sizes:
@@ -108,16 +107,16 @@ def generate_logos():
     if 48 not in favicon_sizes:
         favicon_48 = icon_square.resize((48, 48), Image.Resampling.LANCZOS)
         favicon_48.save(frontend_public / "favicon-48x48.png")
-        print(f"✓ Saved: frontend/public/favicon-48x48.png")
+        print("✓ Saved: frontend/public/favicon-48x48.png")
 
     # Generate frontend favicon.ico
     icon_images = [icon_square.resize((s, s), Image.Resampling.LANCZOS) for s in [16, 32, 48, 64]]
     icon_images[0].save(frontend_public / "favicon.ico", format='ICO', sizes=[(16,16), (32,32), (48,48), (64,64)])
-    print(f"✓ Saved: frontend/public/favicon.ico")
+    print("✓ Saved: frontend/public/favicon.ico")
 
     # Generate frontend apple-touch-icon
     apple_icon.save(frontend_public / "apple-touch-icon.png")
-    print(f"✓ Saved: frontend/public/apple-touch-icon.png")
+    print("✓ Saved: frontend/public/apple-touch-icon.png")
 
     # Generate social card (1200x630 with logo centered)
     social_card = Image.new('RGB', (1200, 630), (13, 17, 23))  # Dark background
@@ -139,7 +138,7 @@ def generate_logos():
     social_card.paste(logo_for_card, (x, y))
 
     social_card.save(docs_static / "mem8-social-card.jpg", quality=95)
-    print(f"✓ Saved: mem8-social-card.jpg")
+    print("✓ Saved: mem8-social-card.jpg")
 
     print("\nAll logo variants generated successfully!")
     print(f"Output directory: {docs_static}")

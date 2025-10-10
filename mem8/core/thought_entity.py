@@ -1,9 +1,8 @@
 """Thought entity data model for semantic understanding of memory."""
 
-import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 import yaml
 
 

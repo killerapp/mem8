@@ -6,7 +6,6 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from ..database import get_db
 from ..models.thought import Thought
@@ -17,7 +16,7 @@ from ..schemas.thought import (
     ThoughtResponse,
     ThoughtUpdate,
 )
-from .auth import get_current_user, get_current_user_or_local
+from .auth import get_current_user_or_local
 from ..services.filesystem_thoughts import get_filesystem_thoughts
 
 router = APIRouter()
@@ -263,8 +262,8 @@ async def get_related_thoughts(
     filters = [
         Thought.id != thought_id,
         Thought.team_id == source_thought.team_id,
-        Thought.is_published == True,
-        Thought.is_archived == False,
+        Thought.is_published,
+        not Thought.is_archived,
     ]
     
     # If source thought has tags, prioritize thoughts with shared tags

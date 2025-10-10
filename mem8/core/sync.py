@@ -1,10 +1,8 @@
 """Synchronization functionality for mem8."""
 
-import os
 import shutil
-import time
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 import filecmp
 from datetime import datetime
 
@@ -128,7 +126,7 @@ class SyncManager:
                 'errors': errors,
             }
             
-        except Exception as e:
+        except Exception:
             return {
                 'count': count,
                 'conflicts': conflicts,

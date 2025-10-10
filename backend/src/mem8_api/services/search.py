@@ -60,8 +60,8 @@ class SearchService:
 
         # Base query to fetch candidate thoughts
         db_query = db.query(Thought).filter(
-            Thought.is_published == True,
-            Thought.is_archived == False,
+            Thought.is_published,
+            not Thought.is_archived,
         )
 
         if team_id:
@@ -118,8 +118,8 @@ class SearchService:
         
         # Build query
         db_query = db.query(Thought).filter(
-            Thought.is_published == True,
-            Thought.is_archived == False,
+            Thought.is_published,
+            not Thought.is_archived,
         )
         
         # Apply filters

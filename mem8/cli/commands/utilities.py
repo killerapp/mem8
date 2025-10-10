@@ -128,7 +128,7 @@ def register_ports_command(app: typer.Typer):
             else:
                 console.print(f"[red]✗ {message}[/red]")
                 if not force and "outside project's range" in message:
-                    console.print(f"[dim]Use --force to kill ports outside your range[/dim]")
+                    console.print("[dim]Use --force to kill ports outside your range[/dim]")
             return
 
         # Release lease

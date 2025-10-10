@@ -10,8 +10,7 @@ Supports loading templates from:
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-from urllib.parse import urlparse
+from typing import Any, Dict, List, Optional
 import tempfile
 import shutil
 import yaml

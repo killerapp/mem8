@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Analyze logo to find the exact center of the infinity symbol."""
 
-from PIL import Image, ImageDraw
+from PIL import Image
 import numpy as np
 from pathlib import Path
 
@@ -33,7 +33,7 @@ def analyze_logo():
             left = cols_with_content[0]
             right = cols_with_content[-1]
 
-            print(f"\nContent bounds:")
+            print("\nContent bounds:")
             print(f"  Top: {top}")
             print(f"  Bottom: {bottom}")
             print(f"  Left: {left}")
@@ -66,7 +66,7 @@ def analyze_logo():
 
                         # Suggest crop
                         suggested_crop_bottom = gap_start + 10  # Small padding
-                        print(f"\nSuggested crop for icon:")
+                        print("\nSuggested crop for icon:")
                         print(f"  crop((0, 0, {img.width}, {suggested_crop_bottom}))")
                         print(f"  This captures {suggested_crop_bottom}px from top ({suggested_crop_bottom/img.height*100:.1f}% of image)")
                         break
