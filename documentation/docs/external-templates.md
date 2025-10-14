@@ -1,266 +1,262 @@
-# External Template Sources
+# External Plugin Sources
 
-**Share Claude Code workflows across your entire team.** mem8 supports loading templates from external sources, enabling teams to collaborate on prompts, sub-agents, and best practices.
+**Share Claude Code workflows across your entire team.** mem8 uses the Claude Code plugin system to enable teams to collaborate on commands, agents, and development practices.
 
-## Why Use External Templates?
+## Why Use External Plugins?
 
 ### Team Collaboration
 - **Standardize workflows** - Everyone uses the same Claude Code commands
-- **Share best practices** - Distribute proven sub-agent configurations
-- **Version control** - Track changes to prompts and workflows over time
+- **Share best practices** - Distribute proven agent configurations
+- **Version control** - Track changes to commands and workflows over time
 - **Organization-wide consistency** - Same tools, same patterns, same quality
 
-### Official Templates Repository
+### Official Plugin Repository
 The [`killerapp/mem8-plugin`](https://github.com/killerapp/mem8-plugin) repository provides:
-- Curated Claude Code integration templates
-- Battle-tested sub-agent configurations
+- 8 workflow commands (`/m8-*`)
+- 6 specialized agents (codebase-analyzer, memory-analyzer, etc.)
+- Battle-tested configurations
 - Community-contributed workflows
 - Regular updates and improvements
 
-### Custom Templates
-- Fork and customize the official templates
+### Custom Plugins
+- Fork and customize the official plugin
 - Create organization-specific commands
-- Develop and test templates locally
+- Develop and test plugins locally
 - Version and distribute independently
 
 ## Quick Start
 
-### Using External Templates
+### Installing the Official Plugin
+
+The mem8 plugin provides 8 workflow commands and 6 specialized agents. See the [plugin repository](https://github.com/killerapp/mem8-plugin) for:
+- Complete command list
+- Installation instructions
+- Usage examples
+- Agent descriptions
+
+**Installation**: Follow Claude Code's plugin installation process using the mem8 plugin repository.
+
+## Plugin Management
+
+Use Claude Code's built-in plugin management features to:
+- View installed plugins
+- Update plugins to latest versions
+- Uninstall plugins
+
+Refer to [Claude Code documentation](https://docs.claude.com/) for specific plugin management commands.
+
+## Plugin Structure
+
+A Claude Code plugin for mem8 includes:
+
+```
+.claude-plugin/
+├── plugin.json          # Plugin metadata
+└── marketplace.json     # Marketplace listing info
+
+.claude/
+├── commands/            # Slash commands (/m8-*)
+│   ├── m8-plan.md
+│   ├── m8-implement.md
+│   └── ...
+├── agents/              # Specialized agents
+│   ├── codebase-analyzer.md
+│   ├── memory-analyzer.md
+│   └── ...
+└── hooks/               # Lifecycle hooks
+    └── after-plugin-install.sh
+```
+
+### Plugin Manifest (plugin.json)
+
+```json
+{
+  "name": "mem8",
+  "version": "1.0.0",
+  "description": "Context management and workflow automation",
+  "author": "killerapp",
+  "repository": "https://github.com/killerapp/mem8-plugin",
+  "commands": [
+    "/m8-plan",
+    "/m8-implement",
+    "/m8-research",
+    "/m8-validate",
+    "/m8-commit",
+    "/m8-describe-pr",
+    "/m8-debug",
+    "/m8-local-review"
+  ],
+  "agents": [
+    "codebase-analyzer",
+    "codebase-locator",
+    "codebase-pattern-finder",
+    "memory-analyzer",
+    "memory-locator",
+    "web-search-researcher"
+  ],
+  "hooks": {
+    "postInstall": ".claude-plugin/hooks/after-plugin-install.sh"
+  }
+}
+```
+
+## Creating Custom Slash Commands
+
+Slash commands are markdown files in `.claude/commands/`. Each command defines a prompt that Claude Code executes.
+
+### Command File Format
+
+`.claude/commands/my-command.md`:
+
+```markdown
+# My Custom Command
+
+You are helping the user with a specific task. Follow these steps:
+
+1. Analyze the current codebase
+2. Perform the requested action
+3. Report results back to the user
+
+## Guidelines
+
+- Use the Read tool to examine files
+- Use the Edit tool to make changes
+- Be thorough and methodical
+
+## Success Criteria
+
+- [ ] All files are properly updated
+- [ ] Tests pass
+- [ ] User is informed of changes
+```
+
+### Calling Commands
+
+After installing your plugin, users can call:
 
 ```bash
-# Use templates from GitHub (shorthand)
-mem8 init --template-source killerapp/mem8-plugin
-
-# Use a specific version
-mem8 init --template-source killerapp/mem8-plugin@v2.10.0
-
-# Use templates from a subdirectory
-mem8 init --template-source killerapp/mem8-plugin#subdir=templates
-
-# Use local templates (development)
-mem8 init --template-source ./my-templates
-
-# Use full Git URL
-mem8 init --template-source https://github.com/org/templates.git
+/my-command
+/my-command with additional context
 ```
 
-### Set Default Template Source
+## Creating Custom Agents
+
+Agents are specialized markdown files in `.claude/agents/` that define focused behaviors.
+
+### Agent File Format
+
+`.claude/agents/my-analyzer.md`:
+
+```markdown
+# My Analyzer Agent
+
+You are a specialized agent for analyzing specific patterns in the codebase.
+
+## Your Role
+
+Analyze code to identify:
+- Pattern A
+- Pattern B
+- Potential issues
+
+## Tools Available
+
+You have access to:
+- Read tool
+- Grep tool
+- Glob tool
+
+## Output Format
+
+Provide your analysis in this format:
+
+1. **Summary**: Brief overview
+2. **Findings**: Detailed results
+3. **Recommendations**: Suggested actions
+```
+
+## Creating Custom Plugins
+
+### 1. Use the Template Repository
+
+The [`killerapp/mem8-plugin`](https://github.com/killerapp/mem8-plugin) repository is a GitHub template. Create your own plugin by using it as a template:
 
 ```bash
-# Set as default for all future init commands
-mem8 templates set-default killerapp/mem8-plugin
+# Create from template using GitHub CLI
+gh repo create my-org/my-workflows --template killerapp/mem8-plugin --private --clone
 
-# Reset to builtin templates
-mem8 templates set-default builtin
+cd my-workflows
 ```
 
-## Template Management Commands
+Or use the GitHub web interface:
+1. Go to https://github.com/killerapp/mem8-plugin
+2. Click "Use this template" button
+3. Create your new repository
 
-### List Templates
+### 2. Customize Plugin Content
 
-```bash
-# List from builtin (or configured default)
-mem8 templates list
+Modify the plugin to fit your needs:
 
-# List from specific source
-mem8 templates list --source killerapp/mem8-plugin
+**Commands** (`.claude/commands/`):
+- Edit existing commands or add new ones
+- Each `.md` file becomes a `/command-name` in Claude Code
 
-# List with verbose details
-mem8 templates list --source killerapp/mem8-plugin -v
-```
+**Agents** (`.claude/agents/`):
+- Customize agent behaviors
+- Add organization-specific analysis patterns
 
-### Validate Template Source
+**Hooks** (`.claude-plugin/hooks/`):
+- Customize post-install behavior
+- Add setup scripts for your environment
 
-```bash
-# Validate a template source
-mem8 templates validate --source killerapp/mem8-plugin
+### 3. Update Plugin Manifest
 
-# Validate the configured default
-mem8 templates validate
-```
+Edit `.claude-plugin/plugin.json`:
 
-The validation checks:
-- ✅ Source resolves correctly
-- ✅ Manifest file exists and parses
-- ✅ Template paths exist
-- ✅ cookiecutter.json files present
-- ⚠️  Warns about potential issues
-
-## Template Source Formats
-
-### GitHub Shorthand
-
-The most concise format for GitHub repositories:
-
-```bash
-# Basic: org/repo
-killerapp/mem8-plugin
-
-# With git ref (branch, tag, or commit)
-killerapp/mem8-plugin@v2.10.0
-killerapp/mem8-plugin@main
-killerapp/mem8-plugin@abc123
-
-# With subdirectory
-killerapp/mem8-plugin#subdir=templates
-
-# Combined
-killerapp/mem8-plugin@v2.10.0#subdir=templates
-```
-
-### Full Git URLs
-
-Standard Git URLs are also supported:
-
-```bash
-# HTTPS
-https://github.com/org/repo.git
-https://github.com/org/repo.git@v1.0.0
-
-# With subdirectory
-https://github.com/org/repo.git#subdir=templates
-```
-
-### Local Paths
-
-For development and testing:
-
-```bash
-# Absolute path
-/path/to/templates
-
-# Relative path
-./templates
-../shared-templates
-```
-
-## Template Manifest Format
-
-Create a `mem8-templates.yaml` manifest in your template repository:
-
-```yaml
-version: 1
-
-# Relative path to templates directory
-source: "."
-
-# Metadata (optional)
-metadata:
-  name: "My Custom Templates"
-  version: "1.0.0"
-  description: "Custom templates for my organization"
-  author: "Your Name"
-  license: "MIT"
-
-# Template definitions
-templates:
-  # Template name (used with mem8 init --template)
-  custom-template:
-    path: "my-template-dir"
-    type: "cookiecutter"
-    description: "Description of this template"
-    variables:
-      # Default variables for cookiecutter
-      key: "default value"
-      another_key: "{{ env.USERNAME | default('user') }}"
-```
-
-### Template Types
-
-- **`cookiecutter`**: Standard cookiecutter template
-- **`composite`**: Meta-template that uses multiple templates
-
-### Variables
-
-Variables are passed to cookiecutter's `extra_context`:
-
-```yaml
-templates:
-  example:
-    variables:
-      username: "{{ env.USERNAME | default('user') }}"
-      shared_enabled: false
-      workflow_provider: "github"
-```
-
-## Creating Custom Templates
-
-### 1. Fork the Official Repository
-
-```bash
-# Fork https://github.com/killerapp/mem8-plugin
-gh repo fork killerapp/mem8-plugin --clone
-
-cd mem8-templates
-```
-
-### 2. Modify Templates
-
-Edit templates in:
-- `claude-dot-md-template/` - Claude Code integration
-- `shared-thoughts-template/` - Thoughts repository
-
-### 3. Update Manifest
-
-Edit `mem8-templates.yaml` to reflect your changes:
-
-```yaml
-version: 1
-source: "."
-
-metadata:
-  name: "Acme Corp Templates"
-  version: "1.0.0"
-  author: "Acme Corp"
-
-templates:
-  acme-standard:
-    path: "acme-standard-template"
-    type: "cookiecutter"
-    description: "Acme standard workspace setup"
+```json
+{
+  "name": "acme-workflows",
+  "version": "1.0.0",
+  "description": "Acme Corp development workflows",
+  "author": "acme-corp",
+  "repository": "https://github.com/acme-corp/acme-workflows",
+  "commands": [
+    "/acme-deploy",
+    "/acme-review",
+    "/acme-test"
+  ],
+  "agents": [
+    "acme-compliance-checker",
+    "acme-security-analyzer"
+  ]
+}
 ```
 
 ### 4. Test Locally
 
-```bash
-# Test your changes
-mem8 templates validate --source ./
+Test your custom plugin locally:
 
-# Try initialization
-cd /path/to/test-project
-mem8 init --template-source /path/to/your/mem8-templates
-```
+1. Use Claude Code's local plugin loading features
+2. Verify all commands work as expected
+3. Test agents with real codebase scenarios
+4. Confirm hooks execute properly
 
-### 5. Publish and Use
+Refer to Claude Code documentation for local plugin testing.
+
+### 5. Publish and Share
 
 ```bash
 # Push to GitHub
 git add .
-git commit -m "feat: customized templates for Acme Corp"
+git commit -m "feat: customized plugin for Acme Corp"
 git push
-
-# Use in projects
-mem8 templates set-default acme-corp/mem8-templates
 ```
 
-## Fallback Behavior
-
-When a manifest is missing, mem8 falls back to directory discovery:
-- Scans for directories containing `cookiecutter.json`
-- Maps directory names to template names
-- Uses template names with `-template` suffix removed
-
-Example:
-```
-templates/
-├── claude-dot-md-template/   → template name: "claude-dot-md-template"
-├── custom-template/           → template name: "custom-template"
-└── another-one/               → template name: "another-one"
-```
+Team members can then install your plugin using Claude Code's plugin system. Share your repository URL with the team.
 
 ## Best Practices
 
-### 1. Version Your Templates
+### 1. Version Your Plugins
 
 Use Git tags for stable releases:
 
@@ -269,182 +265,135 @@ git tag -a v1.0.0 -m "Release 1.0.0"
 git push --tags
 ```
 
-Users can then reference specific versions:
-```bash
-mem8 init --template-source your-org/templates@v1.0.0
-```
+Users can then install specific versions if supported by Claude Code.
 
-### 2. Document Template Variables
+### 2. Document Your Commands
 
-Include a README in each template explaining:
-- Available variables
-- Default values
+Include a README explaining:
+- Available commands and what they do
+- Agent purposes and capabilities
+- Usage examples
 - Configuration options
 
-### 3. Test Before Publishing
+### 3. Test Thoroughly
 
-Always validate before pushing:
-
-```bash
-mem8 templates validate --source ./
-```
+Before publishing:
+- Test all commands in Claude Code
+- Verify agents work as expected
+- Test hooks execute properly
+- Document any prerequisites
 
 ### 4. Provide Examples
 
-Include example projects or documentation showing:
-- How to use each template
-- What gets generated
-- Customization options
+Include documentation showing:
+- How to use each command
+- What each agent analyzes
+- Real-world use cases
+- Common workflows
 
 ## Security Considerations
 
-### Template Execution
+### Plugin Execution
 
-- Templates are executed using cookiecutter
-- Post-generation hooks can run Python code
-- **Only use templates from trusted sources**
+- Plugins can define commands that execute prompts in Claude Code
+- Hooks can run shell scripts during installation
+- **Only install plugins from trusted sources**
 
 ### Validation
 
-Before using an external template source:
+Before installing a plugin:
 
-```bash
-# Validate the source
-mem8 templates validate --source org/repo
-
-# Review the manifest
-mem8 templates list --source org/repo -v
-
-# Test in a safe location first
-cd /tmp/test
-mem8 init --template-source org/repo
-```
+1. Review the plugin repository on GitHub
+2. Check the commands in `.claude/commands/`
+3. Inspect any hooks in `.claude-plugin/hooks/`
+4. Read the plugin's README and documentation
 
 ### Private Repositories
 
-For private repositories:
+For private plugin repositories:
 
 ```bash
 # Ensure you're authenticated with gh CLI
 gh auth login
 
-# Then use as normal
-mem8 init --template-source your-org/private-templates
+# Claude Code should be able to access private repos if authenticated
 ```
 
 ## Troubleshooting
 
-### Template Not Found
+### Plugin Not Found
 
-```
-❌ [red]Template not available: template-name[/red]
-```
+**Issue**: Can't find the plugin in marketplace
 
-**Solution**: Check template name with `mem8 templates list --source <source>`
+**Solution**:
+1. Verify you've added the marketplace source
+2. Check the repository URL is correct
+3. Ensure the repository is public or you're authenticated
 
-### Source Resolution Failed
+### Installation Failed
 
-```
-❌ [red]Failed to resolve source: ...[/red]
-```
+**Issue**: Plugin installation fails
 
-**Causes**:
-- Network issues (for remote sources)
-- Invalid path (for local sources)
-- Private repository without authentication
-
-**Solution**: Validate the source first:
-```bash
-mem8 templates validate --source <source>
-```
-
-### Git Clone Failed
-
-```
-❌ Failed to clone repository: ...
-```
-
-**Causes**:
+**Common Causes**:
 - Repository doesn't exist
-- No access (private repo)
-- Invalid git ref
+- No access to private repository
+- Invalid plugin structure (missing plugin.json)
 
-**Solution**: Check repository exists and you have access:
-```bash
-gh repo view org/repo
-```
+**Solution**:
+1. Check repository exists: `gh repo view org/repo`
+2. Verify plugin.json exists in `.claude-plugin/`
+3. Check Claude Code logs for detailed error messages
+
+### Commands Not Working
+
+**Issue**: Plugin commands don't appear or don't work
+
+**Solution**:
+1. Verify installation: Check Claude Code plugin list
+2. Restart Claude Code if needed
+3. Check command files exist in `.claude/commands/`
+4. Verify command markdown is properly formatted
 
 ## Examples
 
-### Organization Template Repository
+### Organization Plugin Repository
 
-```yaml
-# .github.com/acme-corp/mem8-templates/mem8-templates.yaml
-version: 1
-source: "templates"
+**Repository**: `acme-corp/acme-workflows`
 
-metadata:
-  name: "Acme Corp Templates"
-  organization: "Acme Corp"
-  version: "2.0.0"
+**Structure**:
+```
+.claude-plugin/
+  plugin.json              # Defines plugin metadata
+  marketplace.json         # Marketplace listing
+  hooks/
+    after-plugin-install.sh  # Setup Acme tools
 
-templates:
-  acme-standard:
-    path: "acme-standard"
-    type: "cookiecutter"
-    description: "Standard Acme workspace with compliance tools"
-    variables:
-      compliance_level: "standard"
-      team: "engineering"
-
-  acme-fintech:
-    path: "acme-fintech"
-    type: "cookiecutter"
-    description: "Fintech workspace with additional security"
-    variables:
-      compliance_level: "high"
-      audit_enabled: true
+.claude/
+  commands/
+    acme-deploy.md         # Deploy to Acme infrastructure
+    acme-review.md         # Code review checklist
+    acme-compliance.md     # Run compliance checks
+  agents/
+    acme-security-analyzer.md  # Security analysis
+    acme-docs-generator.md     # Generate internal docs
 ```
 
-Usage:
-```bash
-# Set as org default
-mem8 templates set-default acme-corp/mem8-templates
+### Personal Plugin
 
-# All engineers now use this
-mem8 init  # Uses acme-standard by default
+**Repository**: `yourname/my-workflows`
+
+**Structure**:
 ```
-
-### Personal Template Collection
-
-```yaml
-# github.com/yourname/my-templates/mem8-templates.yaml
-version: 1
-source: "."
-
-metadata:
-  name: "Personal Dev Templates"
-  author: "Your Name"
-
-templates:
-  minimal:
-    path: "minimal-template"
-    type: "cookiecutter"
-    description: "Minimal setup for quick projects"
-
-  research:
-    path: "research-template"
-    type: "cookiecutter"
-    description: "Research project with experiment tracking"
-```
-
-Usage:
-```bash
-mem8 init --template-source yourname/my-templates --template minimal
+.claude/
+  commands/
+    quick-test.md          # Run tests with your preferred setup
+    deploy-personal.md     # Deploy to your environments
+  agents/
+    my-analyzer.md         # Custom analysis patterns
 ```
 
 ## Related
 
-- [Templates Repository](https://github.com/killerapp/mem8-plugin)
-- [Cookiecutter Documentation](https://cookiecutter.readthedocs.io/)
-- [Template Development Guide](#) <!-- TODO: Add link -->
+- [Plugin Repository](https://github.com/killerapp/mem8-plugin)
+- [Claude Code Documentation](https://docs.claude.com/)
+- [Full mem8 Documentation](https://codebasecontext.org)
