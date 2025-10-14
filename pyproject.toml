@@ -1,6 +1,6 @@
 [project]
 name = "mem8"
-version = "5.0.0"
+version = "5.1.0"
 description = "Context management toolkit for AI-assisted development"
 readme = "PYPI_README.md"
 authors = [
