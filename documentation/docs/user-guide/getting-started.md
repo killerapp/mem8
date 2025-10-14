@@ -6,40 +6,38 @@ sidebar_position: 1
 
 Your first steps with mem8.
 
-## Initialize a Workspace
+## Set Up Your Workspace
 
-The easiest way to get started is with interactive initialization:
+### Install Claude Code Plugin (Recommended)
+
+The mem8 plugin provides 8 workflow commands and 6 specialized agents for Claude Code:
+
+1. See the [plugin repository](https://github.com/killerapp/mem8-plugin) for installation instructions
+2. The plugin automatically sets up command and agent structure
+3. Start using `/m8-*` commands immediately
+
+### Set Up Memory Directory (Optional)
+
+Create a memory directory structure for persistent context:
 
 ```bash
 cd your-project
-mem8 init
+mkdir -p memory/shared/{research,plans,decisions}
+mkdir -p memory/workspace
+
+# Or clone an existing memory repository as a submodule
+git submodule add https://github.com/your-org/shared-memory.git memory
 ```
 
-This will:
-1. **Detect** your project type (Claude Code, Python, Node.js, etc.)
-2. **Prompt** for configuration (GitHub integration, template type)
-3. **Generate** appropriate templates
-4. **Set up** memory repository structure
+### Install mem8 CLI (Optional)
 
-### Non-Interactive Mode
-
-For scripts or CI/CD:
+For additional CLI features:
 
 ```bash
-mem8 init --template full --force --non-interactive
-```
+uv tool install mem8
 
-### Template Options
-
-```bash
-# Claude Code only
-mem8 init --template claude-config
-
-# Memory repository only
-mem8 init --template memory-repo
-
-# Both (recommended)
-mem8 init --template full
+# Verify installation
+mem8 status
 ```
 
 ## Your First Thought
@@ -202,18 +200,6 @@ mem8 search "term1 term2"
 mem8 search "query" --path memory/shared/plans
 ```
 
-### Template Variables
-
-Use environment variables in templates:
-
-```bash
-# Set your username
-export MEM8_USERNAME=yourname
-
-# Init will use it
-mem8 init
-```
-
 ### Backup Strategy
 
 Memory is git repositories:
@@ -226,23 +212,20 @@ git commit -m "Update research"
 git push
 ```
 
-### Custom Templates
+### Custom Plugins
 
-Use organization templates:
+Create organization-specific plugins:
 
-```bash
-# Set as default
-mem8 templates set-default your-org/templates
-
-# All future inits use it
-mem8 init
-```
+1. Use the [mem8-plugin](https://github.com/killerapp/mem8-plugin) as a GitHub template
+2. Customize commands and agents for your team
+3. Share the plugin repository URL with team members
+4. See [External Plugins](../external-templates) for detailed instructions
 
 ## Next Steps
 
 - **[CLI Commands](./cli-commands)** - Full command reference
 - **[Workflows](./workflows)** - Common development patterns
-- **[External Templates](../external-templates)** - Use custom templates
+- **[External Plugins](../external-templates)** - Create custom workflows
 - **[Troubleshooting](./troubleshooting)** - Solve common issues
 
 ## Common Tasks
