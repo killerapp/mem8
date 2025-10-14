@@ -66,18 +66,15 @@ mem8 supports **shared organizational memory** through git submodules. This allo
 
 ### Setup
 
-When you initialize a project with `mem8 init`, the CLI automatically detects if `memory/` is a git submodule and preserves it. You can add a shared memory repository in two ways:
+The mem8 CLI automatically works with `memory/` directories, whether they're regular directories or git submodules. To set up shared organizational memory:
 
 ```bash
-# Option 1: Add submodule before running mem8 init
+# Add your organization's memory repository as a submodule
 git submodule add https://github.com/your-org/shared-memory.git memory
 git submodule update --init --recursive
-mem8 init  # Automatically detects and preserves the submodule
 
-# Option 2: Add submodule after initialization
-mem8 init
-git submodule add https://github.com/your-org/shared-memory.git memory
-git submodule update --init --recursive
+# Or clone the mem8 plugin which includes memory structure
+# See https://github.com/killerapp/mem8-plugin for plugin installation
 ```
 
 ### Working with Shared Memory
@@ -186,7 +183,7 @@ rm -rf ~/.local/share/mem8
 
 - **[Concepts](./concepts)** - Understand mem8's architecture
 - **[User Guide](./user-guide/getting-started)** - Learn how to use mem8
-- **[External Templates](./external-templates)** - Use custom templates
+- **[External Plugins](./external-templates)** - Create custom Claude Code workflows
 
 ## Troubleshooting
 

@@ -20,27 +20,24 @@ mem8 addresses common challenges in AI-assisted development:
 - 📝 **Structured Thoughts** - Organize research, plans, and decisions in searchable markdown
 - 🔧 **Toolbelt Integration** - Install and manage development tools seamlessly
 - 🚢 **Port Management** - Intelligent detection and resolution of port conflicts
-- 🤖 **Claude Code Enhancement** - Custom agents, commands, and workflows
-- 🎨 **External Templates** - Start projects with team-standardized configurations
+- 🤖 **Claude Code Enhancement** - Custom agents, commands, and workflows via plugins
+- 🎨 **External Plugins** - Share workflows and standards across teams
 - 🔍 **Universal Search** - Find information across all your documentation
 
 ## Quick Example
 
 ```bash
-# Install mem8
+# Install mem8 CLI
 uv tool install mem8
 
-# Initialize with official templates
-mem8 init --template-source killerapp/mem8-plugin
-
-# Or use your team's custom templates
-mem8 init --template-source yourorg/team-templates
+# Check workspace status
+mem8 status
 
 # Search your memory
 mem8 search "authentication"
 
-# Check workspace status
-mem8 status
+# For Claude Code integration, install the plugin:
+# See https://github.com/killerapp/mem8-plugin for installation
 ```
 
 ## Next Steps
@@ -65,9 +62,9 @@ mem8 status
     <a href="./user-guide/getting-started">Read the guide →</a>
   </div>
   <div class="col col--6">
-    <h3>🌐 External Templates</h3>
-    <p>Use and create custom templates from any source.</p>
-    <a href="./external-templates">Explore templates →</a>
+    <h3>🔌 External Plugins</h3>
+    <p>Share and customize Claude Code workflows.</p>
+    <a href="./external-templates">Explore plugins →</a>
   </div>
 </div>
 
@@ -83,10 +80,10 @@ Install and manage development tools with `mem8 toolbelt`. Handles dependencies,
 Automatic port conflict detection and resolution. Never waste time debugging "address already in use" errors again.
 
 ### 🎯 Claude Code Integration
-Deep integration with Claude Code's agents, commands, and custom workflows. Enhance AI assistance with better memory and context.
+Deep integration with Claude Code via the mem8 plugin system. Provides 8 workflow commands and 6 specialized agents.
 
-### 🌐 External Templates
-Use templates from GitHub, local paths, or create your own. Fork and customize as needed. Share standardized setups across teams.
+### 🔌 External Plugins
+Create custom Claude Code plugins for your team. Use the mem8-plugin template to standardize workflows across your organization.
 
 ### 🔍 Full-Text Search
 Find information quickly across all your memory and documentation with powerful search capabilities.
