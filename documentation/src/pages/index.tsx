@@ -67,15 +67,31 @@ function HomepageHeader() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', maxWidth: '600px', margin: '0 auto' }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', maxWidth: '700px', margin: '0 auto' }}
         >
+          <motion.p
+            style={{ fontSize: '1rem', color: '#c9d1d9', marginBottom: '0.5rem', fontWeight: 600 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
+          >
+            Install Claude Code Plugin
+          </motion.p>
           <motion.div
             className={styles.installCode}
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
-            <code>uv tool install mem8</code>
-            <CopyButton text="uv tool install mem8" />
+            <code>/plugin marketplace add killerapp/mem8-plugin</code>
+            <CopyButton text="/plugin marketplace add killerapp/mem8-plugin" />
+          </motion.div>
+          <motion.div
+            className={styles.installCode}
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <code>/plugin install mem8@mem8-official</code>
+            <CopyButton text="/plugin install mem8@mem8-official" />
           </motion.div>
           <motion.p
             style={{ fontSize: '0.85rem', color: '#7d8590', marginTop: '0.5rem', textAlign: 'center' }}
@@ -83,7 +99,15 @@ function HomepageHeader() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1.0, duration: 0.6 }}
           >
-            Run in any git repository to set up mem8 workspace with Claude Code integration
+            Get 8 workflow commands and 6 specialized agents for Claude Code
+          </motion.p>
+          <motion.p
+            style={{ fontSize: '0.8rem', color: '#6e7681', marginTop: '0.5rem', textAlign: 'center' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.6 }}
+          >
+            CLI only? <code style={{fontSize: '0.75rem', padding: '2px 6px', background: '#1c2128', borderRadius: '4px'}}>uv tool install mem8</code>
           </motion.p>
         </motion.div>
       </div>
