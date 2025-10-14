@@ -52,7 +52,7 @@ class Config:
                 'sync_interval': 300,  # 5 minutes
             },
             'templates': {
-                'default_source': 'killerapp/mem8-templates',  # External template repo
+                'default_source': 'killerapp/mem8-plugin',  # External template repo
             },
             'discovery': {
                 'cross_repo': False,  # default to single-repo discovery

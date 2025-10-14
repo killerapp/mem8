@@ -1,3 +1,9 @@
+---
+allowed-tools: Bash, Read, Task
+argument-hint: [plan/ticket file]
+description: Debug issues during manual testing by investigating logs, database state, and git history
+---
+
 # Debug
 
 You are tasked with helping debug issues during manual testing or implementation. This command allows you to investigate problems by examining logs, database state, and git history without editing files. Think of this as a way to bootstrap a debugging session without using the primary window's context.
@@ -143,7 +149,7 @@ Based on the investigation, present a focused debug report:
 2. **If That Doesn't Work**:
    - Restart services: `make daemon` and `make wui`
    - Check browser console for WUI errors
-   - Run with debug: `MEM8_DEBUG=true make daemon`
+   - Run with debug: `HUMANLAYER_DEBUG=true make daemon`
 
 ### Can't Access?
 Some issues might be outside my reach:

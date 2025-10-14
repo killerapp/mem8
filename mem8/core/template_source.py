@@ -174,11 +174,11 @@ class TemplateSource:
             return path
 
         if self.source_type == TemplateSourceType.BUILTIN:
-            # Builtin templates now live in external repo (killerapp/mem8-templates)
+            # Builtin templates now live in external repo (killerapp/mem8-plugin)
             # Use the default external source instead
             from .config import Config
             config = Config()
-            default_source = config.get('templates.default_source', 'killerapp/mem8-templates')
+            default_source = config.get('templates.default_source', 'killerapp/mem8-plugin')
 
             # Create a new TemplateSource for the external repo
             external_source = TemplateSource(default_source)

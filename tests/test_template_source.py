@@ -116,7 +116,7 @@ def test_get_template_path_not_found():
 @pytest.mark.skip(reason="Cleanup may be delayed on Windows due to file locks")
 def test_context_manager_cleanup():
     """Test that context manager cleans up temp directories."""
-    source_url = "killerapp/mem8-templates"
+    source_url = "killerapp/mem8-plugin"
 
     temp_path = None
     with create_template_source(source_url) as source:

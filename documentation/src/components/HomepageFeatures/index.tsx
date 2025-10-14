@@ -36,12 +36,12 @@ const FeatureList: FeatureItem[] = [
     title: '🤝 External Templates & Team Collaboration',
     description: (
       <>
-        Share Claude Code prompts and workflows using <a href="https://github.com/killerapp/mem8-templates" target="_blank" rel="noopener noreferrer">external templates</a>.
-        Install from <code>killerapp/mem8-templates</code> or create your own.
+        Share Claude Code prompts and workflows using <a href="https://github.com/killerapp/mem8-plugin" target="_blank" rel="noopener noreferrer">external templates</a>.
+        Install from <code>killerapp/mem8-plugin</code> or create your own.
         Standardize development practices across teams and organizations.
       </>
     ),
-    link: 'https://github.com/killerapp/mem8-templates',
+    link: 'https://github.com/killerapp/mem8-plugin',
   },
 ];
 

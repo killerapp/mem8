@@ -159,7 +159,7 @@ const config: Config = {
             },
             {
               label: 'Template Repository',
-              href: 'https://github.com/killerapp/mem8-templates',
+              href: 'https://github.com/killerapp/mem8-plugin',
             },
           ],
         },

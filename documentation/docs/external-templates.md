@@ -11,7 +11,7 @@
 - **Organization-wide consistency** - Same tools, same patterns, same quality
 
 ### Official Templates Repository
-The [`killerapp/mem8-templates`](https://github.com/killerapp/mem8-templates) repository provides:
+The [`killerapp/mem8-plugin`](https://github.com/killerapp/mem8-plugin) repository provides:
 - Curated Claude Code integration templates
 - Battle-tested sub-agent configurations
 - Community-contributed workflows
@@ -29,13 +29,13 @@ The [`killerapp/mem8-templates`](https://github.com/killerapp/mem8-templates) re
 
 ```bash
 # Use templates from GitHub (shorthand)
-mem8 init --template-source killerapp/mem8-templates
+mem8 init --template-source killerapp/mem8-plugin
 
 # Use a specific version
-mem8 init --template-source killerapp/mem8-templates@v2.10.0
+mem8 init --template-source killerapp/mem8-plugin@v2.10.0
 
 # Use templates from a subdirectory
-mem8 init --template-source killerapp/mem8-templates#subdir=templates
+mem8 init --template-source killerapp/mem8-plugin#subdir=templates
 
 # Use local templates (development)
 mem8 init --template-source ./my-templates
@@ -48,7 +48,7 @@ mem8 init --template-source https://github.com/org/templates.git
 
 ```bash
 # Set as default for all future init commands
-mem8 templates set-default killerapp/mem8-templates
+mem8 templates set-default killerapp/mem8-plugin
 
 # Reset to builtin templates
 mem8 templates set-default builtin
@@ -63,17 +63,17 @@ mem8 templates set-default builtin
 mem8 templates list
 
 # List from specific source
-mem8 templates list --source killerapp/mem8-templates
+mem8 templates list --source killerapp/mem8-plugin
 
 # List with verbose details
-mem8 templates list --source killerapp/mem8-templates -v
+mem8 templates list --source killerapp/mem8-plugin -v
 ```
 
 ### Validate Template Source
 
 ```bash
 # Validate a template source
-mem8 templates validate --source killerapp/mem8-templates
+mem8 templates validate --source killerapp/mem8-plugin
 
 # Validate the configured default
 mem8 templates validate
@@ -94,18 +94,18 @@ The most concise format for GitHub repositories:
 
 ```bash
 # Basic: org/repo
-killerapp/mem8-templates
+killerapp/mem8-plugin
 
 # With git ref (branch, tag, or commit)
-killerapp/mem8-templates@v2.10.0
-killerapp/mem8-templates@main
-killerapp/mem8-templates@abc123
+killerapp/mem8-plugin@v2.10.0
+killerapp/mem8-plugin@main
+killerapp/mem8-plugin@abc123
 
 # With subdirectory
-killerapp/mem8-templates#subdir=templates
+killerapp/mem8-plugin#subdir=templates
 
 # Combined
-killerapp/mem8-templates@v2.10.0#subdir=templates
+killerapp/mem8-plugin@v2.10.0#subdir=templates
 ```
 
 ### Full Git URLs
@@ -188,8 +188,8 @@ templates:
 ### 1. Fork the Official Repository
 
 ```bash
-# Fork https://github.com/killerapp/mem8-templates
-gh repo fork killerapp/mem8-templates --clone
+# Fork https://github.com/killerapp/mem8-plugin
+gh repo fork killerapp/mem8-plugin --clone
 
 cd mem8-templates
 ```
@@ -445,6 +445,6 @@ mem8 init --template-source yourname/my-templates --template minimal
 
 ## Related
 
-- [Templates Repository](https://github.com/killerapp/mem8-templates)
+- [Templates Repository](https://github.com/killerapp/mem8-plugin)
 - [Cookiecutter Documentation](https://cookiecutter.readthedocs.io/)
 - [Template Development Guide](#) <!-- TODO: Add link -->

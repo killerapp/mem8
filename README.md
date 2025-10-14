@@ -4,14 +4,19 @@ Context management toolkit for AI-assisted development. Manage memory, templates
 
 ## Quick Start
 
+### Install as Claude Code Plugin (Recommended)
+
+```
+/plugin marketplace add killerapp/mem8-plugin
+/plugin install mem8@mem8-official
+```
+
+This installs 8 workflow commands and 6 specialized agents automatically.
+
+### Install CLI Only
+
 ```bash
-# Install
 uv tool install mem8
-
-# Initialize workspace
-mem8 init
-
-# Check status
 mem8 status
 ```
 
@@ -36,7 +41,7 @@ mem8 status
 - 📖 [Documentation](https://codebasecontext.org)
 - 🐛 [Report Issues](https://github.com/killerapp/mem8/issues)
 - 💬 [Discussions](https://github.com/killerapp/mem8/discussions)
-- 🔧 [Template Repository](https://github.com/killerapp/mem8-templates)
+- 🔌 [Plugin Repository](https://github.com/killerapp/mem8-plugin)
 
 ## License
 

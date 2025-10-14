@@ -169,80 +169,142 @@ def status(
 ):
     """Show mem8 workspace status."""
     set_app_state(verbose=verbose)
-    state = get_state()
-    memory_manager = state.memory_manager
-    
-    console.print("[bold blue]mem8 Workspace Status[/bold blue]")
-    
+
+    from rich.table import Table
+
+    console.print("[bold blue]mem8 Workspace Status[/bold blue]\n")
+
     try:
-        status_info = memory_manager.get_status(detailed=detailed)
-        
-        # Check Claude Code integration
-        template_manager = TemplateManager()
-        claude_analysis = template_manager.analyze_claude_template(Path.cwd())
-        has_claude = Path('.claude').exists()
-        
-        # Basic status table
-        from rich.table import Table
+        # Check installation method
+        claude_dir = Path.cwd() / '.claude'
+        plugin_marker = claude_dir / '.mem8-plugin'
+
+        has_claude = claude_dir.exists()
+        is_plugin = plugin_marker.exists()
+
+        if not is_plugin and has_claude:
+            # Check for m8 commands as fallback
+            commands_dir = claude_dir / 'commands'
+            if commands_dir.exists():
+                m8_commands = list(commands_dir.glob('m8-*.md'))
+                is_plugin = len(m8_commands) >= 6
+
+        # Create status table
         table = Table()
         table.add_column("Component", style="cyan")
-        table.add_column("Status", style="green")
+        table.add_column("Status")
         table.add_column("Details", style="dim")
-        
-        # Add Claude Code status first if it exists
+
+        # Installation method
+        if is_plugin:
+            table.add_row(
+                "Installation",
+                "[green]✓ Plugin[/green]",
+                "Installed via Claude Code plugins"
+            )
+        elif has_claude:
+            table.add_row(
+                "Installation",
+                "[yellow]⚠ Unknown[/yellow]",
+                "Claude Code detected but not via plugin"
+            )
+        else:
+            table.add_row(
+                "Installation",
+                "[red]✗ Not installed[/red]",
+                "Install mem8 plugin in Claude Code"
+            )
+
+        # Memory directory
+        memory_dir = Path.cwd() / 'memory'
+        if memory_dir.exists():
+            subdirs = [d.name for d in memory_dir.iterdir() if d.is_dir()]
+            table.add_row(
+                "Memory",
+                "[green]✓ Configured[/green]",
+                f"{len(subdirs)} directories"
+            )
+        else:
+            table.add_row(
+                "Memory",
+                "[yellow]⚠ Missing[/yellow]",
+                "Memory directory not found"
+            )
+
+        # Get m8 commands and agents
+        m8_commands = []
+        m8_agents = []
+
         if has_claude:
-            claude_status = f"✅ Active ({len(claude_analysis['existing_commands'])} cmds, {len(claude_analysis['existing_agents'])} agents)"
+            commands_dir = claude_dir / 'commands'
+            if commands_dir.exists():
+                m8_commands = sorted([f.stem for f in commands_dir.glob('m8-*.md')])
+
+            agents_dir = claude_dir / 'agents'
+            if agents_dir.exists():
+                patterns = ['memory-*.md', 'codebase-*.md', 'web-search-*.md']
+                agent_files = []
+                for pattern in patterns:
+                    agent_files.extend(agents_dir.glob(pattern))
+                m8_agents = sorted(set([f.stem for f in agent_files]))
+
+        # Commands
+        if m8_commands:
+            commands_preview = ", ".join(m8_commands[:3])
+            if len(m8_commands) > 3:
+                commands_preview += f" (+{len(m8_commands) - 3} more)"
             table.add_row(
-                "🤖 Claude Code",
-                claude_status,
-                ".claude/"
+                "Commands",
+                f"[green]{len(m8_commands)} installed[/green]",
+                commands_preview
             )
-        
-        for component, info in status_info['components'].items():
-            status_icon = "✅" if info['exists'] else "❌"
+        else:
             table.add_row(
-                component.title().replace('_', ' '),
-                f"{status_icon} {'Ready' if info['exists'] else 'Missing'}",
-                str(info['path'])
+                "Commands",
+                "[red]0 installed[/red]",
+                "No m8-* commands found"
             )
-        
+
+        # Agents
+        if m8_agents:
+            agents_preview = ", ".join(m8_agents[:3])
+            if len(m8_agents) > 3:
+                agents_preview += f" (+{len(m8_agents) - 3} more)"
+            table.add_row(
+                "Agents",
+                f"[green]{len(m8_agents)} installed[/green]",
+                agents_preview
+            )
+        else:
+            table.add_row(
+                "Agents",
+                "[red]0 installed[/red]",
+                "No m8 agents found"
+            )
+
         console.print(table)
-        
-        # Show thought counts if detailed
-        if detailed:
-            if 'thought_counts' in status_info:
-                counts = status_info['thought_counts']
-                console.print("\n[bold blue]Thought Statistics:[/bold blue]")
-                
-                count_table = Table()
-                count_table.add_column("Type", style="cyan")
-                count_table.add_column("Count", style="yellow")
-                
-                for thought_type, count in counts.items():
-                    count_table.add_row(thought_type.title(), str(count))
-                
-                console.print(count_table)
-            
-            # Show Claude Code details if present
-            if has_claude and (claude_analysis['existing_commands'] or claude_analysis['existing_agents']):
-                console.print("\n[bold blue]Claude Code Components:[/bold blue]")
-                if claude_analysis['existing_commands']:
-                    cmd_preview = ', '.join(claude_analysis['existing_commands'][:6])
-                    if len(claude_analysis['existing_commands']) > 6:
-                        cmd_preview += f" (+{len(claude_analysis['existing_commands']) - 6} more)"
-                    console.print(f"  📝 Commands: {cmd_preview}")
-                if claude_analysis['existing_agents']:
-                    agent_preview = ', '.join(claude_analysis['existing_agents'][:4])
-                    if len(claude_analysis['existing_agents']) > 4:
-                        agent_preview += f" (+{len(claude_analysis['existing_agents']) - 4} more)"
-                    console.print(f"  🤖 Agents: {agent_preview}")
-        
-        # Show any issues
-        if 'issues' in status_info and status_info['issues']:
-            console.print("\n⚠️  [bold yellow]Issues:[/bold yellow]")
-            for issue in status_info['issues']:
-                console.print(f"  • {issue}")
-                
+
+        # Show detailed command/agent lists if requested
+        if detailed and (m8_commands or m8_agents):
+            console.print("\n[bold blue]m8 Components:[/bold blue]\n")
+
+            if m8_commands:
+                console.print("[cyan]Commands:[/cyan]")
+                for cmd in m8_commands:
+                    console.print(f"  • /{cmd}")
+
+            if m8_agents:
+                console.print("\n[cyan]Agents:[/cyan]")
+                for agent in m8_agents:
+                    console.print(f"  • {agent}")
+
+        # Show next steps if not installed
+        if not is_plugin:
+            console.print("\n[yellow]💡 To install mem8:[/yellow]")
+            console.print("   1. [bold]/plugin marketplace add killerapp/mem8-plugin[/bold]")
+            console.print("   2. [bold]/plugin install mem8@mem8-official[/bold]")
+            console.print("   See: https://github.com/killerapp/mem8-plugin\n")
+
     except Exception as e:
         handle_command_error(e, verbose, "status check")
 

@@ -67,7 +67,7 @@ Share standardized configurations across teams using GitHub templates.
 
 ```bash
 # Use official templates
-mem8 init --template-source killerapp/mem8-templates
+mem8 init --template-source killerapp/mem8-plugin
 
 # Use team templates
 mem8 init --template-source your-org/templates
@@ -141,7 +141,7 @@ Optional:
 - 📖 [Documentation](https://codebasecontext.org)
 - 🐛 [Report Issues](https://github.com/killerapp/mem8/issues)
 - 💬 [Discussions](https://github.com/killerapp/mem8/discussions)
-- 🔧 [Template Repository](https://github.com/killerapp/mem8-templates)
+- 🔧 [Template Repository](https://github.com/killerapp/mem8-plugin)
 
 ## License
 

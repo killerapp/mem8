@@ -172,7 +172,7 @@ function FeatureSection2() {
             <div className={styles.templateGrid}>
               <div className={styles.templateCard}>
                 <div className={styles.templateIcon}>📦</div>
-                <div>killerapp/mem8-templates</div>
+                <div>killerapp/mem8-plugin</div>
               </div>
               <div className={styles.templateCard}>
                 <div className={styles.templateIcon}>⚡</div>

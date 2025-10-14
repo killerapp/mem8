@@ -47,7 +47,7 @@ class TestExternalTemplateSources:
         """Test doctor with GitHub shorthand (org/repo)."""
         result = subprocess.run(
             ["mem8", "doctor",
-             "--template-source", "killerapp/mem8-templates",
+             "--template-source", "killerapp/mem8-plugin",
              "--json"],
             capture_output=True,
             text=True,
@@ -66,7 +66,7 @@ class TestExternalTemplateSources:
         """Test doctor with full GitHub URL."""
         result = subprocess.run(
             ["mem8", "doctor",
-             "--template-source", "https://github.com/killerapp/mem8-templates.git",
+             "--template-source", "https://github.com/killerapp/mem8-plugin.git",
              "--json"],
             capture_output=True,
             text=True,
@@ -230,7 +230,7 @@ class TestExternalTemplateSources:
         # This tests the URL parsing, actual fetch depends on tag existence
         result = subprocess.run(
             ["mem8", "doctor",
-             "--template-source", "killerapp/mem8-templates@main",
+             "--template-source", "killerapp/mem8-plugin@main",
              "--json"],
             capture_output=True,
             text=True,
@@ -331,7 +331,7 @@ class TestTemplateSourceTypes:
         """Test GitHub shorthand with subdirectory."""
         from mem8.core.template_source import TemplateSource
 
-        source = TemplateSource("killerapp/mem8-templates#subdir=templates")
+        source = TemplateSource("killerapp/mem8-plugin#subdir=templates")
         assert source.source_type.value == "github"
         assert source.subdir == "templates"
 
@@ -339,7 +339,7 @@ class TestTemplateSourceTypes:
         """Test GitHub shorthand with ref (tag/branch)."""
         from mem8.core.template_source import TemplateSource
 
-        source = TemplateSource("killerapp/mem8-templates@v1.0.0")
+        source = TemplateSource("killerapp/mem8-plugin@v1.0.0")
         assert source.source_type.value == "github"
         assert source.git_ref == "v1.0.0"
 

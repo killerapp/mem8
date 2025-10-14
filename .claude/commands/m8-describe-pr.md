@@ -1,3 +1,9 @@
+---
+allowed-tools: Read, Write, Bash(gh:*), Bash(git:*), Bash(mem8:*), Bash(make:*), Bash(npm:*), Bash(pytest:*)
+argument-hint: [pr-number]
+description: Generate a comprehensive PR description following the repository's standard template
+---
+
 # Generate PR Description
 
 You are tasked with generating a comprehensive pull request description following the repository's standard template.
@@ -5,8 +11,8 @@ You are tasked with generating a comprehensive pull request description followin
 ## Steps to follow:
 
 1. **Read the PR description template:**
-   - First, check if `thoughts/shared/pr_description.md` exists
-   - If it doesn't exist, inform the user that their `mem8 thoughts` setup is incomplete and they need to create a PR description template at `thoughts/shared/pr_description.md`
+   - First, check if `memory/shared/pr_description.md` exists
+   - If it doesn't exist, inform the user that their `mem8 memory` setup is incomplete and they need to create a PR description template at `memory/shared/pr_description.md`
    - Read the template carefully to understand all sections and requirements
 
 2. **Identify the PR to describe:**
@@ -15,7 +21,7 @@ You are tasked with generating a comprehensive pull request description followin
    - Ask the user which PR they want to describe
 
 3. **Check for existing description:**
-   - Check if `thoughts/shared/prs/{number}_description.md` already exists
+   - Check if `memory/shared/prs/{number}_description.md` already exists
    - If it exists, read it and inform the user you'll be updating it
    - Consider what has changed since the last description was written
 
@@ -52,12 +58,12 @@ You are tasked with generating a comprehensive pull request description followin
    - Ensure all checklist items are addressed (checked or explained)
 
 8. **Save and sync the description:**
-   - Write the completed description to `thoughts/shared/prs/{number}_description.md`
-   - Run `mem8 thoughts sync` to sync the thoughts directory
+   - Write the completed description to `memory/shared/prs/{number}_description.md`
+   - Run `mem8 memory sync` to sync the memory directory
    - Show the user the generated description
 
 9. **Update the PR:**
-   - Update the PR description directly: `gh pr edit {number} --body-file thoughts/shared/prs/{number}_description.md`
+   - Update the PR description directly: `gh pr edit {number} --body-file memory/shared/prs/{number}_description.md`
    - Confirm the update was successful
    - If any verification steps remain unchecked, remind the user to complete them before merging
 

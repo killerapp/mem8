@@ -17,7 +17,7 @@ Initialize a new mem8 workspace.
 mem8 init
 
 # With external templates
-mem8 init --template-source killerapp/mem8-templates
+mem8 init --template-source killerapp/mem8-plugin
 
 # Non-interactive
 mem8 init --template full --force --non-interactive
@@ -128,7 +128,7 @@ Manage template sources.
 mem8 templates list
 
 # Set default template source
-mem8 templates set-default killerapp/mem8-templates
+mem8 templates set-default killerapp/mem8-plugin
 
 # Show current default
 mem8 templates show-default
@@ -277,7 +277,7 @@ Example:
 
 ```bash
 export MEM8_USERNAME=yourname
-export MEM8_TEMPLATE_SOURCE=killerapp/mem8-templates
+export MEM8_TEMPLATE_SOURCE=killerapp/mem8-plugin
 mem8 init
 ```
 
@@ -290,7 +290,7 @@ mem8 looks for configuration in:
 Example config:
 
 ```yaml
-template_source: killerapp/mem8-templates
+template_source: killerapp/mem8-plugin
 username: yourname
 sync:
   auto: true

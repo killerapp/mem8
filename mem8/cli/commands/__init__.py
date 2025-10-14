@@ -7,7 +7,8 @@ from .find import find_app
 from .team import team_app
 from .deploy import deploy_app
 from .core import register_core_commands
-from .init import register_init_command
+# Init command removed - use plugin installation instead
+# from .init import register_init_command
 from .worktree import worktree_app
 from .metadata import metadata_app
 from .templates import templates_app
@@ -18,7 +19,7 @@ __all__ = [
     "team_app",
     "deploy_app",
     "register_core_commands",
-    "register_init_command",
+    # "register_init_command",  # Removed - use plugin installation
     "worktree_app",
     "metadata_app",
     "templates_app",

@@ -19,7 +19,6 @@ from .utils import get_console
 from .commands import (
     find_app, team_app, deploy_app,
     register_core_commands,
-    register_init_command,
     worktree_app, metadata_app, templates_app,
     gh_app, register_tools_command, register_ports_command
 )
@@ -69,10 +68,6 @@ register_core_commands(typer_app)
 # ============================================================================
 # Register Command Groups and Commands
 # ============================================================================
-
-
-# Register init command
-register_init_command(typer_app)
 
 # Register subcommand groups
 typer_app.add_typer(find_app, name="find")

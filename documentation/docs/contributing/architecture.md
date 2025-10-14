@@ -196,7 +196,7 @@ System Defaults (mem8/core/config.py)
 **User Config:** `~/.mem8/config.yaml`
 ```yaml
 templates:
-  default_source: killerapp/mem8-templates
+  default_source: killerapp/mem8-plugin
 shared:
   default_location: ~/Documents/mem8-Shared
 ```
@@ -211,7 +211,7 @@ templates:
 
 Templates are loaded from external sources:
 
-1. **Builtin** - Default to `killerapp/mem8-templates`
+1. **Builtin** - Default to `killerapp/mem8-plugin`
 2. **GitHub** - `org/repo` or `org/repo@tag`
 3. **Git URL** - `https://github.com/org/repo.git`
 4. **Local** - `/path/to/templates`

@@ -1,3 +1,9 @@
+---
+allowed-tools: Bash(git:*), Bash(make:*), Bash(mem8:*)
+argument-hint: gh_username:branchName
+description: Set up a local review environment for a colleague's branch with worktree
+---
+
 # Local Review
 
 You are tasked with setting up a local review environment for a colleague's branch. This involves creating a worktree, setting up dependencies, and launching a new Claude Code session.
@@ -24,7 +30,7 @@ When invoked with a parameter like `gh_username:branchName`:
 4. **Configure the worktree**:
    - Copy Claude settings: `cp .claude/settings.local.json WORKTREE/.claude/`
    - Run setup: `make -C WORKTREE setup`
-   - Initialize thoughts: `cd WORKTREE && mem8 init`
+   - Initialize memory: `cd WORKTREE && mem8 init`
 
 ## Error Handling
 

@@ -31,7 +31,7 @@ mem8 addresses common challenges in AI-assisted development:
 uv tool install mem8
 
 # Initialize with official templates
-mem8 init --template-source killerapp/mem8-templates
+mem8 init --template-source killerapp/mem8-plugin
 
 # Or use your team's custom templates
 mem8 init --template-source yourorg/team-templates
@@ -104,4 +104,4 @@ Find information quickly across all your memory and documentation with powerful 
 - 📖 [Documentation](https://github.com/killerapp/mem8)
 - 🐛 [Report Issues](https://github.com/killerapp/mem8/issues)
 - 💬 [Discussions](https://github.com/killerapp/mem8/discussions)
-- 🔧 [Template Repository](https://github.com/killerapp/mem8-templates)
+- 🔧 [Template Repository](https://github.com/killerapp/mem8-plugin)

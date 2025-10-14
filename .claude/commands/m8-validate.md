@@ -1,3 +1,9 @@
+---
+allowed-tools: Read, Task, Bash(make:*), Bash(git:*)
+argument-hint: [plan-path]
+description: Validate that an implementation plan was correctly executed and verify all success criteria
+---
+
 # Validate Plan
 
 You are tasked with validating that an implementation plan was correctly executed, verifying all success criteria and identifying any deviations or issues.
@@ -152,10 +158,10 @@ Always verify:
 ## Relationship to Other Commands
 
 Recommended workflow:
-1. `/implement_plan` - Execute the implementation
-2. `/commit` - Create atomic commits for changes
-3. `/validate_plan` - Verify implementation correctness
-4. `/describe_pr` - Generate PR description
+1. `/m8-implement` - Execute the implementation
+2. `/m8-commit` - Create atomic commits for changes
+3. `/m8-validate` - Verify implementation correctness
+4. `/m8-describe_pr` - Generate PR description
 
 The validation works best after commits are made, as it can analyze the git history to understand what was implemented.
 

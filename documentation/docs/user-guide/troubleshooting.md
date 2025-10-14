@@ -66,7 +66,7 @@ mem8 --version
 mem8 templates list
 
 # Use official templates
-mem8 init --template-source killerapp/mem8-templates
+mem8 init --template-source killerapp/mem8-plugin
 
 # Use local templates
 mem8 init --template-source /path/to/templates

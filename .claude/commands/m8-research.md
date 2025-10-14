@@ -1,3 +1,8 @@
+---
+allowed-tools: Read, Task, Bash(mem8:*), Bash(gh:*), Bash(git:*)
+description: Conduct comprehensive codebase research by spawning parallel sub-agents
+---
+
 # Research Codebase
 
 You are tasked with conducting comprehensive research across the codebase to answer user questions by spawning parallel sub-agents and synthesizing their findings.
@@ -35,9 +40,9 @@ Then wait for the user's research query.
    - Use the **codebase-analyzer** agent to understand HOW specific code works
    - Use the **codebase-pattern-finder** agent if you need examples of similar implementations
 
-   **For thoughts directory:**
-   - Use the **thoughts-locator** agent to discover what documents exist about the topic
-   - Use the **thoughts-analyzer** agent to extract key insights from specific documents (only the most relevant ones)
+   **For memory directory:**
+   - Use the **memory-locator** agent to discover what documents exist about the topic
+   - Use the **memory-analyzer** agent to extract key insights from specific documents (only the most relevant ones)
 
    **For web research (only if user explicitly asks):**
    - Use the **web-search-researcher** agent for external documentation and resources
@@ -56,12 +61,12 @@ Then wait for the user's research query.
 
 4. **Wait for all sub-agents to complete and synthesize findings:**
    - IMPORTANT: Wait for ALL sub-agent tasks to complete before proceeding
-   - Compile all sub-agent results (both codebase and thoughts findings)
+   - Compile all sub-agent results (both codebase and memory findings)
    - Prioritize live codebase findings as primary source of truth
-   - Use thoughts/ findings as supplementary historical context
+   - Use memory/ findings as supplementary historical context
    - Connect findings across different components
    - Include specific file paths and line numbers for reference
-   - Verify all thoughts/ paths are correct (e.g., thoughts/allison/ not thoughts/shared/ for personal files)
+   - Verify all memory/ paths are correct (e.g., memory/allison/ not memory/shared/ for personal files)
    - Highlight patterns, connections, and architectural decisions
    - Answer the user's specific questions with concrete evidence
 
@@ -75,7 +80,7 @@ Then wait for the user's research query.
    - This will output YAML frontmatter with all required fields (date, researcher, git_commit, branch, repository, etc.)
    - **Note**: The topic argument is optional and defaults to "research" if omitted, but it's better to use the actual user question
    - Store this output to use in the next step
-   - Filename for the document: `thoughts/shared/research/YYYY-MM-DD_HH-MM-SS_topic.md`
+   - Filename for the document: `memory/shared/research/YYYY-MM-DD_HH-MM-SS_topic.md`
 
 6. **Generate research document:**
    - **CRITICAL**: Use the metadata output from `mem8 metadata research` command in step 5
@@ -84,7 +89,7 @@ Then wait for the user's research query.
      ```markdown
      ---
      date: [Current date and time with timezone in ISO format]
-     researcher: [Researcher name from thoughts status]
+     researcher: [Researcher name from memory status]
      git_commit: [Current commit hash]
      branch: [Current branch name]
      repository: [Repository name]
@@ -98,7 +103,7 @@ Then wait for the user's research query.
      # Research: [User's Question/Topic]
 
      **Date**: [Current date and time with timezone from step 4]
-     **Researcher**: [Researcher name from thoughts status]
+     **Researcher**: [Researcher name from memory status]
      **Git Commit**: [Current commit hash from step 4]
      **Branch**: [Current branch name from step 4]
      **Repository**: [Repository name]
@@ -126,14 +131,14 @@ Then wait for the user's research query.
      ## Architecture Insights
      [Patterns, conventions, and design decisions discovered]
 
-     ## Historical Context (from thoughts/)
-     [Relevant insights from thoughts/ directory with references]
-     - `thoughts/shared/something.md` - Historical decision about X
-     - `thoughts/local/notes.md` - Past exploration of Y
+     ## Historical Context (from memory/)
+     [Relevant insights from memory/ directory with references]
+     - `memory/shared/something.md` - Historical decision about X
+     - `memory/local/notes.md` - Past exploration of Y
      Note: Paths exclude "searchable/" even if found there
 
      ## Related Research
-     [Links to other research documents in thoughts/shared/research/]
+     [Links to other research documents in memory/shared/research/]
 
      ## Open Questions
      [Any areas that need further investigation]
@@ -147,7 +152,7 @@ Then wait for the user's research query.
    - Replace local file references with permalinks in the document
 
 8. **Sync and present findings:**
-   - Run `mem8 sync` to sync the thoughts directory (if configured with git sync)
+   - Run `mem8 sync` to sync the memory directory (if configured with git sync)
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
    - Ask if they have follow-up questions or need clarification
@@ -164,7 +169,7 @@ Then wait for the user's research query.
 - **ALWAYS use `mem8 metadata research` command** - NEVER manually gather git metadata
 - Always use parallel Task agents to maximize efficiency and minimize context usage
 - Always run fresh codebase research - never rely solely on existing research documents
-- The thoughts/ directory provides historical context to supplement live findings
+- The memory/ directory provides historical context to supplement live findings
 - Focus on finding concrete file paths and line numbers for developer reference
 - Research documents should be self-contained with all necessary context
 - Each sub-agent prompt should be specific and focused on read-only operations
@@ -173,19 +178,19 @@ Then wait for the user's research query.
 - Link to GitHub when possible for permanent references
 - Keep the main agent focused on synthesis, not deep file reading
 - Encourage sub-agents to find examples and usage patterns, not just definitions
-- Explore all of thoughts/ directory, not just research subdirectory
+- Explore all of memory/ directory, not just research subdirectory
 - **File reading**: Always read mentioned files FULLY (no limit/offset) before spawning sub-tasks
 - **Critical ordering**: Follow the numbered steps exactly
   - ALWAYS read mentioned files first before spawning sub-tasks (step 1)
   - ALWAYS wait for all sub-agents to complete before synthesizing (step 4)
   - ALWAYS gather metadata before writing the document (step 5 before step 6)
   - NEVER write the research document with placeholder values
-- **Path handling**: The thoughts/searchable/ directory contains hard links for searching
+- **Path handling**: The memory/searchable/ directory contains hard links for searching
   - Always document paths by removing ONLY "searchable/" - preserve all other subdirectories
   - Examples of correct transformations:
-    - `thoughts/searchable/allison/old_stuff/notes.md` → `thoughts/allison/old_stuff/notes.md`
-    - `thoughts/searchable/shared/prs/123.md` → `thoughts/shared/prs/123.md`
-    - `thoughts/searchable/global/shared/templates.md` → `thoughts/global/shared/templates.md`
+    - `memory/searchable/allison/old_stuff/notes.md` → `memory/allison/old_stuff/notes.md`
+    - `memory/searchable/shared/prs/123.md` → `memory/shared/prs/123.md`
+    - `memory/searchable/global/shared/templates.md` → `memory/global/shared/templates.md`
   - NEVER change allison/ to shared/ or vice versa - preserve the exact directory structure
   - This ensures paths are correct for editing and navigation
 - **Frontmatter consistency**:

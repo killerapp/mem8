@@ -83,7 +83,7 @@ Keep your templates current:
 mem8 templates show-default
 
 # Update to latest
-mem8 init --template-source killerapp/mem8-templates --force
+mem8 init --template-source killerapp/mem8-plugin --force
 
 # Verify update
 mem8 status
