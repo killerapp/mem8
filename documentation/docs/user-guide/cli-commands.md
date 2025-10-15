@@ -6,28 +6,6 @@ sidebar_position: 2
 
 Complete reference for all mem8 CLI commands.
 
-## Initialize
-
-### `mem8 init`
-
-Initialize a new mem8 workspace.
-
-```bash
-# Interactive mode
-mem8 init
-
-# With external templates
-mem8 init --template-source killerapp/mem8-plugin
-
-# Non-interactive
-mem8 init --template full --force --non-interactive
-```
-
-**Options:**
-- `--template` - Template type: `full`, `claude-config`, `thoughts-repo`
-- `--template-source` - GitHub repo or local path for templates
-- `--force` - Overwrite existing files
-- `--non-interactive` - Skip all prompts
 
 ## Search
 
@@ -117,22 +95,6 @@ mem8 doctor --fix
 
 When a project template ships a `.mem8/toolbelt.json` manifest, `mem8 doctor` reads it to verify that required CLI tools are on your `PATH` for the current operating system. Missing core tools are flagged as issues, while recommended tools appear as actionable suggestions.
 
-## Templates
-
-### `mem8 templates`
-
-Manage template sources.
-
-```bash
-# List available templates
-mem8 templates list
-
-# Set default template source
-mem8 templates set-default killerapp/mem8-plugin
-
-# Show current default
-mem8 templates show-default
-```
 
 ## Tools
 
@@ -246,7 +208,9 @@ mem8 sync --direction push
 ```bash
 # New project
 cd my-project
-mem8 init --template-source myorg/templates
+
+# Create memory directory
+mkdir -p memory/shared/{research,plans,decisions}
 
 # Verify setup
 mem8 status --detailed
@@ -268,30 +232,25 @@ mem8 search "error message"
 
 ## Environment Variables
 
-- `MEM8_USERNAME` - Default username for templates
-- `MEM8_EMAIL` - Default email for templates
-- `MEM8_TEMPLATE_SOURCE` - Default template source
 - `MEM8_DEBUG` - Enable debug logging
+- `MEM8_CONFIG_DIR` - Override config directory
+- `MEM8_DATA_DIR` - Override data directory
 
 Example:
 
 ```bash
-export MEM8_USERNAME=yourname
-export MEM8_TEMPLATE_SOURCE=killerapp/mem8-plugin
-mem8 init
+export MEM8_DEBUG=1
+mem8 status
 ```
 
 ## Configuration File
 
 mem8 looks for configuration in:
-- `.mem8/config.yaml` (project-specific)
-- `~/.mem8/config.yaml` (global)
+- `~/.config/mem8/config.yaml` (global)
 
 Example config:
 
 ```yaml
-template_source: killerapp/mem8-plugin
-username: yourname
 sync:
   auto: true
   direction: both

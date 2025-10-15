@@ -12,7 +12,7 @@
 
 ### Official Plugin Repository
 The [`killerapp/mem8-plugin`](https://github.com/killerapp/mem8-plugin) repository provides:
-- 8 workflow commands (`/m8-*`)
+- 8 workflow commands (`/mem8:*`)
 - 6 specialized agents (codebase-analyzer, memory-analyzer, etc.)
 - Battle-tested configurations
 - Community-contributed workflows
@@ -55,7 +55,7 @@ A Claude Code plugin for mem8 includes:
 └── marketplace.json     # Marketplace listing info
 
 .claude/
-├── commands/            # Slash commands (/m8-*)
+├── commands/            # Slash commands (/mem8:*)
 │   ├── m8-plan.md
 │   ├── m8-implement.md
 │   └── ...

@@ -10,7 +10,7 @@ sidebar_position: 6
 graph TB
     A[Dev 1: Research] --> B[commits to memory/shared/research/]
     B --> C[Dev 2: git pull]
-    C --> D[Dev 2: /m8-browse-memories]
+    C --> D[Dev 2: /mem8:browse-memories]
     D --> E[Dev 2: Build on research]
     E --> F[Dev 2: Create plan]
     F --> G[commits to memory/shared/plans/]

@@ -40,15 +40,18 @@ def generate_research_metadata(topic: str, researcher: Optional[str] = None) -> 
     """Generate complete metadata for research documents."""
     git_metadata = get_git_metadata()
     current_time = datetime.datetime.now().astimezone()
-    
+
     # Get researcher name from git config or use provided name
     if not researcher:
         name_result = subprocess.run(
-            ["git", "config", "user.name"], 
+            ["git", "config", "user.name"],
             capture_output=True, text=True
         )
         researcher = name_result.stdout.strip() if name_result.returncode == 0 else "unknown"
-    
+
+    # Generate slug from topic
+    slug = generate_slug(topic)
+
     return {
         "date": current_time.isoformat(),
         "researcher": researcher,
@@ -56,6 +59,7 @@ def generate_research_metadata(topic: str, researcher: Optional[str] = None) -> 
         "branch": git_metadata["branch"],
         "repository": git_metadata["repository"],
         "topic": topic,
+        "slug": slug,
         "tags": ["research", "codebase"],
         "status": "draft",
         "last_updated": current_time.strftime("%Y-%m-%d"),
@@ -173,3 +177,43 @@ def _get_repository_stats() -> Dict[str, Any]:
 def generate_filename_timestamp() -> str:
     """Generate a timestamp suitable for filenames."""
     return datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+
+def generate_slug(text: str, max_length: int = 50) -> str:
+    """Generate a URL-safe slug from text.
+
+    Args:
+        text: The text to convert to a slug
+        max_length: Maximum length of the slug (default: 50)
+
+    Returns:
+        A lowercase, hyphenated slug suitable for filenames
+
+    Examples:
+        >>> generate_slug("How does authentication work?")
+        'how-does-authentication-work'
+        >>> generate_slug("Review the documentation instructions")
+        'review-the-documentation-instructions'
+    """
+    import re
+
+    # Convert to lowercase
+    slug = text.lower()
+
+    # Replace spaces and underscores with hyphens
+    slug = re.sub(r'[\s_]+', '-', slug)
+
+    # Remove special characters (keep only alphanumeric and hyphens)
+    slug = re.sub(r'[^a-z0-9-]', '', slug)
+
+    # Remove multiple consecutive hyphens
+    slug = re.sub(r'-+', '-', slug)
+
+    # Strip hyphens from start and end
+    slug = slug.strip('-')
+
+    # Truncate to max length at word boundary
+    if len(slug) > max_length:
+        slug = slug[:max_length].rsplit('-', 1)[0]
+
+    return slug or 'untitled'

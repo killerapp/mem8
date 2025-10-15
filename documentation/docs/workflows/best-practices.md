@@ -12,7 +12,7 @@ sidebar_position: 7
 
 # Understand first
 ✅ /mem8:research "how do similar features work?"
-✅ /m8-browse-memories "past features like this"
+✅ /mem8:browse-memories "past features like this"
 ✅ /mem8:plan "add feature based on patterns"
 ```
 

@@ -24,20 +24,48 @@ mem8 addresses common challenges in AI-assisted development:
 - 🎨 **External Plugins** - Share workflows and standards across teams
 - 🔍 **Universal Search** - Find information across all your documentation
 
-## Quick Example
+## Quick Start
+
+### 1. Install mem8 CLI
 
 ```bash
-# Install mem8 CLI
+# Install with uv (fast, modern Python package manager)
 uv tool install mem8
+```
+
+:::tip Install uv first
+If you don't have uv installed:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+:::
+
+### 2. Install Claude Code Plugin
+
+For workflow commands and specialized agents:
+
+```bash
+# In Claude Code
+/plugin install mem8@mem8-official
+```
+
+This provides:
+- 8 workflow commands (`/mem8:research`, `/mem8:plan`, `/mem8:implement`, etc.)
+- 6 specialized agents (codebase-analyzer, memory-locator, etc.)
+
+See the [mem8-plugin repository](https://github.com/killerapp/mem8-plugin) for details.
+
+### 3. Use mem8 Commands
+
+```bash
+# Check version
+mem8 --version
 
 # Check workspace status
 mem8 status
 
 # Search your memory
 mem8 search "authentication"
-
-# For Claude Code integration, install the plugin:
-# See https://github.com/killerapp/mem8-plugin for installation
 ```
 
 ## Next Steps

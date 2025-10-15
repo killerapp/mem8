@@ -8,37 +8,55 @@ Your first steps with mem8.
 
 ## Set Up Your Workspace
 
-### Install Claude Code Plugin (Recommended)
+### 1. Install mem8 CLI
 
-The mem8 plugin provides 8 workflow commands and 6 specialized agents for Claude Code:
+Install mem8 to get CLI commands:
 
-1. See the [plugin repository](https://github.com/killerapp/mem8-plugin) for installation instructions
-2. The plugin automatically sets up command and agent structure
-3. Start using `/m8-*` commands immediately
+```bash
+# Install with uv (fast, modern Python package manager)
+uv tool install mem8
+```
 
-### Set Up Memory Directory (Optional)
+:::tip Install uv first
+If you don't have uv installed:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+:::
 
-Create a memory directory structure for persistent context:
+### 2. Install Claude Code Plugin
+
+Get workflow commands and specialized agents:
+
+```bash
+# In Claude Code, run:
+/plugin install mem8@mem8-official
+```
+
+This provides:
+- 8 workflow commands (`/mem8:research`, `/mem8:plan`, `/mem8:implement`, etc.)
+- 6 specialized agents (codebase-analyzer, memory-locator, etc.)
+- Integration with memory system
+
+See the [plugin repository](https://github.com/killerapp/mem8-plugin) for full documentation.
+
+### 3. Set Up Memory (Optional)
+
+Create memory directory for persistent context:
 
 ```bash
 cd your-project
-mkdir -p memory/shared/{research,plans,decisions}
-mkdir -p memory/workspace
 
-# Or clone an existing memory repository as a submodule
+# Create local memory structure
+mkdir -p memory/shared/{research,plans,decisions}
+
+# Or use a shared organizational repository
 git submodule add https://github.com/your-org/shared-memory.git memory
 ```
 
-### Install mem8 CLI (Optional)
+### Using Organizational Plugins
 
-For additional CLI features:
-
-```bash
-uv tool install mem8
-
-# Verify installation
-mem8 status
-```
+Teams can create custom plugin versions. See the [mem8-plugin repository](https://github.com/killerapp/mem8-plugin) as a template.
 
 ## Your First Thought
 

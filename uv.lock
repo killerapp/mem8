@@ -941,7 +941,7 @@ wheels = [
 
 [[package]]
 name = "mem8"
-version = "4.1.0"
+version = "5.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
