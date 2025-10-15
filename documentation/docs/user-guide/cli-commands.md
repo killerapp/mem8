@@ -18,7 +18,7 @@ Search through your thoughts and documentation.
 mem8 search "authentication"
 
 # With filters
-mem8 search "OAuth" --limit 5 --path memory/shared/research
+mem8 search "OAuth" --limit 5 --path memory/research
 ```
 
 **Options:**
@@ -152,6 +152,26 @@ mem8 ports --kill 8080
 - `--show` - Show current project's port assignments
 - `--verbose` - Enable verbose output
 
+#### For AI Agents
+
+When starting any service, AI agents should:
+
+1. **Check `.mem8/ports.md` first** - This file contains the project's leased port range and specific assignments
+2. **Read the Project Notes section** - Contains project-specific port assignments for different services
+3. **Use assigned ports** - Always use ports from the leased range instead of defaults (3000, 8000, etc.)
+4. **Update Project Notes** - When adding new services, document the port assignment in the Project Notes section
+
+**Example workflow:**
+```bash
+# Agent checks ports.md and sees Docusaurus should use port 20000
+cd documentation && npm start -- --port 20000
+
+# Agent sees FastAPI backend should use port 20001
+uvicorn main:app --port 20001 --reload
+```
+
+The Project Notes section in `.mem8/ports.md` is preserved when regenerating, making it the single source of truth for port assignments in your project.
+
 ## Version
 
 ### `mem8 version`
@@ -174,7 +194,7 @@ mem8 --help
 
 # Command-specific help
 mem8 search --help
-mem8 init --help
+mem8 status --help
 ```
 
 ## Global Options
@@ -210,7 +230,7 @@ mem8 sync --direction push
 cd my-project
 
 # Create memory directory
-mkdir -p memory/shared/{research,plans,decisions}
+mkdir -p memory/{research,plans,decisions,prs}
 
 # Verify setup
 mem8 status --detailed

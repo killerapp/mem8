@@ -48,7 +48,7 @@ Create memory directory for persistent context:
 cd your-project
 
 # Create local memory structure
-mkdir -p memory/shared/{research,plans,decisions}
+mkdir -p memory/{research,plans,decisions,prs}
 
 # Or use a shared organizational repository
 git submodule add https://github.com/your-org/shared-memory.git memory
@@ -69,7 +69,7 @@ Start by understanding your project:
 /mem8:research "authentication system"
 ```
 
-This creates a research document in `memory/shared/research/` with:
+This creates a research document in `memory/research/` with:
 - Relevant code snippets
 - Architecture notes
 - Key findings
@@ -82,7 +82,7 @@ Design your implementation:
 /mem8:plan "add OAuth2 support"
 ```
 
-Generates a structured plan in `memory/shared/plans/` with:
+Generates a structured plan in `memory/plans/` with:
 - Requirements analysis
 - Implementation steps
 - Testing strategy
@@ -92,7 +92,7 @@ Generates a structured plan in `memory/shared/plans/` with:
 Execute your plan:
 
 ```bash
-/mem8:implement memory/shared/plans/add-oauth2-support.md
+/mem8:implement memory/plans/add-oauth2-support.md
 ```
 
 Claude Code will:
@@ -122,7 +122,7 @@ mem8 search "authentication"
 mem8 search "OAuth" --limit 5
 
 # Search specific locations
-mem8 search "database" --path memory/shared/research
+mem8 search "database" --path memory/research
 ```
 
 ## Check Workspace Status
@@ -262,14 +262,14 @@ Create organization-specific plugins:
 
 ### Share a Research Document
 
-1. Create in `memory/shared/research/`
+1. Create in `memory/research/`
 2. Commit to git
 3. Team members pull with `mem8 sync`
 
 ### Find Old Decisions
 
 ```bash
-mem8 search "decision" --path memory/shared/decisions
+mem8 search "decision" --path memory/decisions
 ```
 
 ### Clean Up Old Memory

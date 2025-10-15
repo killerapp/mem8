@@ -46,41 +46,18 @@ function HomepageHeader() {
         </motion.div>
 
         <motion.div
-          className={styles.buttons}
+          className={styles.installCodeContainer}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
-          <ShimmerButton href="/mem8/docs">
-            Get Started →
-          </ShimmerButton>
-          <ShimmerButton
-            href="https://github.com/killerapp/mem8"
-            variant="outline"
-          >
-            View on GitHub
-          </ShimmerButton>
-        </motion.div>
-
-        <motion.div
-          className={styles.installCodeContainer}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', maxWidth: '700px', margin: '0 auto' }}
-        >
           {/* CLI Installation */}
           <motion.div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}
+            className={styles.installStep}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.6 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
           >
-            <motion.p
-              style={{ fontSize: '1.1rem', color: '#c9d1d9', marginBottom: '0.25rem', fontWeight: 700, textAlign: 'center' }}
-            >
-              1. Install mem8 CLI
-            </motion.p>
             <motion.div
               className={styles.installCode}
               whileHover={{ scale: 1.02 }}
@@ -91,18 +68,23 @@ function HomepageHeader() {
             </motion.div>
           </motion.div>
 
+          {/* Arrow Separator */}
+          <motion.div
+            className={styles.arrowSeparator}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.8, duration: 0.4 }}
+          >
+            ↓
+          </motion.div>
+
           {/* Marketplace Add */}
           <motion.div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}
+            className={styles.installStep}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.0, duration: 0.6 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
           >
-            <motion.p
-              style={{ fontSize: '1.1rem', color: '#c9d1d9', marginBottom: '0.25rem', fontWeight: 700, textAlign: 'center' }}
-            >
-              2. Add the Marketplace
-            </motion.p>
             <motion.div
               className={styles.installCode}
               whileHover={{ scale: 1.02 }}
@@ -111,25 +93,28 @@ function HomepageHeader() {
               <code>/plugin marketplace add killerapp/mem8-plugin</code>
               <CopyButton text="/plugin marketplace add killerapp/mem8-plugin" />
             </motion.div>
-            <motion.p
-              style={{ fontSize: '0.9rem', color: '#7d8590', marginTop: '0.25rem', textAlign: 'center' }}
-            >
-              Run this in Claude Code to register the mem8 marketplace
+            <motion.p className={styles.installHint}>
+              Run in Claude Code to register the mem8 marketplace
             </motion.p>
+          </motion.div>
+
+          {/* Arrow Separator */}
+          <motion.div
+            className={styles.arrowSeparator}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.0, duration: 0.4 }}
+          >
+            ↓
           </motion.div>
 
           {/* Plugin Installation */}
           <motion.div
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}
+            className={styles.installStep}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.1, duration: 0.6 }}
           >
-            <motion.p
-              style={{ fontSize: '1.1rem', color: '#c9d1d9', marginBottom: '0.25rem', fontWeight: 700, textAlign: 'center' }}
-            >
-              3. Install Claude Code Plugin
-            </motion.p>
             <motion.div
               className={styles.installCode}
               whileHover={{ scale: 1.02 }}
@@ -138,10 +123,8 @@ function HomepageHeader() {
               <code>/plugin install mem8@mem8-official</code>
               <CopyButton text="/plugin install mem8@mem8-official" />
             </motion.div>
-            <motion.p
-              style={{ fontSize: '0.9rem', color: '#7d8590', marginTop: '0.25rem', textAlign: 'center' }}
-            >
-              Get <code style={{fontSize: '0.85rem', padding: '2px 6px', background: '#1c2128', borderRadius: '4px'}}>/mem8:*</code> commands
+            <motion.p className={styles.installHint}>
+              Get <code>/mem8:*</code> commands
             </motion.p>
           </motion.div>
         </motion.div>
@@ -251,16 +234,16 @@ function FeatureSection2() {
               transition={{ delay: 0.4, duration: 0.6 }}
             >
               <h2 className={styles.featureTitle}>
-                <GradientText>External Templates & Team Collaboration</GradientText>
+                <GradientText>Plugin-Based Workflows</GradientText>
               </h2>
               <p className={styles.featureDescription}>
-                Share Claude Code prompts and workflows using external templates.
-                Install from community repos or create your own to standardize practices across teams.
+                Extend Claude Code with plugins that provide custom commands and agents.
+                Install from the marketplace or create your own to standardize practices across teams.
               </p>
               <ul className={styles.featureList}>
-                <li>🎯 Pre-built workflow templates</li>
+                <li>🎯 Pre-built workflow commands</li>
                 <li>👥 Team-wide standardization</li>
-                <li>🚀 One-command deployment</li>
+                <li>🔌 Claude Code marketplace integration</li>
               </ul>
             </motion.div>
           </div>
@@ -336,85 +319,18 @@ function FeatureSection3() {
   );
 }
 
-function QuickStart() {
-  return (
-    <section className={styles.quickStartSection}>
-      <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className={styles.quickStartHeader}>
-            <Heading as="h2" className={styles.quickStartTitle}>
-              <GradientText>Get Started in Seconds</GradientText>
-            </Heading>
-          </div>
-          <div className={styles.quickStartGrid}>
-            <motion.div
-              className={styles.quickStartCard}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <div className={styles.stepNumber}>1</div>
-              <h3>Install</h3>
-              <div className={styles.codeBlock}>
-                <code>uv tool install mem8</code>
-              </div>
-              <p>Install mem8 using uv package manager</p>
-            </motion.div>
-
-            <motion.div
-              className={styles.quickStartCard}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-            >
-              <div className={styles.stepNumber}>2</div>
-              <h3>Initialize</h3>
-              <div className={styles.codeBlock}>
-                <code>mem8 init</code>
-              </div>
-              <p>Set up mem8 in your project directory</p>
-            </motion.div>
-
-            <motion.div
-              className={styles.quickStartCard}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-            >
-              <div className={styles.stepNumber}>3</div>
-              <h3>Start Using</h3>
-              <div className={styles.codeBlock}>
-                <code>mem8 status</code>
-              </div>
-              <p>Check your setup and start managing context</p>
-            </motion.div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
 
 export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
       title="mem8 - Context Management for AI Development"
-      description="A CLI tool that enables AI assistants to maintain shared context across projects, teams, and conversations. Features include memory management, external templates, and intelligent port management.">
+      description="A CLI tool that enables AI assistants to maintain shared context across projects, teams, and conversations. Features include memory management, plugin-based workflows, and intelligent port management.">
       <HomepageHeader />
       <main>
         <FeatureSection1 />
         <FeatureSection2 />
         <FeatureSection3 />
-        <QuickStart />
       </main>
     </Layout>
   );
