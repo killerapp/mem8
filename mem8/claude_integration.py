@@ -27,19 +27,19 @@ This project uses mem8 for memory management across repositories.
 - `/setup-memory` - Configure AI memory for this project
 - `/browse-memories` - Search and explore memory across repositories
 - `mem8 search "query"` - Full-text search across all memories
-- `mem8 init` - Initialize mem8 workspace with templates
+- `/plugin install mem8@mem8-official` - Install mem8 plugin for Claude Code
 
 ## Shared Memory Location
 Shared memory: `{config.get('shared_location', 'memory/shared/')}`
 
-## Workflow Integration  
+## Workflow Integration
 - Research documents: `memory/shared/research/`
-- Implementation plans: `memory/shared/plans/` 
+- Implementation plans: `memory/shared/plans/`
 - PR discussions: `memory/shared/prs/`
 - User notes: `memory/{config.get('username', 'user')}/`
 
 ## Quick Start
-Run `mem8 init` to set up your mem8 workspace with Claude Code templates.
+Install the mem8 plugin in Claude Code: `/plugin install mem8@mem8-official`
 """
     return claude_md_content
 

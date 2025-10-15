@@ -11,7 +11,8 @@ from .core import register_core_commands
 # from .init import register_init_command
 from .worktree import worktree_app
 from .metadata import metadata_app
-from .templates import templates_app
+# Templates removed - use plugin system instead
+# from .templates import templates_app
 from .utilities import gh_app, register_tools_command, register_ports_command
 
 __all__ = [
@@ -22,7 +23,7 @@ __all__ = [
     # "register_init_command",  # Removed - use plugin installation
     "worktree_app",
     "metadata_app",
-    "templates_app",
+    # "templates_app",  # Removed - use plugin system
     "gh_app",
     "register_tools_command",
     "register_ports_command"

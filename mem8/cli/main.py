@@ -19,7 +19,7 @@ from .utils import get_console
 from .commands import (
     find_app, team_app, deploy_app,
     register_core_commands,
-    worktree_app, metadata_app, templates_app,
+    worktree_app, metadata_app,
     gh_app, register_tools_command, register_ports_command
 )
 
@@ -75,7 +75,7 @@ typer_app.add_typer(team_app, name="team")
 typer_app.add_typer(deploy_app, name="deploy")
 typer_app.add_typer(worktree_app, name="worktree")
 typer_app.add_typer(metadata_app, name="metadata")
-typer_app.add_typer(templates_app, name="templates")
+# templates_app removed - use plugin system instead
 typer_app.add_typer(gh_app, name="gh")
 
 # Register utility commands

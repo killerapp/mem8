@@ -315,48 +315,6 @@ def ensure_directory_exists(path: Path) -> bool:
         return False
 
 
-def verify_templates() -> bool:
-    """Verify that template resources are accessible."""
-    try:
-        from importlib import resources
-        import mem8.templates
-        
-        template_base = resources.files(mem8.templates)
-        
-        # Check for both templates
-        claude_template = template_base / "claude-dot-md-template"
-        memory_template = template_base / "shared-memory-template"
-        
-        # Try to list files in templates
-        claude_exists = (claude_template / "cookiecutter.json").exists()
-        memory_exists = (memory_template / "cookiecutter.json").exists()
-        
-        return claude_exists and memory_exists
-        
-    except Exception:
-        return False
-
-
-def get_template_path(template_name: str) -> Path:
-    """Get the path to a template, with fallback to development."""
-    try:
-        from importlib import resources
-        import mem8.templates
-        
-        template_path = resources.files(mem8.templates) / template_name
-        if template_path.exists():
-            return template_path
-    except Exception:
-        pass
-    
-    # Development fallback
-    dev_path = Path(__file__).parent.parent.parent / template_name
-    if dev_path.exists():
-        return dev_path
-    
-    raise FileNotFoundError(f"Template not found: {template_name}")
-
-
 def detect_gh_active_login(hostname: str = "github.com") -> Optional[str]:
     """Detect active GitHub CLI login for a host using `gh auth status`.
 
