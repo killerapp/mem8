@@ -91,7 +91,7 @@ function HomepageHeader() {
             </motion.div>
           </motion.div>
 
-          {/* Plugin Installation */}
+          {/* Marketplace Add */}
           <motion.div
             style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}
             initial={{ opacity: 0 }}
@@ -101,7 +101,34 @@ function HomepageHeader() {
             <motion.p
               style={{ fontSize: '1.1rem', color: '#c9d1d9', marginBottom: '0.25rem', fontWeight: 700, textAlign: 'center' }}
             >
-              2. Install Claude Code Plugin
+              2. Add the Marketplace
+            </motion.p>
+            <motion.div
+              className={styles.installCode}
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+              <code>/plugin marketplace add killerapp/mem8-plugin</code>
+              <CopyButton text="/plugin marketplace add killerapp/mem8-plugin" />
+            </motion.div>
+            <motion.p
+              style={{ fontSize: '0.9rem', color: '#7d8590', marginTop: '0.25rem', textAlign: 'center' }}
+            >
+              Run this in Claude Code to register the mem8 marketplace
+            </motion.p>
+          </motion.div>
+
+          {/* Plugin Installation */}
+          <motion.div
+            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.6 }}
+          >
+            <motion.p
+              style={{ fontSize: '1.1rem', color: '#c9d1d9', marginBottom: '0.25rem', fontWeight: 700, textAlign: 'center' }}
+            >
+              3. Install Claude Code Plugin
             </motion.p>
             <motion.div
               className={styles.installCode}
@@ -114,7 +141,7 @@ function HomepageHeader() {
             <motion.p
               style={{ fontSize: '0.9rem', color: '#7d8590', marginTop: '0.25rem', textAlign: 'center' }}
             >
-              Run this in Claude Code to get <code style={{fontSize: '0.85rem', padding: '2px 6px', background: '#1c2128', borderRadius: '4px'}}>/mem8:*</code> commands
+              Get <code style={{fontSize: '0.85rem', padding: '2px 6px', background: '#1c2128', borderRadius: '4px'}}>/mem8:*</code> commands
             </motion.p>
           </motion.div>
         </motion.div>
