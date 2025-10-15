@@ -48,7 +48,7 @@ Start by understanding your project:
 
 ```bash
 # In Claude Code, run:
-/m8-research "authentication system"
+/mem8:research "authentication system"
 ```
 
 This creates a research document in `memory/shared/research/` with:
@@ -61,7 +61,7 @@ This creates a research document in `memory/shared/research/` with:
 Design your implementation:
 
 ```bash
-/m8-plan "add OAuth2 support"
+/mem8:plan "add OAuth2 support"
 ```
 
 Generates a structured plan in `memory/shared/plans/` with:
@@ -74,7 +74,7 @@ Generates a structured plan in `memory/shared/plans/` with:
 Execute your plan:
 
 ```bash
-/m8-implement memory/shared/plans/add-oauth2-support.md
+/mem8:implement memory/shared/plans/add-oauth2-support.md
 ```
 
 Claude Code will:
@@ -87,7 +87,7 @@ Claude Code will:
 Create a conventional commit:
 
 ```bash
-/m8-commit
+/mem8:commit
 ```
 
 Generates a commit message based on your changes.

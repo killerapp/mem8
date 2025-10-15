@@ -30,7 +30,7 @@ Understand the codebase and gather context:
 
 ```bash
 # In Claude Code
-/m8-research "authentication system"
+/mem8:research "authentication system"
 ```
 
 Creates: `memory/shared/research/authentication-system-YYYYMMDD.md`
@@ -40,7 +40,7 @@ Creates: `memory/shared/research/authentication-system-YYYYMMDD.md`
 Design your approach:
 
 ```bash
-/m8-plan "add OAuth2 support"
+/mem8:plan "add OAuth2 support"
 ```
 
 Creates: `memory/shared/plans/add-oauth2-support.md`
@@ -50,7 +50,7 @@ Creates: `memory/shared/plans/add-oauth2-support.md`
 Execute your plan with context:
 
 ```bash
-/m8-implement memory/shared/plans/add-oauth2-support.md
+/mem8:implement memory/shared/plans/add-oauth2-support.md
 ```
 
 Claude Code loads your plan and implements step-by-step.
@@ -60,7 +60,7 @@ Claude Code loads your plan and implements step-by-step.
 Create a conventional commit:
 
 ```bash
-/m8-commit
+/mem8:commit
 ```
 
 Generates appropriate commit message based on changes.
@@ -90,7 +90,7 @@ Document PRs for future reference:
 
 ```bash
 # After creating PR
-/m8-describe-pr https://github.com/org/repo/pull/123
+/mem8:describe-pr https://github.com/org/repo/pull/123
 ```
 
 Creates: `memory/shared/prs/123_description.md`
@@ -177,14 +177,14 @@ mem8 works alongside your git workflow:
 git checkout -b feature/oauth2
 
 # Research and plan
-/m8-research "authentication"
-/m8-plan "OAuth2"
+/mem8:research "authentication"
+/mem8:plan "OAuth2"
 
 # Implement
-/m8-implement memory/shared/plans/oauth2.md
+/mem8:implement memory/shared/plans/oauth2.md
 
 # Commit with context
-/m8-commit
+/mem8:commit
 ```
 
 ### CI/CD Integration

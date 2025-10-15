@@ -77,14 +77,14 @@ A Claude Code plugin for mem8 includes:
   "author": "killerapp",
   "repository": "https://github.com/killerapp/mem8-plugin",
   "commands": [
-    "/m8-plan",
-    "/m8-implement",
-    "/m8-research",
-    "/m8-validate",
-    "/m8-commit",
-    "/m8-describe-pr",
-    "/m8-debug",
-    "/m8-local-review"
+    "/mem8:plan",
+    "/mem8:implement",
+    "/mem8:research",
+    "/mem8:validate",
+    "/mem8:commit",
+    "/mem8:describe-pr",
+    "/mem8:debug",
+    "/mem8:local-review"
   ],
   "agents": [
     "codebase-analyzer",

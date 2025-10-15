@@ -26,10 +26,10 @@ Persistent memory system for Claude Code with structured documentation. Keep AI 
 mem8 search "authentication"
 
 # Use Claude Code commands
-/m8-research "payment system"
-/m8-plan "add OAuth support"
-/m8-implement memory/shared/plans/oauth.md
-/m8-commit
+/mem8:research "payment system"
+/mem8:plan "add OAuth support"
+/mem8:implement memory/shared/plans/oauth.md
+/mem8:commit
 ```
 
 ### 🔧 Toolbelt Integration
@@ -80,12 +80,12 @@ mem8 templates set-default your-org/templates
 Custom commands and agents for enhanced AI workflows.
 
 Commands installed by default:
-- `/m8-research` - Parallel codebase exploration
-- `/m8-plan` - Structured implementation planning
-- `/m8-implement` - Execute plans with progress tracking
-- `/m8-validate` - Verify implementation completeness
-- `/m8-commit` - Create semantic commits
-- `/m8-describe-pr` - Generate PR descriptions
+- `/mem8:research` - Parallel codebase exploration
+- `/mem8:plan` - Structured implementation planning
+- `/mem8:implement` - Execute plans with progress tracking
+- `/mem8:validate` - Verify implementation completeness
+- `/mem8:commit` - Create semantic commits
+- `/mem8:describe-pr` - Generate PR descriptions
 
 ## Documentation
 
@@ -100,11 +100,11 @@ Commands installed by default:
 
 mem8 provides a structured development cycle:
 
-1. **Research** (`/m8-research`) - Understand existing patterns
-2. **Plan** (`/m8-plan`) - Design with concrete steps
-3. **Implement** (`/m8-implement`) - Execute with progress tracking
-4. **Validate** (`/m8-validate`) - Verify completeness
-5. **Commit** (`/m8-commit`) - Create semantic commits
+1. **Research** (`/mem8:research`) - Understand existing patterns
+2. **Plan** (`/mem8:plan`) - Design with concrete steps
+3. **Implement** (`/mem8:implement`) - Execute with progress tracking
+4. **Validate** (`/mem8:validate`) - Verify completeness
+5. **Commit** (`/mem8:commit`) - Create semantic commits
 
 ## Project Structure
 

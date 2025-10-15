@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Phase 1: Research with `/m8-research`
+# Phase 1: Research with `/mem8:research`
 Deep codebase analysis using parallel sub-agents to understand architecture and patterns.
 
 ### How It Works
@@ -16,7 +16,7 @@ sequenceDiagram
     participant TL as thoughts-locator
     participant Doc as memory/shared/research/
 
-    User->>Claude: /m8-research "How does auth work?"
+    User->>Claude: /mem8:research "How does auth work?"
     Claude->>Claude: Read mentioned files fully
     Claude->>CL: Find auth-related files
     Claude->>CA: Analyze authentication.py

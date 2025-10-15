@@ -15,7 +15,7 @@ graph TB
     E --> F[Dev 2: Create plan]
     F --> G[commits to memory/shared/plans/]
     G --> H[Dev 1: git pull]
-    H --> I[Dev 1: /m8-implement]
+    H --> I[Dev 1: /mem8:implement]
 
     style B fill:#e1f5ff
     style F fill:#fff4e1

@@ -2,7 +2,7 @@
 sidebar_position: 4
 ---
 
-# Phase 4: Commit with `/m8-commit`
+# Phase 4: Commit with `/mem8:commit`
 Create conventional commits based on session context.
 
 ### Commit Process

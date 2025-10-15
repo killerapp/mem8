@@ -47,7 +47,7 @@ memory/
 
 ### Thought Lifecycle
 
-1. **Create** - Use slash commands (`/m8-research`, `/m8-plan`)
+1. **Create** - Use slash commands (`/mem8:research`, `/mem8:plan`)
 2. **Edit** - Modify markdown files directly
 3. **Search** - Find with `mem8 search "query"`
 4. **Sync** - Share with team via `mem8 sync`
@@ -117,11 +117,11 @@ Specialized AI assistants for:
 ### Commands
 
 Workflow automation:
-- **`/m8-research`** - Analyze existing code
-- **`/m8-plan`** - Design implementation
-- **`/m8-implement`** - Execute with context
-- **`/m8-commit`** - Create conventional commits
-- **`/m8-describe-pr`** - Generate PR descriptions
+- **`/mem8:research`** - Analyze existing code
+- **`/mem8:plan`** - Design implementation
+- **`/mem8:implement`** - Execute with context
+- **`/mem8:commit`** - Create conventional commits
+- **`/mem8:describe-pr`** - Generate PR descriptions
 
 ### Workflow Integration
 

@@ -42,16 +42,16 @@ Each phase:
 
 ```bash
 # 1. Research the codebase
-/m8-research "authentication system"
+/mem8:research "authentication system"
 
 # 2. Create an implementation plan
-/m8-plan "add OAuth2 support"
+/mem8:plan "add OAuth2 support"
 
 # 3. Execute the plan
-/m8-implement
+/mem8:implement
 
 # 4. Commit your changes
-/m8-commit
+/mem8:commit
 ```
 
 ## Key Benefits
