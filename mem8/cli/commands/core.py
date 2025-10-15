@@ -10,7 +10,6 @@ from pathlib import Path
 from ..types import SearchMethod, ContentType, SyncDirection
 from ..state import get_state, set_app_state, handle_command_error
 from ..utils import get_console
-from ...core.templates import TemplateManager
 
 # Get console instance
 console = get_console()
@@ -35,8 +34,6 @@ def register_core_commands(app: typer.Typer):
             status_info = memory_manager.get_status(detailed=detailed)
 
             # Check Claude Code integration
-            template_manager = TemplateManager()
-            claude_analysis = template_manager.analyze_claude_template(Path.cwd())
             has_claude = Path('.claude').exists()
 
             # Basic status table
@@ -48,10 +45,9 @@ def register_core_commands(app: typer.Typer):
 
             # Add Claude Code status first if it exists
             if has_claude:
-                claude_status = f"✅ Active ({len(claude_analysis['existing_commands'])} cmds, {len(claude_analysis['existing_agents'])} agents)"
                 table.add_row(
                     "🤖 Claude Code",
-                    claude_status,
+                    "✅ Active",
                     ".claude/"
                 )
 
@@ -80,20 +76,6 @@ def register_core_commands(app: typer.Typer):
 
                     console.print(count_table)
 
-                # Show Claude Code details if present
-                if has_claude and (claude_analysis['existing_commands'] or claude_analysis['existing_agents']):
-                    console.print("\n[bold blue]Claude Code Components:[/bold blue]")
-                    if claude_analysis['existing_commands']:
-                        cmd_preview = ', '.join(claude_analysis['existing_commands'][:6])
-                        if len(claude_analysis['existing_commands']) > 6:
-                            cmd_preview += f" (+{len(claude_analysis['existing_commands']) - 6} more)"
-                        console.print(f"  📝 Commands: {cmd_preview}")
-                    if claude_analysis['existing_agents']:
-                        agent_preview = ', '.join(claude_analysis['existing_agents'][:4])
-                        if len(claude_analysis['existing_agents']) > 4:
-                            agent_preview += f" (+{len(claude_analysis['existing_agents']) - 4} more)"
-                        console.print(f"  🤖 Agents: {agent_preview}")
-
             # Show any issues
             if 'issues' in status_info and status_info['issues']:
                 console.print("\n⚠️  [bold yellow]Issues:[/bold yellow]")
@@ -107,9 +89,6 @@ def register_core_commands(app: typer.Typer):
     def doctor(
         fix: Annotated[bool, typer.Option("--fix", help="Attempt to automatically fix issues")] = False,
         json_output: Annotated[bool, typer.Option("--json", help="Output results as JSON for agent consumption")] = False,
-        template_source: Annotated[Optional[str], typer.Option(
-            "--template-source", help="Template source for toolbelt definition: local path, git URL, or GitHub shorthand (org/repo)"
-        )] = None,
         verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False
     ):
         """Diagnose and fix mem8 workspace issues."""
@@ -120,33 +99,11 @@ def register_core_commands(app: typer.Typer):
         state = get_state()
         memory_manager = state.memory_manager
 
-        # Resolve template source from: CLI flag > project config > user config > builtin
-        if template_source is None:
-            from ...core.config import Config
-
-            # Check project-level config first
-            project_config_file = Path.cwd() / ".mem8" / "config.yaml"
-            if project_config_file.exists():
-                import yaml
-                try:
-                    with open(project_config_file, 'r') as f:
-                        project_config = yaml.safe_load(f) or {}
-                        template_source = project_config.get('templates', {}).get('default_source')
-                except Exception:
-                    pass
-
-            # Fall back to user-level config
-            if template_source is None:
-                config = Config()
-                template_source = config.get('templates.default_source')
-
         if not json_output:
             console.print("[bold blue]Running mem8 diagnostics...[/bold blue]")
-            if template_source:
-                console.print(f"[dim]Using template source: {template_source}[/dim]")
 
         try:
-            diagnosis = memory_manager.diagnose_workspace(auto_fix=fix, template_source=template_source)
+            diagnosis = memory_manager.diagnose_workspace(auto_fix=fix)
 
             # JSON output mode
             if json_output:

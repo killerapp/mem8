@@ -28,22 +28,12 @@ Memory consists of structured markdown documents that capture:
 
 ```
 memory/
-├── shared/          # Team-shared thoughts
-│   ├── research/    # Research documents
-│   ├── plans/       # Implementation plans
-│   ├── prs/         # PR descriptions
-│   └── decisions/   # Technical decisions
-├── {username}/      # Personal thoughts
-│   ├── notes/       # Personal notes
-│   └── tickets/     # Work items
+├── research/        # Research documents
+├── plans/           # Implementation plans
+├── prs/             # PR descriptions
+├── decisions/       # Technical decisions
 └── searchable/      # Symlinks for fast search
 ```
-
-### Shared vs Personal
-
-- **Shared** (`memory/shared/`) - Committed to git, visible to team
-- **Personal** (`memory/{username}/`) - Your private workspace
-- **Searchable** - Automatic symlinks for unified search
 
 ### Memory Lifecycle
 
@@ -58,7 +48,7 @@ Create a memory directory manually or use git submodules for team sharing:
 
 ```bash
 # Local memory
-mkdir -p memory/shared/{research,plans,decisions}
+mkdir -p memory/{research,plans,decisions,prs}
 
 # Or use a shared repository
 git submodule add https://github.com/your-org/shared-memory.git memory
@@ -91,8 +81,8 @@ Workflow automation:
 
 mem8 connects Claude Code to:
 - **GitHub** - Issues, PRs, workflows
-- **Thoughts** - Research and plans
-- **Templates** - Standardized setups
+- **Memory** - Research and plans
+- **Plugins** - Standardized workflows
 
 ## Workspace
 
@@ -120,7 +110,7 @@ The `.mem8` directory stores lightweight workspace metadata. By default it conta
 
 ```bash
 # Create memory structure
-mkdir -p memory/shared/{research,plans,decisions}
+mkdir -p memory/{research,plans,decisions,prs}
 
 # Check workspace status
 mem8 status
@@ -160,11 +150,7 @@ Example `~/.config/mem8/config.yaml`:
 
 ```yaml
 workspace:
-  default_template: full
   auto_sync: true
-
-templates:
-  default_source: org/custom-templates
 
 discovery:
   cross_repo: false
@@ -241,11 +227,11 @@ mem8 sync --dry-run
 
 ### Team Workflows
 
-1. **Initialize** - Team lead runs `mem8 init --template full`
-2. **Share** - Commit `.claude/` and `memory/` to git
+1. **Setup** - Install mem8 CLI and Claude Code plugin
+2. **Share** - Commit `memory/` to git (or use git submodule)
 3. **Clone** - Team members clone repo
-4. **Sync** - Use `mem8 sync` for thought sharing
-5. **Search** - Everyone can search shared thoughts
+4. **Sync** - Use `mem8 sync` for memory sharing
+5. **Search** - Everyone can search shared memory
 
 ## Architecture
 
@@ -301,5 +287,5 @@ Shared thoughts and standardized workflows for collaboration.
 ## Next Steps
 
 - **[User Guide](./user-guide/getting-started)** - Learn to use mem8
-- **[External Templates](./external-templates)** - Customize templates
+- **[External Plugins](./external-templates)** - Customize plugins and workflows
 - **[GitHub](https://github.com/killerapp/mem8)** - Explore source code

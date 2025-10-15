@@ -267,42 +267,14 @@ Use `mem8 search` to find relevant content across all memories.
                     f.write(f"# Shared Memory\\n\\nShared directory: {shared_memory_dir}\\n\\nUse `mem8 sync` to synchronize.")
     
     def _setup_agents(self, claude_dir: Path) -> None:
-        """Set up AI agents from template."""
+        """Set up AI agents directory."""
         agents_dir = claude_dir / "agents"
         ensure_directory_exists(agents_dir)
-        
-        # Copy from template if available
-        try:
-            import mem8.templates
-            template_agents_dir = resources.files(mem8.templates) / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "agents"
-        except (ImportError, AttributeError):
-            # Fallback for development
-            template_agents_dir = Path(__file__).parent.parent.parent / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "agents"
-        
-        if template_agents_dir.exists():
-            for agent_file in template_agents_dir.glob("*.md"):
-                target_file = agents_dir / agent_file.name
-                if not target_file.exists():
-                    shutil.copy2(agent_file, target_file)
     
     def _setup_commands(self, claude_dir: Path) -> None:
-        """Set up commands from template."""
+        """Set up commands directory."""
         commands_dir = claude_dir / "commands"
         ensure_directory_exists(commands_dir)
-        
-        # Copy from template if available
-        try:
-            import mem8.templates
-            template_commands_dir = resources.files(mem8.templates) / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "commands"
-        except (ImportError, AttributeError):
-            # Fallback for development
-            template_commands_dir = Path(__file__).parent.parent.parent / "claude-dot-md-template" / "{{cookiecutter.project_slug}}" / "commands"
-        
-        if template_commands_dir.exists():
-            for command_file in template_commands_dir.glob("*.md"):
-                target_file = commands_dir / command_file.name
-                if not target_file.exists():
-                    shutil.copy2(command_file, target_file)
     
     def get_status(self, detailed: bool = False) -> Dict[str, Any]:
         """Get workspace status information."""
@@ -752,12 +724,11 @@ Use `mem8 search` to find relevant content across all memories.
             return system
         return 'linux'  # fallback
 
-    def diagnose_workspace(self, auto_fix: bool = False, template_source: Optional[str] = None) -> Dict[str, Any]:
+    def diagnose_workspace(self, auto_fix: bool = False) -> Dict[str, Any]:
         """Diagnose workspace health and optionally fix issues.
 
         Args:
             auto_fix: If True, attempt to fix issues automatically
-            template_source: Optional external template source (local path, git URL, or GitHub shorthand)
         """
         issues = []
         fixes_applied = []
@@ -800,8 +771,7 @@ Use `mem8 search` to find relevant content across all memories.
         # Check CLI toolbelt
         toolbelt_issues = self._check_toolbelt(
             auto_fix=auto_fix,
-            fixes_applied=fixes_applied,
-            template_source=template_source
+            fixes_applied=fixes_applied
         )
         issues.extend(toolbelt_issues)
 
@@ -818,60 +788,64 @@ Use `mem8 search` to find relevant content across all memories.
             'recommendations': recommendations,
         }
 
-    def _check_toolbelt(self, auto_fix: bool = False, fixes_applied: List[str] = None, template_source: Optional[str] = None) -> List[Dict[str, Any]]:
+    def _check_toolbelt(self, auto_fix: bool = False, fixes_applied: List[str] = None) -> List[Dict[str, Any]]:
         """
         Check CLI toolbelt availability and return issues.
 
         Args:
             auto_fix: If True, attempt to install missing tools
             fixes_applied: List to append fix messages to
-            template_source: Optional external template source (local path, git URL, or GitHub shorthand)
         """
         issues = []
         if fixes_applied is None:
             fixes_applied = []
 
-        # Load toolbelt definition from template source
+        # Load toolbelt definition from .mem8/toolbelt.json if available
         try:
-            from .template_source import create_template_source
-            source = create_template_source(template_source)  # None = builtin
-            manifest = source.load_manifest()
+            toolbelt_file = self.config.workspace_dir / ".mem8" / "toolbelt.json"
+            if not toolbelt_file.exists():
+                return issues
 
-            if not manifest or not manifest.toolbelt:
+            import json
+            with open(toolbelt_file, 'r', encoding='utf-8') as f:
+                toolbelt_data = json.load(f)
+
+            if not toolbelt_data:
                 return issues
 
             platform_key = self._get_platform_key()
 
             # Check required tools
             missing_required = []
-            for tool in manifest.toolbelt.required:
-                is_available = self._check_command_available(tool.command)
+            for tool in toolbelt_data.get('required', []):
+                is_available = self._check_command_available(tool.get('command', ''))
                 current_version = None
                 version_ok = True
 
                 if is_available:
                     # Check version if required
-                    if tool.version:
-                        current_version = self._get_command_version(tool.command)
+                    if tool.get('version'):
+                        current_version = self._get_command_version(tool.get('command', ''))
                         if current_version:
-                            version_ok = self._compare_versions(current_version, tool.version)
+                            version_ok = self._compare_versions(current_version, tool.get('version', ''))
                         else:
                             version_ok = False  # Can't verify version
 
                 if not is_available or not version_ok:
-                    install_cmd = tool.install.get(platform_key, tool.install.get('all', 'See documentation'))
+                    install_cmds = tool.get('install', {})
+                    install_cmd = install_cmds.get(platform_key, install_cmds.get('all', 'See documentation'))
                     tool_info = {
-                        'name': tool.name,
-                        'command': tool.command,
-                        'description': tool.description,
+                        'name': tool.get('name', 'Unknown'),
+                        'command': tool.get('command', ''),
+                        'description': tool.get('description', ''),
                         'install': install_cmd,
-                        'version': tool.version,
+                        'version': tool.get('version'),
                         'current_version': current_version
                     }
 
                     # Attempt auto-fix if requested
                     if auto_fix and install_cmd != 'See documentation':
-                        success, message = self._install_tool(tool.name, install_cmd)
+                        success, message = self._install_tool(tool.get('name', 'Unknown'), install_cmd)
                         if success:
                             fixes_applied.append(message)
                             tool_info['fixed'] = True
@@ -888,34 +862,35 @@ Use `mem8 search` to find relevant content across all memories.
 
             # Check optional tools
             missing_optional = []
-            for tool in manifest.toolbelt.optional:
-                is_available = self._check_command_available(tool.command)
+            for tool in toolbelt_data.get('optional', []):
+                is_available = self._check_command_available(tool.get('command', ''))
                 current_version = None
                 version_ok = True
 
                 if is_available:
                     # Check version if specified
-                    if tool.version:
-                        current_version = self._get_command_version(tool.command)
+                    if tool.get('version'):
+                        current_version = self._get_command_version(tool.get('command', ''))
                         if current_version:
-                            version_ok = self._compare_versions(current_version, tool.version)
+                            version_ok = self._compare_versions(current_version, tool.get('version', ''))
                         else:
                             version_ok = False
 
                 if not is_available or not version_ok:
-                    install_cmd = tool.install.get(platform_key, tool.install.get('all', 'See documentation'))
+                    install_cmds = tool.get('install', {})
+                    install_cmd = install_cmds.get(platform_key, install_cmds.get('all', 'See documentation'))
                     tool_info = {
-                        'name': tool.name,
-                        'command': tool.command,
-                        'description': tool.description,
+                        'name': tool.get('name', 'Unknown'),
+                        'command': tool.get('command', ''),
+                        'description': tool.get('description', ''),
                         'install': install_cmd,
-                        'version': tool.version,
+                        'version': tool.get('version'),
                         'current_version': current_version
                     }
 
                     # Auto-fix optional tools too if requested
                     if auto_fix and install_cmd != 'See documentation':
-                        success, message = self._install_tool(tool.name, install_cmd)
+                        success, message = self._install_tool(tool.get('name', 'Unknown'), install_cmd)
                         if success:
                             fixes_applied.append(message)
                             tool_info['fixed'] = True
