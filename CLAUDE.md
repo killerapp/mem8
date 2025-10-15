@@ -44,9 +44,10 @@ uv tool install . --editable
 
 ## Template Management
 
-- The `.claude` directory is generated from the cookiecutter template located in `mem8/templates/claude-dot-md-template`.
-- To update agents or commands, **always modify the cookiecutter template**.
-- The local `.claude` directory is for testing the `mem8` CLI itself and will be overwritten by the template.
+- The `.claude` directory with agents and commands is provided by the **[killerapp/mem8-plugin](https://github.com/killerapp/mem8-plugin)**.
+- mem8 CLI no longer includes builtin templates - all workflow commands and agents come from the plugin.
+- To update agents or commands, **modify the mem8-plugin repository**.
+- Install the plugin in Claude Code with `/plugin install mem8@mem8-official`.
 - The `memory` directory is a Git submodule that points to the `killerapp/mem8-memory` repository for shared organizational knowledge.
 
 ## Conventional Commits
